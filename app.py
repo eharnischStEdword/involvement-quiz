@@ -100,6 +100,13 @@ def init_db():
         logger.error(f"Database initialization failed: {e}")
         raise
 
+# CRITICAL FIX: Initialize database on startup (not just when running locally)
+try:
+    init_db()
+    logger.info("Database initialized on startup")
+except Exception as e:
+    logger.error(f"Database initialization failed: {e}")
+
 @app.route('/')
 def index():
     # Serve the HTML file
@@ -374,6 +381,9 @@ def test_database():
             'error': str(e),
             'error_type': type(e).__name__
         }), 500
+
+@app.route('/health')
+def health_check():
     """Health check endpoint for Render"""
     try:
         # Test database connection
@@ -398,7 +408,6 @@ def test_database():
 
 if __name__ == '__main__':
     try:
-        init_db()
         logger.info("Starting St. Edward Ministry Finder application")
         app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
     except Exception as e:
