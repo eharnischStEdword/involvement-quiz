@@ -41,6 +41,8 @@ def get_db_connection():
             raise
 
 # Initialize database
+# Replace the problematic DO block in app.py init_db() function
+
 def init_db():
     try:
         conn = get_db_connection()
@@ -62,17 +64,14 @@ def init_db():
             )
         ''')
         
-        # Add situation column if it doesn't exist (for existing databases)
-        cur.execute('''
-            DO $ 
-            BEGIN 
-                BEGIN
-                    ALTER TABLE ministry_submissions ADD COLUMN situation JSONB DEFAULT '[]'::jsonb;
-                EXCEPTION
-                    WHEN duplicate_column THEN null;
-                END;
-            END $;
-        ''')
+        # Add situation column if it doesn't exist (cleaner approach)
+        cur.execute("""
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'ministry_submissions' AND column_name = 'situation'
+        """)
+        if not cur.fetchone():
+            cur.execute("ALTER TABLE ministry_submissions ADD COLUMN situation JSONB DEFAULT '[]'::jsonb")
+            logger.info("Added situation column to ministry_submissions table")
         
         # Create ministries table for easier management
         cur.execute('''
@@ -99,7 +98,7 @@ def init_db():
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
         raise
-
+        
 # CRITICAL FIX: Initialize database on startup (not just when running locally)
 try:
     init_db()
