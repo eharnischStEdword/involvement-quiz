@@ -9,6 +9,9 @@ import json
 import logging
 import hashlib
 import time
+import threading
+import requests
+import pytz
 
 app = Flask(__name__)
 CORS(app)
@@ -46,6 +49,28 @@ def check_rate_limit(ip_address):
     
     request_counts[ip_address].append(current_time)
     return True
+
+def keep_alive():
+    """Ping the service every 10 minutes to prevent sleeping"""
+    time.sleep(60)  # Wait 1 minute before starting to let app fully start
+    
+    while True:
+        try:
+            time.sleep(600)  # Wait 10 minutes
+            # Only ping during reasonable hours (7 AM - 11 PM Central Time)
+            central = pytz.timezone('US/Central')
+            now = datetime.now(central)
+            
+            # Only keep alive during extended business hours
+            if 7 <= now.hour <= 23:  # 7 AM to 11 PM Central
+                url = os.environ.get('RENDER_EXTERNAL_URL', 'https://involvement-quiz.onrender.com')
+                response = requests.get(f'{url}/health', timeout=30)
+                logger.info(f"Keep-alive ping sent - Status: {response.status_code}")
+            else:
+                logger.info("Outside business hours, allowing sleep")
+        except Exception as e:
+            logger.error(f"Keep-alive failed: {e}")
+            # Continue the loop even if ping fails
 
 def require_admin_auth(f):
     """Decorator for admin authentication"""
@@ -157,6 +182,17 @@ try:
     logger.info("Database initialized on startup")
 except Exception as e:
     logger.error(f"Database initialization failed: {e}")
+
+# Start keep-alive service (only in production)
+if os.environ.get('DATABASE_URL'):  # Only run keep-alive in production
+    if not os.environ.get('WERKZEUG_RUN_MAIN'):  # Prevent duplicate threads in debug mode
+        try:
+            threading.Thread(target=keep_alive, daemon=True).start()
+            logger.info("Keep-alive service started for production")
+        except Exception as e:
+            logger.error(f"Failed to start keep-alive service: {e}")
+else:
+    logger.info("Local development mode - keep-alive service disabled")
 
 @app.route('/')
 def index():
