@@ -439,14 +439,20 @@ function showResults() {
     // CREATE SELECTIONS SUMMARY
     const selectionsHtml = createSelectionsummary();
     
+    // Check if user IS a child
+    const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
+    
     // SEPARATE ADULT AND CHILDREN'S MINISTRIES
     const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
     
     let html = selectionsHtml; // Add selections summary at top
     
-    // Add adult ministry recommendations
-    if (adultMinistries.length > 0) {
-        adultMinistries.forEach(ministry => {
+    // If user IS a child, merge all ministries together
+    if (userIsChild) {
+        // Show all ministries together without separation
+        const allMinistriesForChild = [...adultMinistries, ...childrenMinistries];
+        
+        allMinistriesForChild.forEach(ministry => {
             html += `
                 <div class="ministry-item">
                     <h3>${ministry.name}</h3>
@@ -455,33 +461,45 @@ function showResults() {
                 </div>
             `;
         });
-    }
-    
-// Add children's ministry section if applicable
-// Only show "For your children" if the user is NOT a child themselves
-const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
-
-if (childrenMinistries.length > 0 && !userIsChild) {
-    html += `
-        <div class="children-section">
-            <h2 class="children-header">For your children 👧👦</h2>
-            <div class="children-ministries">
-    `;
+    } else {
+        // User is an adult - show separated sections
         
-        childrenMinistries.forEach(ministry => {
+        // Add adult ministry recommendations
+        if (adultMinistries.length > 0) {
+            adultMinistries.forEach(ministry => {
+                html += `
+                    <div class="ministry-item">
+                        <h3>${ministry.name}</h3>
+                        <p>${ministry.description}</p>
+                        <p class="details">${ministry.details}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        // Add children's ministry section for adults (parents)
+        if (childrenMinistries.length > 0) {
             html += `
-                <div class="ministry-item children-ministry">
-                    <h3>${ministry.name}</h3>
-                    <p>${ministry.description}</p>
-                    <p class="details">${ministry.details}</p>
+                <div class="children-section">
+                    <h2 class="children-header">For your children 👧👦</h2>
+                    <div class="children-ministries">
+            `;
+            
+            childrenMinistries.forEach(ministry => {
+                html += `
+                    <div class="ministry-item children-ministry">
+                        <h3>${ministry.name}</h3>
+                        <p>${ministry.description}</p>
+                        <p class="details">${ministry.details}</p>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
                 </div>
             `;
-        });
-        
-        html += `
-                </div>
-            </div>
-        `;
+        }
     }
     
     resultsDiv.innerHTML = html;
