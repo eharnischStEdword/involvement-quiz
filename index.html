@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>St. Edward Ministry Finder</title>
+    <title>Stepping into St. Edward Church</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
     <style>
         * { 
@@ -30,7 +30,7 @@
             max-width: 800px;
             margin: 0 auto;
             text-align: center;
-            padding: 0 2rem;
+            padding: 0 1rem;
         }
 
         .logo-text {
@@ -45,10 +45,19 @@
             font-size: 1.1rem;
         }
 
+        .theme-verse {
+            color: rgba(238, 244, 241, 0.8);
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 0.5rem;
+            border-top: 1px solid rgba(238, 244, 241, 0.3);
+            padding-top: 0.5rem;
+        }
+
         .container {
             max-width: 700px;
             margin: 2rem auto;
-            padding: 0 2rem;
+            padding: 0 1rem;
         }
 
         .main-card {
@@ -62,24 +71,25 @@
         .card-header {
             background: linear-gradient(135deg, #00843D 0%, #005921 100%);
             color: #EEF4F1;
-            padding: 2rem;
+            padding: 2rem 1rem;
             text-align: center;
             position: relative;
         }
 
         .card-header h1 {
-            font-size: 2rem;
+            font-size: 1.8rem;
             margin-bottom: 0.5rem;
             font-weight: 400;
         }
 
         .card-header p {
             opacity: 0.9;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            line-height: 1.4;
         }
 
         .card-content {
-            padding: 2.5rem;
+            padding: 2rem 1.5rem;
         }
 
         .progress {
@@ -120,15 +130,16 @@
 
         .question h2 {
             color: #2c3e50;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             margin-bottom: 1.5rem;
             font-weight: 500;
+            line-height: 1.3;
         }
 
         .button-group {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
             margin-top: 2rem;
         }
 
@@ -136,15 +147,16 @@
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             color: #2c3e50;
             border: 2px solid #dee2e6;
-            padding: 1.2rem 1.5rem;
+            padding: 1rem 1.2rem;
             border-radius: 12px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 500;
             transition: all 0.3s ease;
             text-align: center;
             position: relative;
             overflow: hidden;
+            line-height: 1.3;
         }
 
         .option-btn:hover {
@@ -164,7 +176,7 @@
 
         .checkbox-group {
             display: grid;
-            gap: 15px;
+            gap: 12px;
             margin-top: 2rem;
         }
 
@@ -172,12 +184,12 @@
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             border: 2px solid #dee2e6;
             border-radius: 12px;
-            padding: 1.2rem;
+            padding: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.8rem;
         }
 
         .checkbox-item:hover {
@@ -192,8 +204,8 @@
         }
 
         .checkbox-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: #005921;
         }
@@ -205,7 +217,7 @@
         .navigation {
             display: flex;
             justify-content: space-between;
-            margin-top: 2.5rem;
+            margin-top: 2rem;
             gap: 1rem;
         }
 
@@ -213,13 +225,13 @@
             background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
             color: white;
             border: none;
-            padding: 1rem 2rem;
+            padding: 0.9rem 1.5rem;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             transition: all 0.3s ease;
-            min-width: 120px;
+            min-width: 100px;
         }
 
         .nav-btn:hover:not(:disabled) {
@@ -255,7 +267,7 @@
         .ministry-item {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             margin: 1rem 0;
-            padding: 1.8rem;
+            padding: 1.5rem;
             border-radius: 15px;
             border-left: 5px solid #00843D;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
@@ -272,19 +284,21 @@
             margin-top: 0;
             margin-bottom: 0.8rem;
             color: #2c3e50;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
+            line-height: 1.3;
         }
 
         .ministry-item p {
             margin: 0.6rem 0;
-            line-height: 1.6;
+            line-height: 1.5;
+            font-size: 0.95rem;
         }
 
         .ministry-item .details {
             color: #00843D;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .ministry-item .details a {
@@ -309,7 +323,7 @@
 
         #email-capture {
             background: linear-gradient(135deg, #f0f8f4 0%, #e8f5e8 100%);
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 15px;
             margin: 2rem 0;
             border: 2px solid rgba(0, 132, 61, 0.2);
@@ -318,7 +332,7 @@
         #email-capture h3 {
             color: #005921;
             margin-bottom: 1rem;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
         }
 
         .form-group {
@@ -330,11 +344,12 @@
             margin-bottom: 0.5rem;
             color: #2c3e50;
             font-weight: 500;
+            font-size: 0.95rem;
         }
 
         input[type="email"], input[type="text"] {
             width: 100%;
-            padding: 1rem;
+            padding: 0.9rem;
             border: 2px solid #dee2e6;
             border-radius: 10px;
             font-size: 1rem;
@@ -352,10 +367,10 @@
             background: linear-gradient(135deg, #00843D 0%, #005921 100%);
             color: #EEF4F1;
             border: none;
-            padding: 1.2rem 2rem;
+            padding: 1rem 1.5rem;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
             width: 100%;
@@ -396,11 +411,12 @@
         }
 
         .message {
-            padding: 1.2rem;
+            padding: 1rem;
             border-radius: 10px;
             margin: 1rem 0;
             border-left: 4px solid;
             font-weight: 500;
+            font-size: 0.95rem;
         }
 
         .message.success {
@@ -417,7 +433,7 @@
 
         .contact-info {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 2rem;
+            padding: 1.5rem;
             border-radius: 15px;
             text-align: center;
             margin: 2rem 0;
@@ -427,22 +443,23 @@
         .contact-info h4 {
             color: #005921;
             margin-bottom: 1rem;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .contact-info p {
             margin: 0.5rem 0;
             color: #495057;
+            font-size: 0.95rem;
         }
 
         .restart-btn {
             background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
             border: none;
-            padding: 1rem 2rem;
+            padding: 0.9rem 1.5rem;
             border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             transition: all 0.3s ease;
             margin-top: 2rem;
@@ -459,30 +476,127 @@
             padding: 1rem;
             border-radius: 8px;
             margin: 1rem 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #495057;
             border-left: 3px solid #005921;
         }
 
+        /* Enhanced Mobile Responsiveness */
         @media (max-width: 768px) {
+            .container {
+                margin: 1rem auto;
+                padding: 0 0.75rem;
+            }
+            
             .logo-text {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .theme-verse {
+                font-size: 0.8rem;
+            }
+            
+            .card-header {
+                padding: 1.5rem 1rem;
+            }
+            
+            .card-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card-header p {
+                font-size: 0.95rem;
             }
             
             .card-content {
-                padding: 1.5rem;
+                padding: 1.5rem 1rem;
             }
             
             .question h2 {
-                font-size: 1.4rem;
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
             }
             
             .button-group {
                 grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .option-btn {
+                padding: 0.9rem 1rem;
+                font-size: 0.9rem;
             }
             
             .navigation {
                 flex-direction: column;
+            }
+            
+            .nav-btn {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .ministry-item {
+                padding: 1.2rem;
+            }
+            
+            .ministry-item h3 {
+                font-size: 1.1rem;
+            }
+            
+            #email-capture {
+                padding: 1.2rem;
+            }
+            
+            .contact-info {
+                padding: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .header-content {
+                padding: 0 0.5rem;
+            }
+            
+            .logo-text {
+                font-size: 1.4rem;
+            }
+            
+            .card-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .question h2 {
+                font-size: 1.1rem;
+            }
+            
+            .option-btn {
+                padding: 0.8rem;
+                font-size: 0.85rem;
+            }
+            
+            .checkbox-item {
+                padding: 0.8rem;
+                gap: 0.6rem;
+            }
+            
+            .ministry-item {
+                padding: 1rem;
+            }
+        }
+
+        /* Touch-friendly targets for mobile */
+        @media (max-width: 768px) {
+            .option-btn, .nav-btn, .submit-btn, .checkbox-item {
+                min-height: 44px; /* Apple's recommended touch target size */
             }
         }
     </style>
@@ -492,14 +606,15 @@
         <div class="header-content">
             <div class="logo-text">⛪ St. Edward Church & School</div>
             <div class="subtitle">Find Your Place in Our Community</div>
+            <div class="theme-verse">"Through Love, Serve One Another" - Galatians 5:13</div>
         </div>
     </header>
 
     <div class="container">
         <div class="main-card">
             <div class="card-header">
-                <h1>Ministry Finder</h1>
-                <p>Discover ministries and groups that match your interests and life situation</p>
+                <h1>Stepping into St. Edward Church</h1>
+                <p>Discover what St. Edward has to offer that matches your interests and life situation</p>
             </div>
 
             <div class="card-content">
@@ -741,7 +856,7 @@
             'meal-train-receive': {
                 name: 'Meal Train Support for Your Family',
                 description: 'We want to serve you and support you with our meal train for families with new members!',
-                details: 'Contact <a href="mailto:elizabethlansden@gmail.com">elizabethlansden@gmail.com</a> if your family has welcomed someone new or is growing soon and would like to receive meals.',
+                details: 'Contact <a href="mailto:elizabethlansden@gmail.com">elizabethlansden@gmail.com</a> if your family is growing soon and would like to receive meals.',
                 age: ['infant'],
                 interest: ['support', 'fellowship', 'all']
             },
@@ -759,7 +874,7 @@
             'st-edward-school': {
                 name: 'St. Edward School (PreK-8th Grade)',
                 description: 'Catholic education in a faith-filled community environment',
-                details: 'Contact the school office for enrollment: <a href="https://ses.stedward.org" target="_blank">ses.stedward.org</a>',
+                details: 'Apply for enrollment: <a href="https://ses.stedward.org/apply" target="_blank">ses.stedward.org/apply</a>',
                 age: ['kid'],
                 interest: ['education', 'fellowship', 'all']
             },
