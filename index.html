@@ -612,7 +612,19 @@
 
         function answerQuestion(type, answer) {
             answers[type] = answer;
+            
+            // For younger age groups, skip state in life question
+            if (type === 'age' && ['infant', 'kid', 'junior-high', 'high-school'].includes(answer)) {
+                answers['state'] = 'single'; // Auto-assign single for younger ages
+            }
+            
             currentQuestion++;
+            
+            // Skip question 3 (state in life) for younger age groups
+            if (currentQuestion === 3 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                currentQuestion = 4; // Jump to interests question
+            }
+            
             updateProgress();
             
             if (currentQuestion <= totalQuestions) {
@@ -624,14 +636,33 @@
         }
 
         function goBack(questionNum) {
-            currentQuestion = questionNum - 1;
+            // Handle going back when state question was skipped
+            if (questionNum === 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                currentQuestion = 2; // Go back to gender question
+                document.getElementById('q4').classList.remove('active');
+                document.getElementById('q2').classList.add('active');
+            } else {
+                currentQuestion = questionNum - 1;
+                document.getElementById(`q${questionNum}`).classList.remove('active');
+                document.getElementById(`q${currentQuestion}`).classList.add('active');
+            }
             updateProgress();
-            document.getElementById(`q${questionNum}`).classList.remove('active');
-            document.getElementById(`q${currentQuestion}`).classList.add('active');
         }
 
         function updateProgress() {
-            const progress = (currentQuestion - 1) / totalQuestions * 100;
+            let totalQuestionsForUser = totalQuestions;
+            // If younger age group, they skip state question, so only 3 questions total
+            if (answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                totalQuestionsForUser = 3;
+            }
+            
+            let progressQuestions = currentQuestion - 1;
+            // Adjust for skipped question
+            if (currentQuestion === 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                progressQuestions = 3; // They're on the final question for their flow
+            }
+            
+            const progress = progressQuestions / totalQuestionsForUser * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
         }
 
