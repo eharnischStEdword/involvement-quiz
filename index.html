@@ -4,241 +4,684 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>St. Edward Ministry Finder</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
         }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #005921 0%, #004a1e 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #005921;
+            padding: 1.5rem 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        h1 {
-            color: #2c3e50;
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
             text-align: center;
+            padding: 0 2rem;
         }
+
+        .logo-text {
+            color: #EEF4F1;
+            font-size: 2.2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: rgba(238, 244, 241, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .main-card {
+            background: rgba(238, 244, 241, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #00843D 0%, #005921 100%);
+            color: #EEF4F1;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .card-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+        }
+
+        .card-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .card-content {
+            padding: 2.5rem;
+        }
+
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #00843D 0%, #005921 100%);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
         .question {
             display: none;
-            animation: fadeIn 0.5s;
+            animation: fadeInUp 0.6s ease;
         }
+
         .question.active {
             display: block;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
         }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        button:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .back-button {
-            background-color: #95a5a6;
-            margin-top: 20px;
-        }
-        .back-button:hover {
-            background-color: #7f8c8d;
-        }
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        #results {
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-        .ministry-list {
-            background-color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .ministry-item {
-            margin: 10px 0;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-        }
-        .ministry-item h3 {
-            margin-top: 0;
+
+        .question h2 {
             color: #2c3e50;
+            font-size: 1.6rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
         }
-        .ministry-item p {
-            margin: 5px 0;
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 2rem;
         }
-        #restart {
-            background-color: #e74c3c;
-        }
-        #restart:hover {
-            background-color: #c0392b;
-        }
-        .progress {
-            width: 100%;
-            height: 10px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
-            margin-bottom: 20px;
+
+        .option-btn {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #2c3e50;
+            border: 2px solid #dee2e6;
+            padding: 1.2rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
             overflow: hidden;
         }
-        .progress-bar {
-            height: 100%;
-            background-color: #3498db;
-            transition: width 0.3s;
+
+        .option-btn:hover {
+            background: linear-gradient(135deg, #005921 0%, #004a1e 100%);
+            color: #EEF4F1;
+            border-color: #005921;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 89, 33, 0.3);
         }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, #00843D 0%, #005921 100%);
+            color: #EEF4F1;
+            border-color: #005921;
+            box-shadow: 0 6px 20px rgba(0, 89, 33, 0.4);
+        }
+
+        .checkbox-group {
+            display: grid;
+            gap: 15px;
+            margin-top: 2rem;
+        }
+
+        .checkbox-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .checkbox-item:hover {
+            border-color: #005921;
+            background: linear-gradient(135deg, #f0f8f4 0%, #e8f5e8 100%);
+        }
+
+        .checkbox-item.selected {
+            background: linear-gradient(135deg, #00843D 0%, #005921 100%);
+            color: #EEF4F1;
+            border-color: #005921;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #005921;
+        }
+
+        .checkbox-item.selected input[type="checkbox"] {
+            accent-color: #EEF4F1;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2.5rem;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, #00843D 0%, #005921 100%);
+        }
+
+        .nav-btn.primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #005921 0%, #004a1e 100%);
+            box-shadow: 0 5px 15px rgba(0, 89, 33, 0.4);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        #results {
+            display: none;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .ministry-list {
+            margin: 2rem 0;
+        }
+
+        .ministry-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            margin: 1rem 0;
+            padding: 1.8rem;
+            border-radius: 15px;
+            border-left: 5px solid #00843D;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .ministry-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            border-left-color: #005921;
+        }
+
+        .ministry-item h3 {
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+            color: #2c3e50;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .ministry-item p {
+            margin: 0.6rem 0;
+            line-height: 1.6;
+        }
+
+        .ministry-item .details {
+            color: #00843D;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
         #email-capture {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #ecf0f1;
-            border-radius: 5px;
+            background: linear-gradient(135deg, #f0f8f4 0%, #e8f5e8 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            border: 2px solid rgba(0, 132, 61, 0.2);
         }
+
+        #email-capture h3 {
+            color: #005921;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .form-group {
+            margin: 1rem 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
         input[type="email"], input[type="text"] {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            box-sizing: border-box;
+            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
         }
+
+        input[type="email"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #005921;
+            box-shadow: 0 0 0 3px rgba(0, 89, 33, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #00843D 0%, #005921 100%);
+            color: #EEF4F1;
+            border: none;
+            padding: 1.2rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #005921 0%, #004a1e 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 89, 33, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .loading {
             display: none;
             text-align: center;
-            padding: 20px;
+            padding: 1rem;
+            color: #005921;
         }
-        .success-message {
-            background-color: #d5f4e6;
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(0, 89, 33, 0.3);
+            border-radius: 50%;
+            border-top-color: #005921;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-color: #005921;
             color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            display: none;
         }
-        .error-message {
-            background-color: #f8d7da;
+
+        .message.error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-color: #dc3545;
             color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
-            display: none;
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin: 2rem 0;
+            border: 2px solid rgba(0, 89, 33, 0.1);
+        }
+
+        .contact-info h4 {
+            color: #005921;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .contact-info p {
+            margin: 0.5rem 0;
+            color: #495057;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .restart-btn:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .note {
+            background: rgba(0, 89, 33, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #495057;
+            border-left: 3px solid #005921;
+        }
+
+        @media (max-width: 768px) {
+            .logo-text {
+                font-size: 1.8rem;
+            }
+            
+            .card-content {
+                padding: 1.5rem;
+            }
+            
+            .question h2 {
+                font-size: 1.4rem;
+            }
+            
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .navigation {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-text">⛪ St. Edward Church & School</div>
+            <div class="subtitle">Find Your Place in Our Community</div>
+        </div>
+    </header>
+
     <div class="container">
-        <h1>Find Your Ministry at St. Edward</h1>
-        <div class="progress">
-            <div class="progress-bar" id="progress-bar"></div>
-        </div>
-        
-        <!-- Question 1: Age -->
-        <div class="question active" id="q1">
-            <h2>What's your age group?</h2>
-            <div class="button-group">
-                <button onclick="answerQuestion('age', 'infant')">Infant (0-3)</button>
-                <button onclick="answerQuestion('age', 'kid')">Kid (PreK-Grade 5)</button>
-                <button onclick="answerQuestion('age', 'junior-high')">Junior High (Grades 6-8)</button>
-                <button onclick="answerQuestion('age', 'high-school')">High School (Grades 9-12)</button>
-                <button onclick="answerQuestion('age', 'college-young-adult')">College & Young Adult (18-35)</button>
-                <button onclick="answerQuestion('age', 'married-parents')">Married Couples & Parents</button>
-                <button onclick="answerQuestion('age', 'journeying-adults')">Journeying Adults (30+)</button>
+        <div class="main-card">
+            <div class="card-header">
+                <h1>Ministry Finder</h1>
+                <p>Discover ministries and groups that match your interests and life situation</p>
             </div>
-        </div>
 
-        <!-- Question 2: Gender -->
-        <div class="question" id="q2">
-            <h2>Are you:</h2>
-            <div class="button-group">
-                <button onclick="answerQuestion('gender', 'male')">Male</button>
-                <button onclick="answerQuestion('gender', 'female')">Female</button>
-                <button onclick="answerQuestion('gender', 'skip')">Skip this question</button>
-            </div>
-            <button class="back-button" onclick="goBack(2)">← Back</button>
-        </div>
-
-        <!-- Question 3: State in Life -->
-        <div class="question" id="q3">
-            <h2>What's your state in life?</h2>
-            <div class="button-group">
-                <button onclick="answerQuestion('state', 'single')">Single</button>
-                <button onclick="answerQuestion('state', 'married')">Married</button>
-                <button onclick="answerQuestion('state', 'parent')">Parent</button>
-                <button onclick="answerQuestion('state', 'skip')">Skip this question</button>
-            </div>
-            <button class="back-button" onclick="goBack(3)">← Back</button>
-        </div>
-
-        <!-- Question 4: Interests -->
-        <div class="question" id="q4">
-            <h2>What interests you most?</h2>
-            <div class="button-group">
-                <button onclick="answerQuestion('interest', 'service')">Serving Others</button>
-                <button onclick="answerQuestion('interest', 'prayer')">Prayer & Worship</button>
-                <button onclick="answerQuestion('interest', 'education')">Learning & Teaching</button>
-                <button onclick="answerQuestion('interest', 'music')">Music & Arts</button>
-                <button onclick="answerQuestion('interest', 'fellowship')">Fellowship & Community</button>
-                <button onclick="answerQuestion('interest', 'all')">Show me everything!</button>
-            </div>
-            <button class="back-button" onclick="goBack(4)">← Back</button>
-        </div>
-
-        <!-- Results -->
-        <div id="results">
-            <h2>Perfect! Here are ministries for you:</h2>
-            <div id="ministry-recommendations"></div>
-            
-            <div id="email-capture">
-                <h3>Want to learn more about these ministries?</h3>
-                <p>We can send you contact information and meeting times:</p>
-                <input type="text" id="name" placeholder="Your Name (optional)">
-                <input type="email" id="email" placeholder="Your Email">
-                <button id="submit-btn" onclick="submitInfo()">Send Me More Info</button>
-                <div class="loading" id="loading">
-                    <p>Submitting your information...</p>
+            <div class="card-content">
+                <div class="progress">
+                    <div class="progress-bar" id="progress-bar"></div>
                 </div>
-                <div class="success-message" id="success-message"></div>
-                <div class="error-message" id="error-message"></div>
-                <p style="font-size: 14px; color: #7f8c8d; margin-top: 10px;">Or just screenshot your results!</p>
+                
+                <!-- Question 1: Age -->
+                <div class="question active" id="q1">
+                    <h2>What's your age group?</h2>
+                    <div class="button-group">
+                        <button class="option-btn" onclick="answerQuestion('age', 'infant')">Infant (0-3)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'kid')">Kid (PreK-Grade 5)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'junior-high')">Junior High (Grades 6-8)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'high-school')">High School (Grades 9-12)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'college-young-adult')">College & Young Adult (18-35)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'married-parents')">Married Couples & Parents</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'journeying-adults')">Journeying Adults (30+)</button>
+                    </div>
+                </div>
+
+                <!-- Question 2: Gender -->
+                <div class="question" id="q2">
+                    <h2>Are you:</h2>
+                    <div class="button-group">
+                        <button class="option-btn" onclick="answerQuestion('gender', 'male')">Male</button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'female')">Female</button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'skip')">Skip this question</button>
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(2)">← Back</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Question 3: State in Life -->
+                <div class="question" id="q3">
+                    <h2>What's your state in life?</h2>
+                    <div class="button-group">
+                        <button class="option-btn" onclick="answerQuestion('state', 'single')">Single</button>
+                        <button class="option-btn" onclick="answerQuestion('state', 'married')">Married</button>
+                        <button class="option-btn" onclick="answerQuestion('state', 'parent')">Parent</button>
+                        <button class="option-btn" onclick="answerQuestion('state', 'skip')">Skip this question</button>
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(3)">← Back</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Question 4: Situation -->
+                <div class="question" id="q4">
+                    <h2>What describes your situation?</h2>
+                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
+                    <div class="checkbox-group" id="situation-checkboxes">
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
+                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward">
+                            <label for="new-to-stedward">New to St. Edward</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
+                            <input type="checkbox" id="returning-to-church" value="returning-to-church">
+                            <label for="returning-to-church">Returning to Church</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
+                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville">
+                            <label for="new-to-nashville">New to Nashville</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('none-of-above')">
+                            <input type="checkbox" id="none-of-above" value="none-of-above">
+                            <label for="none-of-above">None of the above</label>
+                        </div>
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(4)">← Back</button>
+                        <button class="nav-btn primary" onclick="nextFromSituation()">Continue →</button>
+                    </div>
+                </div>
+
+                <!-- Question 5: Interests -->
+                <div class="question" id="q5">
+                    <h2>What interests you most?</h2>
+                    <div class="button-group" id="interest-buttons">
+                        <!-- Filled dynamically based on age -->
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(5)">← Back</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="results">
+                    <h2>Perfect! Here are ministries for you:</h2>
+                    <div id="ministry-recommendations" class="ministry-list"></div>
+                    
+                    <div id="email-capture">
+                        <h3>📧 Want to learn more?</h3>
+                        <p>We can send you contact information and meeting times for these ministries:</p>
+                        
+                        <div class="form-group">
+                            <label for="name">Your Name (optional)</label>
+                            <input type="text" id="name" placeholder="Enter your name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" placeholder="Enter your email address" required>
+                        </div>
+                        
+                        <button class="submit-btn" id="submit-btn" onclick="submitInfo()">Send Me More Info</button>
+                        
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            Submitting your information...
+                        </div>
+                        
+                        <div id="message-area"></div>
+                        
+                        <div class="note">
+                            💡 <strong>Tip:</strong> You can also screenshot your results!
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h4>Questions?</h4>
+                        <p><strong>Call:</strong> (615) 833-5520</p>
+                        <p><strong>Email:</strong> support@stedward.org</p>
+                        <p><strong>Visit:</strong> stedward.org</p>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="restart-btn" onclick="restart()">🔄 Start Over</button>
+                    </div>
+                </div>
             </div>
-            
-            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; text-align: center;">
-                <p style="margin: 5px;"><strong>Questions?</strong></p>
-                <p style="margin: 5px;">Call the Parish Office: (615) 833-5520</p>
-                <p style="margin: 5px;">Email: support@stedward.org</p>
-                <p style="margin: 5px;">Visit: stedward.org</p>
-            </div>
-            
-            <button id="restart" onclick="restart()">Start Over</button>
         </div>
     </div>
 
     <script>
         // Store user answers
         const answers = {};
+        const situation = [];
         let currentQuestion = 1;
-        const totalQuestions = 4;
+        const totalQuestions = 5;
 
-                    // Ministry database with simple if-then rules
+        // Age-specific interest options
+        const interestOptions = {
+            infant: [
+                { value: 'support', label: 'Parent Support & Community' },
+                { value: 'education', label: 'Learning About Faith' },
+                { value: 'service', label: 'Helping Others' },
+                { value: 'all', label: 'Show me everything!' }
+            ],
+            kid: [
+                { value: 'education', label: 'Learning & Growing in Faith' },
+                { value: 'fellowship', label: 'Making Friends' },
+                { value: 'music', label: 'Music & Arts' },
+                { value: 'service', label: 'Helping Others' },
+                { value: 'all', label: 'Show me everything!' }
+            ],
+            'junior-high': [
+                { value: 'fellowship', label: 'Fellowship & Community' },
+                { value: 'education', label: 'Learning & Teaching' },
+                { value: 'service', label: 'Serving Others' },
+                { value: 'prayer', label: 'Prayer & Worship' },
+                { value: 'all', label: 'Show me everything!' }
+            ],
+            'high-school': [
+                { value: 'fellowship', label: 'Fellowship & Community' },
+                { value: 'service', label: 'Serving Others' },
+                { value: 'prayer', label: 'Prayer & Worship' },
+                { value: 'music', label: 'Music & Arts' },
+                { value: 'education', label: 'Learning & Teaching' },
+                { value: 'all', label: 'Show me everything!' }
+            ],
+            'college-young-adult': [
+                { value: 'fellowship', label: 'Fellowship & Community' },
+                { value: 'service', label: 'Serving Others' },
+                { value: 'prayer', label: 'Prayer & Worship' },
+                { value: 'education', label: 'Learning & Teaching' },
+                { value: 'music', label: 'Music & Arts' },
+                { value: 'all', label: 'Show me everything!' }
+            ],
+            'married-parents': [
+                { value: 'fellowship', label: 'Fellowship & Community' },
+                { value: 'service', label: 'Serving Others' },
+                { value: 'education', label: 'Learning & Teaching' },
+                { value: 'prayer', label: 'Prayer & Worship' },
+                { value: 'support', label: 'Family Support' },
+                { value: 'all', label: 'Show me everything!' }
+            ],
+            'journeying-adults': [
+                { value: 'prayer', label: 'Prayer & Worship' },
+                { value: 'service', label: 'Serving Others' },
+                { value: 'fellowship', label: 'Fellowship & Community' },
+                { value: 'education', label: 'Learning & Teaching' },
+                { value: 'music', label: 'Music & Arts' },
+                { value: 'all', label: 'Show me everything!' }
+            ]
+        };
+
+        // Ministry database with updated mappings
         const ministries = {
             // Sacraments
             'ocia': {
@@ -264,7 +707,7 @@
                 interest: ['education', 'prayer']
             },
             
-            // Infants
+            // Parent Support
             'moms-group': {
                 name: 'Moms Group',
                 description: 'Spiritual & practical support for mothers',
@@ -272,14 +715,14 @@
                 age: ['infant', 'married-parents'],
                 gender: ['female'],
                 state: ['parent'],
-                interest: ['fellowship']
+                interest: ['fellowship', 'support']
             },
             'meal-train': {
                 name: 'Meal Train for New Families',
                 description: 'Support families with new babies',
                 details: 'Contact support@stedward.org to participate',
                 age: ['infant', 'married-parents'],
-                interest: ['service', 'fellowship']
+                interest: ['service', 'fellowship', 'support']
             },
             
             // Kids
@@ -458,7 +901,7 @@
                 details: 'Contact support@stedward.org for schedule',
                 age: ['married-parents'],
                 state: ['married'],
-                interest: ['fellowship', 'education']
+                interest: ['fellowship', 'education', 'support']
             },
             'knights-parents': {
                 name: 'Knights of Columbus',
@@ -606,63 +1049,166 @@
                 description: 'Gentle return to the Catholic Church',
                 details: 'Call (615) 833-5520 or email support@stedward.org',
                 age: ['college-young-adult', 'married-parents', 'journeying-adults'],
-                interest: ['prayer', 'education', 'all']
+                interest: ['prayer', 'education', 'all'],
+                situation: ['returning-to-church']
+            },
+            'welcome-committee': {
+                name: 'Welcome to St. Edward!',
+                description: 'New parishioner orientation and support',
+                details: 'Contact support@stedward.org for information',
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
+                interest: ['fellowship', 'all'],
+                situation: ['new-to-stedward']
+            },
+            'nashville-newcomers': {
+                name: 'Nashville Newcomers Group',
+                description: 'Connect with other families new to Nashville',
+                details: 'Contact support@stedward.org for information',
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
+                interest: ['fellowship', 'all'],
+                situation: ['new-to-nashville']
             }
         };
 
         function answerQuestion(type, answer) {
             answers[type] = answer;
             
-            // For younger age groups, skip state in life question
-            if (type === 'age' && ['infant', 'kid', 'junior-high', 'high-school'].includes(answer)) {
-                answers['state'] = 'single'; // Auto-assign single for younger ages
-            }
+            // Update button styling
+            const buttons = document.querySelectorAll(`#q${currentQuestion} .option-btn`);
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
             
-            currentQuestion++;
+            // Wait a moment for visual feedback
+            setTimeout(() => {
+                // For younger age groups, skip state in life question
+                if (type === 'age' && ['infant', 'kid', 'junior-high', 'high-school'].includes(answer)) {
+                    answers['state'] = 'single'; // Auto-assign single for younger ages
+                }
+                
+                currentQuestion++;
+                
+                // Skip question 3 (state in life) for younger age groups
+                if (currentQuestion === 3 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                    currentQuestion = 4; // Jump to situation question
+                }
+                
+                // For interest question, populate age-specific options
+                if (currentQuestion === 5) {
+                    populateInterestOptions();
+                }
+                
+                updateProgress();
+                
+                if (currentQuestion <= totalQuestions) {
+                    showQuestion(currentQuestion);
+                } else {
+                    showResults();
+                }
+            }, 300);
+        }
+
+        function toggleSituationCheckbox(value) {
+            const checkbox = document.getElementById(value);
+            const item = checkbox.parentElement;
             
-            // Skip question 3 (state in life) for younger age groups
-            if (currentQuestion === 3 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
-                currentQuestion = 4; // Jump to interests question
-            }
-            
-            updateProgress();
-            
-            if (currentQuestion <= totalQuestions) {
-                document.getElementById(`q${currentQuestion - 1}`).classList.remove('active');
-                document.getElementById(`q${currentQuestion}`).classList.add('active');
+            // Handle "none of above" logic
+            if (value === 'none-of-above') {
+                if (!checkbox.checked) {
+                    // Clear all other checkboxes
+                    document.querySelectorAll('#situation-checkboxes input[type="checkbox"]').forEach(cb => {
+                        if (cb.id !== 'none-of-above') {
+                            cb.checked = false;
+                            cb.parentElement.classList.remove('selected');
+                        }
+                    });
+                    situation.length = 0; // Clear array
+                }
             } else {
-                showResults();
+                // If selecting something else, uncheck "none of above"
+                const noneCheckbox = document.getElementById('none-of-above');
+                if (noneCheckbox.checked) {
+                    noneCheckbox.checked = false;
+                    noneCheckbox.parentElement.classList.remove('selected');
+                    const noneIndex = situation.indexOf('none-of-above');
+                    if (noneIndex > -1) situation.splice(noneIndex, 1);
+                }
+            }
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                item.classList.add('selected');
+                if (!situation.includes(value)) {
+                    situation.push(value);
+                }
+            } else {
+                item.classList.remove('selected');
+                const index = situation.indexOf(value);
+                if (index > -1) {
+                    situation.splice(index, 1);
+                }
             }
         }
 
+        function nextFromSituation() {
+            currentQuestion++;
+            populateInterestOptions();
+            updateProgress();
+            showQuestion(currentQuestion);
+        }
+
+        function populateInterestOptions() {
+            const interestContainer = document.getElementById('interest-buttons');
+            const ageGroup = answers.age;
+            const options = interestOptions[ageGroup] || interestOptions['journeying-adults'];
+            
+            interestContainer.innerHTML = '';
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.textContent = option.label;
+                button.onclick = () => answerQuestion('interest', option.value);
+                interestContainer.appendChild(button);
+            });
+        }
+
         function goBack(questionNum) {
+            // Clear selected styling
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.checkbox-item').forEach(item => item.classList.remove('selected'));
+            
             // Handle going back when state question was skipped
             if (questionNum === 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
                 currentQuestion = 2; // Go back to gender question
-                document.getElementById('q4').classList.remove('active');
-                document.getElementById('q2').classList.add('active');
+            } else if (questionNum === 5 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                currentQuestion = 4; // Go back to situation question
             } else {
                 currentQuestion = questionNum - 1;
-                document.getElementById(`q${questionNum}`).classList.remove('active');
-                document.getElementById(`q${currentQuestion}`).classList.add('active');
             }
+            
             updateProgress();
+            showQuestion(currentQuestion);
+        }
+
+        function showQuestion(questionNum) {
+            document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+            document.getElementById(`q${questionNum}`).classList.add('active');
         }
 
         function updateProgress() {
             let totalQuestionsForUser = totalQuestions;
-            // If younger age group, they skip state question, so only 3 questions total
+            // If younger age group, they skip state question, so only 4 questions total
             if (answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
-                totalQuestionsForUser = 3;
+                totalQuestionsForUser = 4;
             }
             
             let progressQuestions = currentQuestion - 1;
             // Adjust for skipped question
-            if (currentQuestion === 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
-                progressQuestions = 3; // They're on the final question for their flow
+            if (currentQuestion >= 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+                progressQuestions = currentQuestion - 2; // Account for skipped state question
             }
             
-            const progress = progressQuestions / totalQuestionsForUser * 100;
+            const progress = Math.min(progressQuestions / totalQuestionsForUser * 100, 100);
             document.getElementById('progress-bar').style.width = progress + '%';
         }
 
@@ -679,27 +1225,21 @@
                     <div class="ministry-item">
                         <h3>${ministry.name}</h3>
                         <p>${ministry.description}</p>
-                        <p style="color: #3498db; font-weight: bold;">${ministry.details}</p>
+                        <p class="details">${ministry.details}</p>
                     </div>
                 `;
             });
             resultsDiv.innerHTML = html;
+            
+            // Update progress bar to 100%
+            document.getElementById('progress-bar').style.width = '100%';
         }
 
         function findMinistries() {
             const matches = [];
-            const generalMatches = []; // Fallback options
             
             for (const [key, ministry] of Object.entries(ministries)) {
                 let isMatch = true;
-                let isGeneralMatch = false;
-                
-                // Check if this is a general ministry (works for most people)
-                if (ministry.name === 'Parish Festival Committee' || 
-                    ministry.name === 'Welcome Committee' || 
-                    ministry.name === 'Sunday Socials') {
-                    isGeneralMatch = true;
-                }
                 
                 // Check age
                 if (ministry.age && !ministry.age.includes(answers.age)) {
@@ -716,27 +1256,31 @@
                     isMatch = false;
                 }
                 
+                // Check situation (if ministry has situation requirements)
+                if (ministry.situation && ministry.situation.length > 0) {
+                    const hasMatchingSituation = ministry.situation.some(s => situation.includes(s));
+                    if (!hasMatchingSituation) {
+                        isMatch = false;
+                    }
+                }
+                
                 // Check interest (always check unless 'all' is selected)
                 if (answers.interest !== 'all' && ministry.interest && !ministry.interest.includes(answers.interest)) {
                     isMatch = false;
                 }
                 
                 if (isMatch) {
-                    if (isGeneralMatch && ministry.age && ministry.age.includes(answers.age)) {
-                        generalMatches.push(ministry);
-                    } else {
-                        matches.push(ministry);
-                    }
+                    matches.push(ministry);
                 }
             }
             
-            // If we have no specific matches, show general options
+            // If we have no matches, show general options
             if (matches.length === 0) {
-                return generalMatches.length > 0 ? generalMatches : [
+                return [
                     {
                         name: 'Parish Community',
                         description: 'We have many opportunities to get involved!',
-                        details: 'Please contact the parish office at (615) 833-5520'
+                        details: 'Please contact the parish office at (615) 833-5520 for personalized recommendations.'
                     }
                 ];
             }
@@ -744,29 +1288,41 @@
             return matches;
         }
 
+        function showMessage(text, type = 'info') {
+            const messageArea = document.getElementById('message-area');
+            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('submit-btn').disabled = show;
+        }
+
         async function submitInfo() {
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             
             if (!email) {
-                showError('Please enter your email address');
+                showMessage('Please enter your email address', 'error');
                 return;
             }
             
             // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                showError('Please enter a valid email address');
+                showMessage('Please enter a valid email address', 'error');
                 return;
             }
             
             showLoading(true);
+            showMessage('', ''); // Clear previous messages
             
             try {
                 const data = {
-                    name: name || '',
+                    name: name,
                     email: email,
                     answers: answers,
+                    situation: situation,
                     ministries: findMinistries().map(m => m.name)
                 };
                 
@@ -781,41 +1337,25 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    showSuccess(result.message);
+                    showMessage('✅ ' + result.message, 'success');
                     document.getElementById('email-capture').style.display = 'none';
                 } else {
-                    showError(result.message);
+                    showMessage('❌ ' + result.message, 'error');
                 }
                 
             } catch (error) {
-                showError('There was an error submitting your information. Please try again or contact the parish office at (615) 833-5520.');
+                showMessage('❌ There was an error submitting your information. Please try again or contact the parish office at (615) 833-5520.', 'error');
             }
             
             showLoading(false);
         }
 
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-            document.getElementById('submit-btn').disabled = show;
-        }
-
-        function showSuccess(message) {
-            const successDiv = document.getElementById('success-message');
-            successDiv.textContent = message;
-            successDiv.style.display = 'block';
-            document.getElementById('error-message').style.display = 'none';
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            document.getElementById('success-message').style.display = 'none';
-        }
-
         function restart() {
             location.reload();
         }
+
+        // Initialize progress bar
+        updateProgress();
     </script>
 </body>
 </html>
