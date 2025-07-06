@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from functools import wraps
 import psycopg2
@@ -115,7 +115,7 @@ def init_db():
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Create submissions table
+        # Create submissions table with updated schema
         cur.execute('''
             CREATE TABLE IF NOT EXISTS ministry_submissions (
                 id SERIAL PRIMARY KEY,
@@ -123,7 +123,7 @@ def init_db():
                 email VARCHAR(255) NOT NULL,
                 age_group VARCHAR(50),
                 gender VARCHAR(20),
-                state_in_life VARCHAR(50),
+                state_in_life JSONB DEFAULT '[]'::jsonb,
                 interest VARCHAR(50),
                 situation JSONB DEFAULT '[]'::jsonb,
                 recommended_ministries TEXT,
@@ -149,6 +149,16 @@ def init_db():
         if not cur.fetchone():
             cur.execute("ALTER TABLE ministry_submissions ADD COLUMN ip_address VARCHAR(45)")
             logger.info("Added ip_address column to ministry_submissions table")
+        
+        # Update state_in_life column to be JSONB if it's not already
+        cur.execute("""
+            SELECT data_type FROM information_schema.columns 
+            WHERE table_name = 'ministry_submissions' AND column_name = 'state_in_life'
+        """)
+        result = cur.fetchone()
+        if result and result[0] != 'jsonb':
+            cur.execute("ALTER TABLE ministry_submissions ALTER COLUMN state_in_life TYPE JSONB USING state_in_life::jsonb")
+            logger.info("Updated state_in_life column to JSONB type")
         
         # Create ministries table for easier management
         cur.execute('''
@@ -196,17 +206,8 @@ else:
 
 @app.route('/')
 def index():
-    # Serve the template
-    try:
-        return render_template('index.html')
-    except Exception as e:
-        logger.error(f"Error serving template: {e}")
-        return f"Error loading page: {e}", 500
-
-@app.route('/static/<path:filename>')
-def static_files(filename):
-    """Serve static files"""
-    return send_from_directory('static', filename)
+    # Serve the template with proper Flask template rendering
+    return render_template('index.html')
 
 @app.route('/api/submit', methods=['POST'])
 def submit_ministry_interest():
@@ -227,29 +228,19 @@ def submit_ministry_interest():
         data = request.json
         logger.info(f"Received submission from IP {ip_address}: {data}")
         
-        # Validate required fields
-        if not data or 'email' not in data:
-            return jsonify({
-                'success': False,
-                'message': 'Email is required'
-            }), 400
-        
-        # Validate email format
-        email = data['email'].strip()
-        if not email or '@' not in email:
-            return jsonify({
-                'success': False,
-                'message': 'Please enter a valid email address'
-            }), 400
+        # For anonymous tracking, we don't require email
+        email = ""  # Store empty string for anonymous submissions
         
         conn = get_db_connection()
         cur = conn.cursor()
         
         # Extract data with defaults
-        name = data.get('name', '').strip()
+        name = "Anonymous User"  # Store anonymous identifier
         answers = data.get('answers', {})
         ministries = data.get('ministries', [])
         situation = data.get('situation', [])
+        states = data.get('states', [])  # New states array
+        interests = data.get('interests', [])  # New interests array
         
         cur.execute('''
             INSERT INTO ministry_submissions 
@@ -261,8 +252,8 @@ def submit_ministry_interest():
             email,
             answers.get('age', ''),
             answers.get('gender', ''),
-            answers.get('state', ''),
-            answers.get('interest', ''),
+            json.dumps(states),  # Store states array as JSON
+            json.dumps(interests),  # Store interests array as JSON
             json.dumps(situation),
             json.dumps(ministries),
             ip_address
@@ -273,11 +264,11 @@ def submit_ministry_interest():
         cur.close()
         conn.close()
         
-        logger.info(f"Successfully saved submission {submission_id} for {email} from IP {ip_address}")
+        logger.info(f"Successfully saved anonymous submission {submission_id} from IP {ip_address}")
         
         return jsonify({
             'success': True,
-            'message': 'Thank you for registering! Someone from St. Edward will be in touch soon.',
+            'message': 'Thank you for exploring St. Edward ministries!',
             'submission_id': submission_id
         })
         
@@ -319,6 +310,14 @@ def get_submissions():
                 if isinstance(submission['situation'], str):
                     submission['situation'] = json.loads(submission['situation'])
             
+            if submission['state_in_life']:
+                if isinstance(submission['state_in_life'], str):
+                    submission['state_in_life'] = json.loads(submission['state_in_life'])
+            
+            if submission['interest']:
+                if isinstance(submission['interest'], str):
+                    submission['interest'] = json.loads(submission['interest'])
+            
             if submission['recommended_ministries']:
                 if isinstance(submission['recommended_ministries'], str):
                     submission['recommended_ministries'] = json.loads(submission['recommended_ministries'])
@@ -355,7 +354,7 @@ def admin_dashboard():
             table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 12px; }
             th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
             th { background-color: #005921; color: white; position: sticky; top: 0; }
-            .ministries, .situation { max-width: 150px; word-wrap: break-word; font-size: 10px; }
+            .ministries, .situation, .states, .interests { max-width: 150px; word-wrap: break-word; font-size: 10px; }
             .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
             .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #005921; }
             .stat-number { font-size: 2em; font-weight: bold; color: #005921; }
@@ -400,11 +399,13 @@ def admin_dashboard():
             }
             
             function convertToCSV(data) {
-                const headers = ['Date', 'Name', 'Email', 'Age Group', 'Gender', 'State in Life', 'Interest', 'Situation', 'Recommended Ministries', 'IP Address'];
+                const headers = ['Date', 'Name', 'Email', 'Age Group', 'Gender', 'States', 'Interests', 'Situation', 'Recommended Ministries', 'IP Address'];
                 let csv = headers.join(',') + '\\n';
                 
                 data.forEach(row => {
                     const situation = Array.isArray(row.situation) ? row.situation.join('; ') : '';
+                    const states = Array.isArray(row.state_in_life) ? row.state_in_life.join('; ') : '';
+                    const interests = Array.isArray(row.interest) ? row.interest.join('; ') : '';
                     const ministries = Array.isArray(row.recommended_ministries) ? row.recommended_ministries.join('; ') : '';
                     const csvRow = [
                         new Date(row.submitted_at).toLocaleDateString(),
@@ -412,8 +413,8 @@ def admin_dashboard():
                         `"${row.email}"`,
                         `"${row.age_group || ''}"`,
                         `"${row.gender || ''}"`,
-                        `"${row.state_in_life || ''}"`,
-                        `"${row.interest || ''}"`,
+                        `"${states}"`,
+                        `"${interests}"`,
                         `"${situation}"`,
                         `"${ministries}"`,
                         `"${row.ip_address || ''}"`
@@ -430,7 +431,6 @@ def admin_dashboard():
                 .then(data => {
                     // Calculate stats
                     const totalSubmissions = data.length;
-                    const uniqueEmails = new Set(data.map(s => s.email)).size;
                     const last24h = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 24*60*60*1000)).length;
                     const avgMinistries = data.reduce((sum, s) => sum + (s.recommended_ministries?.length || 0), 0) / totalSubmissions;
                     
@@ -439,10 +439,6 @@ def admin_dashboard():
                         <div class="stat-card">
                             <div class="stat-number">${totalSubmissions}</div>
                             <div>Total Submissions</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">${uniqueEmails}</div>
-                            <div>Unique Users</div>
                         </div>
                         <div class="stat-card">
                             <div class="stat-number">${last24h}</div>
@@ -455,20 +451,20 @@ def admin_dashboard():
                     `;
                     
                     // Show submissions table
-                    let html = '<table><tr><th>Date</th><th>Name</th><th>Email</th><th>Age</th><th>Gender</th><th>State</th><th>Interest</th><th>Situation</th><th>Recommended Ministries</th><th>IP</th></tr>';
+                    let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Recommended Ministries</th><th>IP</th></tr>';
                     data.forEach(sub => {
                         const isRecent = new Date(sub.submitted_at) > new Date(Date.now() - 24*60*60*1000);
                         const situationText = Array.isArray(sub.situation) ? sub.situation.join(', ') : (sub.situation || '');
+                        const statesText = Array.isArray(sub.state_in_life) ? sub.state_in_life.join(', ') : (sub.state_in_life || '');
+                        const interestsText = Array.isArray(sub.interest) ? sub.interest.join(', ') : (sub.interest || '');
                         const ministriesText = Array.isArray(sub.recommended_ministries) ? sub.recommended_ministries.join(', ') : (sub.recommended_ministries || '');
                         
                         html += `<tr ${isRecent ? 'class="recent"' : ''}>
                             <td>${new Date(sub.submitted_at).toLocaleDateString()} ${new Date(sub.submitted_at).toLocaleTimeString()}</td>
-                            <td>${sub.name || 'Not provided'}</td>
-                            <td>${sub.email}</td>
                             <td>${sub.age_group || ''}</td>
                             <td>${sub.gender || ''}</td>
-                            <td>${sub.state_in_life || ''}</td>
-                            <td>${sub.interest || ''}</td>
+                            <td class="states">${statesText}</td>
+                            <td class="interests">${interestsText}</td>
                             <td class="situation">${situationText}</td>
                             <td class="ministries">${ministriesText}</td>
                             <td>${sub.ip_address || ''}</td>
