@@ -218,11 +218,18 @@ def get_submissions():
         submissions = []
         for row in cur.fetchall():
             submission = dict(row)
-            # Parse JSON fields
+            
+            # Handle JSONB fields - they might already be parsed by psycopg2
             if submission['situation']:
-                submission['situation'] = json.loads(submission['situation'])
+                if isinstance(submission['situation'], str):
+                    submission['situation'] = json.loads(submission['situation'])
+                # If it's already a list/dict, leave it as is
+            
             if submission['recommended_ministries']:
-                submission['recommended_ministries'] = json.loads(submission['recommended_ministries'])
+                if isinstance(submission['recommended_ministries'], str):
+                    submission['recommended_ministries'] = json.loads(submission['recommended_ministries'])
+                # If it's already a list/dict, leave it as is
+            
             if submission['submitted_at']:
                 submission['submitted_at'] = submission['submitted_at'].isoformat()
             submissions.append(submission)
