@@ -600,9 +600,61 @@
                 min-height: 44px; /* Apple's recommended touch target size */
             }
         }
+        .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 89, 33, 0.95);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.loading-subtext {
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.8;
+    max-width: 400px;
+    line-height: 1.4;
+}
+
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading St. Edward Ministry Finder...</div>
+    <div class="loading-subtext">
+        If this is taking a while, our service might be starting up. 
+        Thank you for your patience! ⛪
+    </div>
+</div>
     <header class="header">
         <div class="header-content">
             <div class="logo-text">⛪ St. Edward Church & School</div>
@@ -1541,6 +1593,27 @@
 
         // Initialize progress bar
         updateProgress();
+
+        // Hide loading overlay once page is fully loaded
+window.addEventListener('load', function() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 500);
+    }
+});
+
+// Show loading overlay on form submission
+function submitInfo() {
+    // ... your existing code ...
+    
+    // Add this line before the fetch request:
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    // ... rest of your submitInfo function ...
+}
     </script>
 </body>
 </html>
