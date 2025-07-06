@@ -324,71 +324,76 @@
             text-decoration: underline;
         }
 
-        #email-capture {
+        .parish-registration {
             background: linear-gradient(135deg, #f0f8f4 0%, #e8f5e8 100%);
             padding: 1.5rem;
             border-radius: 15px;
             margin: 2rem 0;
             border: 2px solid rgba(0, 132, 61, 0.2);
+            text-align: center;
         }
 
-        #email-capture h3 {
+        .parish-registration h3 {
             color: #005921;
             margin-bottom: 1rem;
             font-size: 1.3rem;
         }
 
-        .form-group {
-            margin: 1rem 0;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .parish-registration p {
+            margin-bottom: 1.5rem;
             color: #2c3e50;
-            font-weight: 500;
-            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
-        input[type="email"], input[type="text"] {
-            width: 100%;
-            padding: 0.9rem;
-            border: 2px solid #dee2e6;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+        .registration-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
         }
 
-        input[type="email"]:focus, input[type="text"]:focus {
-            outline: none;
-            border-color: #005921;
-            box-shadow: 0 0 0 3px rgba(0, 89, 33, 0.1);
-        }
-
-        .submit-btn {
+        .registration-btn {
             background: linear-gradient(135deg, #00843D 0%, #005921 100%);
             color: #EEF4F1;
-            border: none;
+            text-decoration: none;
             padding: 1rem 1.5rem;
             border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
             font-weight: 600;
             transition: all 0.3s ease;
-            width: 100%;
-            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .submit-btn:hover:not(:disabled) {
+        .registration-btn:hover {
             background: linear-gradient(135deg, #005921 0%, #004a1e 100%);
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 89, 33, 0.4);
+            color: #EEF4F1;
+            text-decoration: none;
         }
 
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            color: #005921;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #005921;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: #005921;
+            color: white;
         }
 
         .loading {
@@ -551,12 +556,21 @@
                 font-size: 1.1rem;
             }
             
-            #email-capture {
+            .parish-registration {
                 padding: 1.2rem;
             }
             
             .contact-info {
                 padding: 1.2rem;
+            }
+
+            .registration-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .social-links {
+                flex-direction: column;
+                align-items: center;
             }
         }
 
@@ -598,65 +612,62 @@
 
         /* Touch-friendly targets for mobile */
         @media (max-width: 768px) {
-            .option-btn, .nav-btn, .submit-btn, .checkbox-item {
+            .option-btn, .nav-btn, .registration-btn, .checkbox-item {
                 min-height: 44px; /* Apple's recommended touch target size */
             }
         }
+
         .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 89, 33, 0.95);
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 89, 33, 0.95);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top-color: white;
-    animation: spin 1s linear infinite;
-    margin-bottom: 20px;
-}
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+        .loading-text {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
 
-.loading-text {
-    text-align: center;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-}
-
-.loading-subtext {
-    text-align: center;
-    font-size: 0.9rem;
-    opacity: 0.8;
-    max-width: 400px;
-    line-height: 1.4;
-}
-
+        .loading-subtext {
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            max-width: 400px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Loading St. Edward Ministry Finder...</div>
-    <div class="loading-subtext">
-        If this is taking a while, our service might be starting up. 
-        Thank you for your patience! ⛪
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading St. Edward Ministry Finder...</div>
+        <div class="loading-subtext">
+            If this is taking a while, our service might be starting up. 
+            Thank you for your patience! ⛪
+        </div>
     </div>
-</div>
+    
     <header class="header">
         <div class="header-content">
             <div class="logo-text">⛪ St. Edward Church & School</div>
@@ -726,20 +737,28 @@
                     <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
                     <div class="checkbox-group" id="situation-checkboxes">
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
-                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward">
-                            <label for="new-to-stedward" onclick="event.stopPropagation(); toggleSituationCheckbox('new-to-stedward')">New to St. Edward</label>
+                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward" onchange="handleCheckboxChange('new-to-stedward')">
+                            <label for="new-to-stedward">New to St. Edward</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
-                            <input type="checkbox" id="returning-to-church" value="returning-to-church">
-                            <label for="returning-to-church" onclick="event.stopPropagation(); toggleSituationCheckbox('returning-to-church')">Returning to Church</label>
+                            <input type="checkbox" id="returning-to-church" value="returning-to-church" onchange="handleCheckboxChange('returning-to-church')">
+                            <label for="returning-to-church">Returning to Church</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
-                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville">
-                            <label for="new-to-nashville" onclick="event.stopPropagation(); toggleSituationCheckbox('new-to-nashville')">New to Nashville</label>
+                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville" onchange="handleCheckboxChange('new-to-nashville')">
+                            <label for="new-to-nashville">New to Nashville</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('current-parishioner')">
+                            <input type="checkbox" id="current-parishioner" value="current-parishioner" onchange="handleCheckboxChange('current-parishioner')">
+                            <label for="current-parishioner">Current Parishioner</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('just-curious')">
+                            <input type="checkbox" id="just-curious" value="just-curious" onchange="handleCheckboxChange('just-curious')">
+                            <label for="just-curious">Just Curious</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('none-of-above')">
-                            <input type="checkbox" id="none-of-above" value="none-of-above">
-                            <label for="none-of-above" onclick="event.stopPropagation(); toggleSituationCheckbox('none-of-above')">None of the above</label>
+                            <input type="checkbox" id="none-of-above" value="none-of-above" onchange="handleCheckboxChange('none-of-above')">
+                            <label for="none-of-above">None of the above</label>
                         </div>
                     </div>
                     <div class="navigation">
@@ -765,31 +784,26 @@
                     <h2>Perfect! Here are ministries for you:</h2>
                     <div id="ministry-recommendations" class="ministry-list"></div>
                     
-                    <div id="email-capture">
-                        <h3>📧 Want to learn more?</h3>
-                        <p>We can send you contact information and meeting times for these ministries:</p>
+                    <div class="parish-registration">
+                        <h3>🎉 Ready to Get Connected?</h3>
+                        <p>Join our parish community and stay updated on all these great opportunities!</p>
                         
-                        <div class="form-group">
-                            <label for="name">Your Name (optional)</label>
-                            <input type="text" id="name" placeholder="Enter your name">
+                        <div class="registration-buttons">
+                            <a href="https://stedwardnash.flocknote.com/register" target="_blank" class="registration-btn">
+                                📧 Register with Parish
+                            </a>
+                            <a href="https://stedward.smugmug.com/" target="_blank" class="registration-btn">
+                                📸 View Photo Galleries
+                            </a>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="email">Email Address *</label>
-                            <input type="email" id="email" placeholder="Enter your email address" required>
+                        <div class="social-links">
+                            <a href="https://www.instagram.com/stedwardcommunity/" target="_blank">📱 Instagram</a>
+                            <a href="https://www.facebook.com/stedwardschool" target="_blank">👥 Facebook</a>
                         </div>
-                        
-                        <button class="submit-btn" id="submit-btn" onclick="submitInfo()">Send Me More Info</button>
-                        
-                        <div class="loading" id="loading">
-                            <div class="spinner"></div>
-                            Submitting your information...
-                        </div>
-                        
-                        <div id="message-area"></div>
                         
                         <div class="note">
-                            💡 <strong>Tip:</strong> You can also screenshot your results!
+                            💡 <strong>Tip:</strong> You can screenshot your results for future reference!
                         </div>
                     </div>
                     
@@ -1316,16 +1330,21 @@
         }
 
         function toggleSituationCheckbox(value) {
+            // Only handle if click came from the container, not the checkbox or label
+            if (event.target.type === 'checkbox' || event.target.tagName === 'LABEL') {
+                return; // Let the native behavior handle it
+            }
+            
+            const checkbox = document.getElementById(value);
+            checkbox.checked = !checkbox.checked;
+            
+            // Trigger the change handler
+            handleCheckboxChange(value);
+        }
+
+        function handleCheckboxChange(value) {
             const checkbox = document.getElementById(value);
             const item = checkbox.parentElement;
-            
-            // Don't double-toggle if user clicked the checkbox directly
-            if (event.target.type === 'checkbox') {
-                // User clicked checkbox directly, just handle the logic
-            } else {
-                // User clicked the container, toggle the checkbox
-                checkbox.checked = !checkbox.checked;
-            }
             
             // Handle "none of above" logic
             if (value === 'none-of-above') {
@@ -1343,7 +1362,7 @@
             } else {
                 // If selecting something else, uncheck "none of above"
                 const noneCheckbox = document.getElementById('none-of-above');
-                if (noneCheckbox.checked) {
+                if (noneCheckbox && noneCheckbox.checked) {
                     noneCheckbox.checked = false;
                     noneCheckbox.parentElement.classList.remove('selected');
                     const noneIndex = situation.indexOf('none-of-above');
@@ -1527,68 +1546,6 @@
             return matches;
         }
 
-        function showMessage(text, type = 'info') {
-            const messageArea = document.getElementById('message-area');
-            messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
-        }
-
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-            document.getElementById('submit-btn').disabled = show;
-        }
-
-        async function submitInfo() {
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            
-            if (!email) {
-                showMessage('Please enter your email address', 'error');
-                return;
-            }
-            
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                showMessage('Please enter a valid email address', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            showMessage('', ''); // Clear previous messages
-            
-            try {
-                const data = {
-                    name: name,
-                    email: email,
-                    answers: answers,
-                    situation: situation,
-                    ministries: findMinistries().map(m => m.name)
-                };
-                
-                const response = await fetch('/api/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showMessage('✅ ' + result.message, 'success');
-                    document.getElementById('email-capture').style.display = 'none';
-                } else {
-                    showMessage('❌ ' + result.message, 'error');
-                }
-                
-            } catch (error) {
-                showMessage('❌ There was an error submitting your information. Please try again or contact the parish office at (615) 833-5520.', 'error');
-            }
-            
-            showLoading(false);
-        }
-
         function restart() {
             location.reload();
         }
@@ -1597,25 +1554,15 @@
         updateProgress();
 
         // Hide loading overlay once page is fully loaded
-window.addEventListener('load', function() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.style.display = 'none';
-        }, 500);
-    }
-});
-
-// Show loading overlay on form submission
-function submitInfo() {
-    // ... your existing code ...
-    
-    // Add this line before the fetch request:
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    
-    // ... rest of your submitInfo function ...
-}
+        window.addEventListener('load', function() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            }
+        });
     </script>
 </body>
 </html>
