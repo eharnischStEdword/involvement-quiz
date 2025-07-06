@@ -11,7 +11,7 @@ const ministries = {
     'confession': {
         name: 'Sacrament of Confession',
         description: 'Reconciliation and spiritual healing',
-        details: 'Mass times available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
+        details: 'Confession times available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
         age: ['kid', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
         interest: ['prayer', 'all']
     },
