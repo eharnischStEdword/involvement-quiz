@@ -149,4 +149,4 @@ To automatically send emails to users and/or parish staff, add email functionali
 
 ## Support
 
-For questions about the application, contact the parish office at (615) 352-3087 or visit stedward.org.
+For questions about the application, contact the parish office at (615) 833-5520 or email support@stedward.org.
