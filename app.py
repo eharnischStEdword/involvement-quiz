@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
-import psycopg
+import psycopg2
 import os
 from datetime import datetime
 import json
@@ -12,12 +12,12 @@ CORS(app)
 def get_db_connection():
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if DATABASE_URL:
-        conn = psycopg.connect(DATABASE_URL)
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     else:
         # Local development
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host='localhost',
-            dbname='st_edward_ministries',
+            database='st_edward_ministries',
             user='your_username',
             password='your_password'
         )
@@ -75,6 +75,7 @@ def index():
 def submit_ministry_interest():
     try:
         data = request.json
+        print(f"Received data: {data}")  # Debug logging
         
         conn = get_db_connection()
         cur = conn.cursor()
@@ -99,6 +100,8 @@ def submit_ministry_interest():
         cur.close()
         conn.close()
         
+        print(f"Successfully saved submission {submission_id}")  # Debug logging
+        
         # Here you would typically send an email to the parish office
         # and/or to the person who submitted
         
@@ -109,9 +112,12 @@ def submit_ministry_interest():
         })
         
     except Exception as e:
+        print(f"Error in submit_ministry_interest: {str(e)}")  # Debug logging
+        import traceback
+        traceback.print_exc()  # Full error details
         return jsonify({
             'success': False,
-            'message': 'There was an error processing your request. Please try again or contact the parish office at (615) 833-5520.'
+            'message': f'Database error: {str(e)}'  # Show actual error for debugging
         }), 500
 
 @app.route('/api/submissions', methods=['GET'])
