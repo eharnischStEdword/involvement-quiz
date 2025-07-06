@@ -1,9 +1,8 @@
-// St. Edward Ministry Finder - Quiz Logic
-
 // Store user answers
 const answers = {};
 const situation = [];
-const interests = []; // New array for multiple interests
+const states = []; // New array for multiple state selections
+const interests = []; // Array for multiple interests
 let currentQuestion = 1;
 const totalQuestions = 5;
 
@@ -75,7 +74,7 @@ function answerQuestion(type, answer) {
     setTimeout(() => {
         // For younger age groups, skip state in life question
         if (type === 'age' && ['infant', 'kid', 'junior-high', 'high-school'].includes(answer)) {
-            answers['state'] = 'single'; // Auto-assign single for younger ages
+            states.push('single'); // Auto-assign single for younger ages
         }
         
         currentQuestion++;
@@ -95,6 +94,70 @@ function answerQuestion(type, answer) {
     }, 300);
 }
 
+// State checkbox handling
+function toggleStateCheckbox(value) {
+    // Only handle if click came from the container, not the checkbox or label
+    if (event.target.type === 'checkbox' || event.target.tagName === 'LABEL') {
+        return; // Let the native behavior handle it
+    }
+    
+    const checkbox = document.getElementById(`state-${value}`);
+    checkbox.checked = !checkbox.checked;
+    
+    // Trigger the change handler
+    handleStateCheckboxChange(value);
+}
+
+function handleStateCheckboxChange(value) {
+    const checkbox = document.getElementById(`state-${value}`);
+    const item = checkbox.parentElement;
+    
+    // Handle "none of above" logic
+    if (value === 'none-of-above') {
+        if (checkbox.checked) {
+            // Clear all other checkboxes
+            document.querySelectorAll('#state-checkboxes input[type="checkbox"]').forEach(cb => {
+                if (cb.value !== 'none-of-above') {
+                    cb.checked = false;
+                    cb.parentElement.classList.remove('selected');
+                }
+            });
+            states.length = 0; // Clear array
+            states.push('none-of-above');
+        }
+    } else {
+        // If selecting something else, uncheck "none of above"
+        const noneCheckbox = document.getElementById('state-none-of-above');
+        if (noneCheckbox && noneCheckbox.checked) {
+            noneCheckbox.checked = false;
+            noneCheckbox.parentElement.classList.remove('selected');
+            const noneIndex = states.indexOf('none-of-above');
+            if (noneIndex > -1) states.splice(noneIndex, 1);
+        }
+    }
+    
+    // Update the states array and styling
+    if (checkbox.checked) {
+        item.classList.add('selected');
+        if (!states.includes(value)) {
+            states.push(value);
+        }
+    } else {
+        item.classList.remove('selected');
+        const index = states.indexOf(value);
+        if (index > -1) {
+            states.splice(index, 1);
+        }
+    }
+}
+
+function nextFromState() {
+    currentQuestion++;
+    updateProgress();
+    showQuestion(currentQuestion);
+}
+
+// Situation checkbox handling
 function toggleSituationCheckbox(value) {
     // Only handle if click came from the container, not the checkbox or label
     if (event.target.type === 'checkbox' || event.target.tagName === 'LABEL') {
@@ -105,33 +168,33 @@ function toggleSituationCheckbox(value) {
     checkbox.checked = !checkbox.checked;
     
     // Trigger the change handler
-    handleCheckboxChange(value);
+    handleSituationCheckboxChange(value);
 }
 
-function handleCheckboxChange(value) {
+function handleSituationCheckboxChange(value) {
     const checkbox = document.getElementById(value);
     const item = checkbox.parentElement;
     
     // Handle "none of above" logic
-    if (value === 'none-of-above') {
+    if (value === 'situation-none-of-above') {
         if (checkbox.checked) {
             // Clear all other checkboxes
             document.querySelectorAll('#situation-checkboxes input[type="checkbox"]').forEach(cb => {
-                if (cb.id !== 'none-of-above') {
+                if (cb.id !== 'situation-none-of-above') {
                     cb.checked = false;
                     cb.parentElement.classList.remove('selected');
                 }
             });
             situation.length = 0; // Clear array
-            situation.push('none-of-above');
+            situation.push('situation-none-of-above');
         }
     } else {
         // If selecting something else, uncheck "none of above"
-        const noneCheckbox = document.getElementById('none-of-above');
+        const noneCheckbox = document.getElementById('situation-none-of-above');
         if (noneCheckbox && noneCheckbox.checked) {
             noneCheckbox.checked = false;
             noneCheckbox.parentElement.classList.remove('selected');
-            const noneIndex = situation.indexOf('none-of-above');
+            const noneIndex = situation.indexOf('situation-none-of-above');
             if (noneIndex > -1) situation.splice(noneIndex, 1);
         }
     }
@@ -242,9 +305,15 @@ function goBack(questionNum) {
     // Clear checkbox states
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
     
-    // Clear interests array if going back from results
+    // Clear arrays when going back
     if (questionNum === 5) {
         interests.length = 0;
+    }
+    if (questionNum === 4) {
+        situation.length = 0;
+    }
+    if (questionNum === 3) {
+        states.length = 0;
     }
     
     // Handle going back when state question was skipped
@@ -304,14 +373,46 @@ function showResults() {
     // Update progress bar to 100%
     document.getElementById('progress-bar').style.width = '100%';
     
+    // Submit anonymous analytics data
+    submitAnalytics(recommendations);
+    
     // Trigger confetti celebration!
     triggerConfetti();
+}
+
+function submitAnalytics(recommendations) {
+    // Submit anonymous analytics for parish insights
+    const analyticsData = {
+        answers: answers,
+        states: states,
+        interests: interests,
+        situation: situation,
+        ministries: recommendations.map(m => m.name)
+    };
+    
+    fetch('/api/submit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(analyticsData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Analytics submitted successfully');
+        }
+    })
+    .catch(error => {
+        console.log('Analytics submission failed:', error);
+        // Don't show error to user for analytics
+    });
 }
 
 function findMinistries() {
     const matches = [];
     
-    for (const [key, ministry] of Object.entries(window.ministries)) {
+    for (const [key, ministry] of Object.entries(ministries)) {
         let isMatch = true;
         
         // Check age
@@ -324,9 +425,15 @@ function findMinistries() {
             isMatch = false;
         }
         
-        // Check state (if specified and not skipped)
-        if (ministry.state && answers.state !== 'skip' && !ministry.state.includes(answers.state)) {
-            isMatch = false;
+        // Updated state checking - if ministry has state requirements, check if ANY selected state matches
+        if (ministry.state && ministry.state.length > 0 && states.length > 0) {
+            // Skip checking if user selected "none-of-above"
+            if (!states.includes('none-of-above')) {
+                const hasMatchingState = ministry.state.some(s => states.includes(s));
+                if (!hasMatchingState) {
+                    isMatch = false;
+                }
+            }
         }
         
         // Check situation (if ministry has situation requirements)
@@ -354,9 +461,9 @@ function findMinistries() {
     if (answers.age === 'kid' && matches.length < 2) {
         // Always include these for kids regardless of interest
         const coreKidsMinistries = [
-            window.ministries['st-edward-school'],
-            window.ministries['prep-kids'],
-            window.ministries['mass']
+            ministries['st-edward-school'],
+            ministries['prep-kids'],
+            ministries['mass']
         ];
         
         coreKidsMinistries.forEach(ministry => {
@@ -367,8 +474,8 @@ function findMinistries() {
         
         // Add Cub Scouts if they selected fellowship or all
         if (interests.includes('fellowship') || interests.includes('all')) {
-            if (!matches.some(m => m.name === window.ministries['cub-scouts'].name)) {
-                matches.push(window.ministries['cub-scouts']);
+            if (!matches.some(m => m.name === ministries['cub-scouts'].name)) {
+                matches.push(ministries['cub-scouts']);
             }
         }
     }
@@ -403,17 +510,15 @@ function restart() {
 }
 
 // Initialize progress bar
-window.addEventListener('DOMContentLoaded', function() {
-    updateProgress();
-    
-    // Hide loading overlay once page is fully loaded
-    window.addEventListener('load', function() {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 500);
-        }
-    });
+updateProgress();
+
+// Hide loading overlay once page is fully loaded
+window.addEventListener('load', function() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 500);
+    }
 });
