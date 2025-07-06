@@ -47,6 +47,13 @@
         button:hover {
             background-color: #2980b9;
         }
+        .back-button {
+            background-color: #95a5a6;
+            margin-top: 20px;
+        }
+        .back-button:hover {
+            background-color: #7f8c8d;
+        }
         .button-group {
             display: flex;
             flex-wrap: wrap;
@@ -123,12 +130,13 @@
         <div class="question active" id="q1">
             <h2>What's your age group?</h2>
             <div class="button-group">
-                <button onclick="answerQuestion('age', 'child')">Elementary (K-5)</button>
-                <button onclick="answerQuestion('age', 'middle')">Middle School (6-8)</button>
-                <button onclick="answerQuestion('age', 'high')">High School (9-12)</button>
-                <button onclick="answerQuestion('age', 'young-adult')">Young Adult (18-35)</button>
-                <button onclick="answerQuestion('age', 'adult')">Adult (36-64)</button>
-                <button onclick="answerQuestion('age', 'senior')">Senior (65+)</button>
+                <button onclick="answerQuestion('age', 'infant')">Infant (0-3)</button>
+                <button onclick="answerQuestion('age', 'kid')">Kid (PreK-Grade 5)</button>
+                <button onclick="answerQuestion('age', 'junior-high')">Junior High (Grades 6-8)</button>
+                <button onclick="answerQuestion('age', 'high-school')">High School (Grades 9-12)</button>
+                <button onclick="answerQuestion('age', 'college-young-adult')">College & Young Adult (18-35)</button>
+                <button onclick="answerQuestion('age', 'married-parents')">Married Couples & Parents</button>
+                <button onclick="answerQuestion('age', 'journeying-adults')">Journeying Adults (30+)</button>
             </div>
         </div>
 
@@ -140,6 +148,7 @@
                 <button onclick="answerQuestion('gender', 'female')">Female</button>
                 <button onclick="answerQuestion('gender', 'skip')">Skip this question</button>
             </div>
+            <button class="back-button" onclick="goBack(2)">← Back</button>
         </div>
 
         <!-- Question 3: State in Life -->
@@ -151,6 +160,7 @@
                 <button onclick="answerQuestion('state', 'parent')">Parent</button>
                 <button onclick="answerQuestion('state', 'skip')">Skip this question</button>
             </div>
+            <button class="back-button" onclick="goBack(3)">← Back</button>
         </div>
 
         <!-- Question 4: Interests -->
@@ -164,6 +174,7 @@
                 <button onclick="answerQuestion('interest', 'fellowship')">Fellowship & Community</button>
                 <button onclick="answerQuestion('interest', 'all')">Show me everything!</button>
             </div>
+            <button class="back-button" onclick="goBack(4)">← Back</button>
         </div>
 
         <!-- Results -->
@@ -191,6 +202,9 @@
     </div>
 
     <script>
+        // To view saved submissions, open browser console and type: 
+        // JSON.parse(localStorage.getItem('ministry_submissions'))
+        
         // Store user answers
         const answers = {};
         let currentQuestion = 1;
@@ -198,19 +212,47 @@
 
         // Ministry database with simple if-then rules
         const ministries = {
-            // Children's Ministries
+            // Infant/Parent Ministries
+            'nursery': {
+                name: 'Nursery Care',
+                description: 'Loving care during Mass for our littlest ones',
+                details: 'Available during all Sunday Masses',
+                age: ['infant'],
+                interest: ['all']
+            },
+            'baptism-prep': {
+                name: 'Baptism Preparation',
+                description: 'Prepare to baptize your child',
+                details: 'Classes offered monthly',
+                age: ['infant'],
+                interest: ['education', 'prayer', 'all']
+            },
             'catechesis': {
                 name: 'Catechesis of the Good Shepherd',
                 description: 'Montessori-based religious education',
                 details: 'Sundays during 9:30am Mass',
-                age: ['child'],
+                age: ['kid'],
+                interest: ['education', 'prayer']
+            },
+            'prep': {
+                name: 'PREP (Parish Religious Education)',
+                description: 'Weekly faith formation classes',
+                details: 'Wednesdays 6:30-7:45pm',
+                age: ['kid', 'junior-high'],
+                interest: ['education']
+            },
+            'first-communion': {
+                name: 'First Communion Preparation',
+                description: 'Prepare to receive Jesus in the Eucharist',
+                details: 'For 2nd graders and up',
+                age: ['kid'],
                 interest: ['education', 'prayer']
             },
             'altar-servers': {
                 name: 'Altar Servers',
                 description: 'Assist at Mass (must be baptized)',
                 details: 'Training provided - contact Fr. Reehil',
-                age: ['child', 'middle', 'high'],
+                age: ['kid', 'junior-high', 'high-school'],
                 interest: ['service', 'prayer']
             },
             
@@ -219,7 +261,7 @@
                 name: 'Fraternus',
                 description: 'Mentorship program for young men',
                 details: 'Wednesdays 6:30-8pm',
-                age: ['middle', 'high'],
+                age: ['junior-high', 'high-school'],
                 gender: ['male'],
                 interest: ['fellowship', 'education']
             },
@@ -227,7 +269,7 @@
                 name: 'Fidelis',
                 description: 'Mentorship program for young women',
                 details: 'Wednesdays 6:30-8pm',
-                age: ['middle', 'high'],
+                age: ['junior-high', 'high-school'],
                 gender: ['female'],
                 interest: ['fellowship', 'education']
             },
@@ -235,8 +277,29 @@
                 name: 'Youth Group',
                 description: 'Fun, faith, and fellowship for teens',
                 details: 'Sundays 6-7:30pm',
-                age: ['middle', 'high'],
+                age: ['junior-high', 'high-school'],
                 interest: ['fellowship', 'all']
+            },
+            'vbs': {
+                name: 'Vacation Bible School',
+                description: 'Summer fun and faith for kids',
+                details: 'One week in June',
+                age: ['kid', 'junior-high'],
+                interest: ['fellowship', 'education', 'all']
+            },
+            'totus-tuus': {
+                name: 'Totus Tuus Summer Program',
+                description: 'Week-long summer catechetical program',
+                details: 'July - check bulletin for dates',
+                age: ['kid', 'junior-high', 'high-school'],
+                interest: ['education', 'fellowship', 'prayer']
+            },
+            'confirmation': {
+                name: 'Confirmation Preparation',
+                description: 'Prepare to be sealed with the Holy Spirit',
+                details: 'For high school students',
+                age: ['high-school'],
+                interest: ['education', 'prayer']
             },
             
             // Young Adult
@@ -244,7 +307,7 @@
                 name: 'Young Adult Ministry',
                 description: 'Social and spiritual events for 18-35',
                 details: 'Check bulletin for events',
-                age: ['young-adult'],
+                age: ['college-young-adult'],
                 interest: ['fellowship', 'prayer', 'service']
             },
             
@@ -253,21 +316,21 @@
                 name: 'RCIA',
                 description: 'Become Catholic or complete sacraments',
                 details: 'Thursdays 7pm (Sept-Easter)',
-                age: ['young-adult', 'adult', 'senior'],
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['education']
             },
             'bible-study': {
                 name: 'Bible Study',
                 description: 'Weekly scripture study groups',
                 details: 'Multiple times - check parish office',
-                age: ['young-adult', 'adult', 'senior'],
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['education', 'fellowship']
             },
             'alpha': {
                 name: 'Alpha',
                 description: 'Explore life and Christian faith',
                 details: 'Tuesday evenings (10 weeks)',
-                age: ['young-adult', 'adult'],
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['education', 'fellowship']
             },
             
@@ -276,21 +339,21 @@
                 name: 'St. Vincent de Paul',
                 description: 'Help families in need',
                 details: 'Meetings 2nd Tuesday 7pm',
-                age: ['adult', 'senior'],
+                age: ['married-parents', 'journeying-adults'],
                 interest: ['service']
             },
             'room-inn': {
                 name: 'Room in the Inn',
                 description: 'Shelter for homeless (winter)',
                 details: 'November-March, various shifts',
-                age: ['young-adult', 'adult', 'senior'],
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['service']
             },
             'food-pantry': {
                 name: 'Food Pantry',
                 description: 'Distribute food to those in need',
                 details: 'Saturdays 9-11am',
-                age: ['high', 'young-adult', 'adult', 'senior'],
+                age: ['high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['service']
             },
             
@@ -299,21 +362,21 @@
                 name: 'Choir',
                 description: 'Sing at Mass',
                 details: 'Practice Thursdays 7pm',
-                age: ['young-adult', 'adult', 'senior'],
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['music', 'prayer']
             },
             'lector': {
                 name: 'Lector',
                 description: 'Read scripture at Mass',
                 details: 'Training provided',
-                age: ['adult', 'senior'],
+                age: ['married-parents', 'journeying-adults'],
                 interest: ['prayer']
             },
             'eucharistic-minister': {
                 name: 'Eucharistic Minister',
                 description: 'Distribute communion',
                 details: 'Must be confirmed Catholic',
-                age: ['adult', 'senior'],
+                age: ['married-parents', 'journeying-adults'],
                 state: ['married'],
                 interest: ['prayer', 'service']
             },
@@ -321,8 +384,15 @@
                 name: 'Eucharistic Adoration',
                 description: 'Spend time in prayer before the Blessed Sacrament',
                 details: 'Daily 9am-6pm, need regular adorers',
-                age: ['high', 'young-adult', 'adult', 'senior'],
+                age: ['high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
                 interest: ['prayer']
+            },
+            'prayer-group': {
+                name: 'Prayer Group',
+                description: 'Gather for group prayer and intercession',
+                details: 'Thursdays 10am',
+                age: ['married-parents', 'journeying-adults'],
+                interest: ['prayer', 'fellowship']
             },
             
             // Fellowship Groups
@@ -330,7 +400,7 @@
                 name: 'Knights of Columbus',
                 description: 'Catholic men\'s fraternal organization',
                 details: '1st Tuesday 7pm',
-                age: ['adult', 'senior'],
+                age: ['married-parents', 'journeying-adults'],
                 gender: ['male'],
                 interest: ['fellowship', 'service']
             },
@@ -338,7 +408,7 @@
                 name: 'Ladies Auxiliary',
                 description: 'Women\'s fellowship and service',
                 details: '2nd Monday 7pm',
-                age: ['adult', 'senior'],
+                age: ['married-parents', 'journeying-adults'],
                 gender: ['female'],
                 interest: ['fellowship', 'service']
             },
@@ -346,10 +416,56 @@
                 name: 'Moms Group',
                 description: 'Support and fellowship for mothers',
                 details: 'Fridays 9:30am (childcare provided)',
-                age: ['young-adult', 'adult'],
+                age: ['married-parents'],
                 gender: ['female'],
                 state: ['parent'],
                 interest: ['fellowship']
+            },
+            'marriage-prep': {
+                name: 'Marriage Preparation',
+                description: 'Prepare for the sacrament of marriage',
+                details: 'Contact parish office 6 months before wedding',
+                age: ['college-young-adult', 'married-parents'],
+                state: ['single'],
+                interest: ['education']
+            },
+            'couples-ministry': {
+                name: 'Couples Ministry',
+                description: 'Strengthen your marriage through faith',
+                details: 'Monthly date nights and retreats',
+                age: ['married-parents'],
+                state: ['married'],
+                interest: ['fellowship', 'education']
+            },
+            
+            // General Ministries (fallback options)
+            'parish-festival': {
+                name: 'Parish Festival Committee',
+                description: 'Help plan and run our annual festival',
+                details: 'Meetings start in spring',
+                age: ['high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
+                interest: ['fellowship', 'service', 'all']
+            },
+            'welcome-committee': {
+                name: 'Welcome Committee',
+                description: 'Greet newcomers and help them feel at home',
+                details: 'Training provided',
+                age: ['college-young-adult', 'married-parents', 'journeying-adults'],
+                interest: ['fellowship', 'service', 'all']
+            },
+            'sunday-socials': {
+                name: 'Sunday Socials',
+                description: 'Help with coffee and donuts after Mass',
+                details: 'Rotate monthly',
+                age: ['high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
+                interest: ['fellowship', 'service', 'all']
+            },
+            'mass': {
+                name: 'Daily & Sunday Mass',
+                description: 'The source and summit of our faith',
+                details: 'Daily Mass: Mon-Sat 8am, Sunday: 8am, 9:30am, 11:30am, 5pm',
+                age: ['infant', 'kid', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
+                interest: ['prayer', 'all']
             }
         };
 
@@ -372,34 +488,39 @@
         }
 
         function showResults() {
-            document.getElementById(`q${totalQuestions}`).classList.remove('active');
+            document.querySelector('.question.active').classList.remove('active');
             document.getElementById('results').style.display = 'block';
             
             const recommendations = findMinistries();
             const resultsDiv = document.getElementById('ministry-recommendations');
             
-            if (recommendations.length === 0) {
-                resultsDiv.innerHTML = '<p>We couldn\'t find specific matches, but please contact the parish office!</p>';
-            } else {
-                let html = '';
-                recommendations.forEach(ministry => {
-                    html += `
-                        <div class="ministry-item">
-                            <h3>${ministry.name}</h3>
-                            <p>${ministry.description}</p>
-                            <p style="color: #3498db; font-weight: bold;">${ministry.details}</p>
-                        </div>
-                    `;
-                });
-                resultsDiv.innerHTML = html;
-            }
+            let html = '';
+            recommendations.forEach(ministry => {
+                html += `
+                    <div class="ministry-item">
+                        <h3>${ministry.name}</h3>
+                        <p>${ministry.description}</p>
+                        <p style="color: #3498db; font-weight: bold;">${ministry.details}</p>
+                    </div>
+                `;
+            });
+            resultsDiv.innerHTML = html;
         }
 
         function findMinistries() {
             const matches = [];
+            const generalMatches = []; // Fallback options
             
             for (const [key, ministry] of Object.entries(ministries)) {
                 let isMatch = true;
+                let isGeneralMatch = false;
+                
+                // Check if this is a general ministry (works for most people)
+                if (ministry.name === 'Parish Festival Committee' || 
+                    ministry.name === 'Welcome Committee' || 
+                    ministry.name === 'Sunday Socials') {
+                    isGeneralMatch = true;
+                }
                 
                 // Check age
                 if (ministry.age && !ministry.age.includes(answers.age)) {
@@ -422,8 +543,23 @@
                 }
                 
                 if (isMatch) {
-                    matches.push(ministry);
+                    if (isGeneralMatch && ministry.age && ministry.age.includes(answers.age)) {
+                        generalMatches.push(ministry);
+                    } else {
+                        matches.push(ministry);
+                    }
                 }
+            }
+            
+            // If we have no specific matches, show general options
+            if (matches.length === 0) {
+                return generalMatches.length > 0 ? generalMatches : [
+                    {
+                        name: 'Parish Community',
+                        description: 'We have many opportunities to get involved!',
+                        details: 'Please contact the parish office at (615) 352-3087'
+                    }
+                ];
             }
             
             return matches;
@@ -450,7 +586,7 @@
             console.log('Data to save:', data);
             alert('Great! We\'ll send you more information about these ministries soon.');
             
-            // For now, you could save to localStorage
+            // For now, save to localStorage
             const submissions = JSON.parse(localStorage.getItem('ministry_submissions') || '[]');
             submissions.push(data);
             localStorage.setItem('ministry_submissions', JSON.stringify(submissions));
