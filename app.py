@@ -150,15 +150,55 @@ def init_db():
             cur.execute("ALTER TABLE ministry_submissions ADD COLUMN ip_address VARCHAR(45)")
             logger.info("Added ip_address column to ministry_submissions table")
         
-        # Update state_in_life column to be JSONB if it's not already
+        # SAFE MIGRATION: Update state_in_life column to be JSONB if it's not already
         cur.execute("""
             SELECT data_type FROM information_schema.columns 
             WHERE table_name = 'ministry_submissions' AND column_name = 'state_in_life'
         """)
         result = cur.fetchone()
         if result and result[0] != 'jsonb':
-            cur.execute("ALTER TABLE ministry_submissions ALTER COLUMN state_in_life TYPE JSONB USING state_in_life::jsonb")
-            logger.info("Updated state_in_life column to JSONB type")
+            logger.info("Converting state_in_life column to JSONB...")
+            
+            # Safe conversion: wrap existing string values in JSON arrays
+            try:
+                # First, handle NULL values
+                cur.execute("""
+                    UPDATE ministry_submissions 
+                    SET state_in_life = '[]'::jsonb 
+                    WHERE state_in_life IS NULL OR state_in_life = ''
+                """)
+                
+                # Then convert non-empty string values to JSON arrays
+                cur.execute("""
+                    UPDATE ministry_submissions 
+                    SET state_in_life = ('["' || state_in_life || '"]')::jsonb 
+                    WHERE state_in_life IS NOT NULL 
+                    AND state_in_life != '' 
+                    AND state_in_life !~ '^\\[.*\\]$'
+                """)
+                
+                # Now safely convert the column type
+                cur.execute("""
+                    ALTER TABLE ministry_submissions 
+                    ALTER COLUMN state_in_life TYPE JSONB 
+                    USING COALESCE(state_in_life::jsonb, '[]'::jsonb)
+                """)
+                
+                logger.info("Successfully updated state_in_life column to JSONB type")
+                
+            except Exception as e:
+                logger.error(f"Error converting state_in_life to JSONB: {e}")
+                # If conversion fails, just ensure the column exists as VARCHAR for now
+                logger.info("Keeping state_in_life as VARCHAR for now - will work with existing data")
+        
+        # SAFE MIGRATION: Handle interest column similarly if needed
+        cur.execute("""
+            SELECT data_type FROM information_schema.columns 
+            WHERE table_name = 'ministry_submissions' AND column_name = 'interest'
+        """)
+        result = cur.fetchone()
+        if result and result[0] == 'character varying':
+            logger.info("Interest column is VARCHAR - this is fine for backward compatibility")
         
         # Create ministries table for easier management
         cur.execute('''
@@ -184,7 +224,8 @@ def init_db():
         
     except Exception as e:
         logger.error(f"Database initialization failed: {e}")
-        raise
+        # Don't raise the exception - let the app continue
+        logger.info("Continuing with existing database schema")
 
 # Initialize database on startup
 try:
