@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stepping into St. Edward Church</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
+    
+    <!-- External Stylesheets -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading St. Edward Ministry Finder...</div>
+        <div class="loading-subtext">
+            If this is taking a while, our service might be starting up. 
+            Thank you for your patience! ⛪
+        </div>
+    </div>
+    
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-text">⛪ St. Edward Church & School</div>
+            <div class="subtitle">Find Your Place in Our Community</div>
+            <div class="theme-verse">"Through Love, Serve One Another" - Galatians 5:13</div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-card">
+            <div class="card-header">
+                <h1>Stepping into St. Edward Church</h1>
+                <p>Discover what St. Edward has to offer that matches your interests and life situation</p>
+            </div>
+
+            <div class="card-content">
+                <div class="progress">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                
+                <!-- Question 1: Age -->
+                <div class="question active" id="q1">
+                    <h2>Choose what best describes you:</h2>
+                    <div class="button-group">
+                        <button class="option-btn" onclick="answerQuestion('age', 'infant')">Infant (0-3)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'kid')">Kid (PreK-Grade 5)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'junior-high')">Junior High (Grades 6-8)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'high-school')">High School (Grades 9-12)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'college-young-adult')">College & Young Adult (18-35)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'married-parents')">Married Couples & Parents</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'journeying-adults')">Journeying Adults (30+)</button>
+                    </div>
+                </div>
+
+                <!-- Question 2: Gender -->
+                <div class="question" id="q2">
+                    <h2>Are you:</h2>
+                    <div class="button-group">
+                        <button class="option-btn" onclick="answerQuestion('gender', 'male')">Male</button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'female')">Female</button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'skip')">Skip this question</button>
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(2)">← Back</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Question 3: State in Life -->
+                <div class="question" id="q3">
+                    <h2>What's your state in life?</h2>
+                    <div class="button-group">
+                        <button class="option-btn" onclick="answerQuestion('state', 'single')">Single</button>
+                        <button class="option-btn" onclick="answerQuestion('state', 'married')">Married</button>
+                        <button class="option-btn" onclick="answerQuestion('state', 'parent')">Parent</button>
+                        <button class="option-btn" onclick="answerQuestion('state', 'skip')">Skip this question</button>
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(3)">← Back</button>
+                        <div></div>
+                    </div>
+                </div>
+
+                <!-- Question 4: Situation -->
+                <div class="question" id="q4">
+                    <h2>What describes your situation?</h2>
+                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
+                    <div class="checkbox-group" id="situation-checkboxes">
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
+                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward" onchange="handleCheckboxChange('new-to-stedward')">
+                            <label for="new-to-stedward">New to St. Edward</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
+                            <input type="checkbox" id="returning-to-church" value="returning-to-church" onchange="handleCheckboxChange('returning-to-church')">
+                            <label for="returning-to-church">Returning to Church</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
+                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville" onchange="handleCheckboxChange('new-to-nashville')">
+                            <label for="new-to-nashville">New to Nashville</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('current-parishioner')">
+                            <input type="checkbox" id="current-parishioner" value="current-parishioner" onchange="handleCheckboxChange('current-parishioner')">
+                            <label for="current-parishioner">Current Parishioner</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('just-curious')">
+                            <input type="checkbox" id="just-curious" value="just-curious" onchange="handleCheckboxChange('just-curious')">
+                            <label for="just-curious">Just Curious</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('none-of-above')">
+                            <input type="checkbox" id="none-of-above" value="none-of-above" onchange="handleCheckboxChange('none-of-above')">
+                            <label for="none-of-above">None of the above</label>
+                        </div>
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(4)">← Back</button>
+                        <button class="nav-btn primary" onclick="nextFromSituation()">Continue →</button>
+                    </div>
+                </div>
+
+                <!-- Question 5: Interests -->
+                <div class="question" id="q5">
+                    <h2>What interests you most?</h2>
+                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
+                    <div class="checkbox-group" id="interest-checkboxes">
+                        <!-- Filled dynamically based on age -->
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn" onclick="goBack(5)">← Back</button>
+                        <button class="nav-btn primary" onclick="showResults()">See My Results →</button>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div id="results">
+                    <h2>Here's what might be a good fit for you:</h2>
+                    <div class="note">
+                        💡 <strong>Tip:</strong> You can screenshot your results for future reference!
+                    </div>
+                    <div id="ministry-recommendations" class="ministry-list"></div>
+                    
+                    <div class="parish-registration">
+                        <h3>🎉 Ready to Get Connected?</h3>
+                        <p>Join our parish community and stay updated on all these great opportunities!</p>
+                        
+                        <div class="registration-buttons">
+                            <a href="https://stedwardnash.flocknote.com/register" target="_blank" class="registration-btn">
+                                📧 Register with Parish
+                            </a>
+                        </div>
+                        
+                        <div class="social-links">
+                            <a href="https://stedward.smugmug.com/" target="_blank">📸 Parish Photos</a>
+                            <a href="https://www.instagram.com/stedwardcommunity/" target="_blank">📱 Instagram</a>
+                            <a href="https://www.facebook.com/stedwardschool" target="_blank">👥 Facebook</a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-info">
+                        <h4>Questions?</h4>
+                        <p><strong>Call:</strong> (615) 833-5520</p>
+                        <p><strong>Email:</strong> <a href="mailto:support@stedward.org">support@stedward.org</a></p>
+                        <p><strong>Visit:</strong> <a href="https://stedward.org" target="_blank">stedward.org</a></p>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="restart-btn" onclick="restart()">🔄 Start Over</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript Files -->
+    <script src="/static/js/ministries.js"></script>
+    <script src="/static/js/confetti.js"></script>
+    <script src="/static/js/quiz.js"></script>
+</body>
+</html>
