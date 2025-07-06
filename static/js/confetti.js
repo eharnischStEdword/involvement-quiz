@@ -1,6 +1,3 @@
-// St. Edward Ministry Finder - Confetti Celebration
-// Celebration animation for when users complete the quiz
-
 function triggerConfetti() {
     // Create confetti container
     const confettiContainer = document.createElement('div');
@@ -46,6 +43,3 @@ function createConfettiPiece(container) {
         }
     }, 4000);
 }
-
-// Export for use in other files
-window.triggerConfetti = triggerConfetti;
