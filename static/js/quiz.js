@@ -428,29 +428,58 @@ function createSelectionsummary() {
     `;
 }
 
-// ENHANCED RESULTS DISPLAY - Add selections summary
+// ENHANCED RESULTS DISPLAY - NOW WITH PARENT/CHILDREN SEPARATION ✨
 function showResults() {
     document.querySelector('.question.active').classList.remove('active');
     document.getElementById('results').style.display = 'block';
     
-    const recommendations = findMinistries();
+    const allRecommendations = findMinistries();
     const resultsDiv = document.getElementById('ministry-recommendations');
     
     // CREATE SELECTIONS SUMMARY
     const selectionsHtml = createSelectionsummary();
     
+    // SEPARATE ADULT AND CHILDREN'S MINISTRIES
+    const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
+    
     let html = selectionsHtml; // Add selections summary at top
     
-    // Add ministry recommendations
-    recommendations.forEach(ministry => {
+    // Add adult ministry recommendations
+    if (adultMinistries.length > 0) {
+        adultMinistries.forEach(ministry => {
+            html += `
+                <div class="ministry-item">
+                    <h3>${ministry.name}</h3>
+                    <p>${ministry.description}</p>
+                    <p class="details">${ministry.details}</p>
+                </div>
+            `;
+        });
+    }
+    
+    // Add children's ministry section if applicable
+    if (childrenMinistries.length > 0) {
         html += `
-            <div class="ministry-item">
-                <h3>${ministry.name}</h3>
-                <p>${ministry.description}</p>
-                <p class="details">${ministry.details}</p>
+            <div class="children-section">
+                <h2 class="children-header">For your children 👧👦</h2>
+                <div class="children-ministries">
+        `;
+        
+        childrenMinistries.forEach(ministry => {
+            html += `
+                <div class="ministry-item children-ministry">
+                    <h3>${ministry.name}</h3>
+                    <p>${ministry.description}</p>
+                    <p class="details">${ministry.details}</p>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
             </div>
         `;
-    });
+    }
     
     resultsDiv.innerHTML = html;
     
@@ -458,10 +487,42 @@ function showResults() {
     document.getElementById('progress-bar').style.width = '100%';
     
     // Submit anonymous analytics data
-    submitAnalytics(recommendations);
+    submitAnalytics([...adultMinistries, ...childrenMinistries]);
     
     // Trigger confetti celebration!
     triggerConfetti();
+}
+
+// NEW FUNCTION - Separate adult and children's ministries
+function separateMinistries(allMinistries) {
+    const adultMinistries = [];
+    const childrenMinistries = [];
+    
+    // Define children's age groups
+    const childrenAges = ['infant', 'kid', 'junior-high', 'high-school'];
+    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
+    
+    allMinistries.forEach(ministry => {
+        // Check if ministry is primarily for children
+        const isChildrenMinistry = ministry.age && 
+            ministry.age.some(age => childrenAges.includes(age)) &&
+            !ministry.age.some(age => adultAges.includes(age));
+        
+        // Special cases for family ministries that serve adults but relate to children
+        const isFamilyMinistry = ministry.name && (
+            ministry.name.includes('Moms Group') ||
+            ministry.name.includes('Meal Train') ||
+            ministry.name.includes('Marriage Enrichment')
+        );
+        
+        if (isChildrenMinistry) {
+            childrenMinistries.push(ministry);
+        } else {
+            adultMinistries.push(ministry);
+        }
+    });
+    
+    return { adultMinistries, childrenMinistries };
 }
 
 function submitAnalytics(recommendations) {
