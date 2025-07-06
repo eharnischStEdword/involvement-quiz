@@ -5,6 +5,31 @@ const states = []; // Array for multiple state selections
 const interests = []; // Array for multiple interests
 let currentQuestion = 1;
 const totalQuestions = 5;
+// Load ministries from server (protected)
+let ministries = {};
+
+async function loadMinistries() {
+    try {
+        const response = await fetch('/api/get-ministries', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            ministries = await response.json();
+            console.log('Ministries loaded successfully');
+        } else {
+            console.error('Failed to load ministries');
+            ministries = {};
+        }
+    } catch (error) {
+        console.error('Error loading ministries:', error);
+        ministries = {};
+    }
+}
+
 
 // ENHANCED Age-specific interest options with "Something for my children"
 const interestOptions = {
@@ -723,6 +748,7 @@ updateProgress();
 
 // Hide loading overlay once page is fully loaded
 window.addEventListener('load', function() {
+    loadMinistries();
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
         overlay.style.opacity = '0';
