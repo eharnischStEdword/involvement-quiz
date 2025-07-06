@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>St. Edward Ministry Finder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .question {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .question.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        #results {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .ministry-list {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .ministry-item {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .ministry-item h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .ministry-item p {
+            margin: 5px 0;
+        }
+        #restart {
+            background-color: #e74c3c;
+        }
+        #restart:hover {
+            background-color: #c0392b;
+        }
+        .progress {
+            width: 100%;
+            height: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3498db;
+            transition: width 0.3s;
+        }
+        #email-capture {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        input[type="email"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Ministry at St. Edward</h1>
+        <div class="progress">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <!-- Question 1: Age -->
+        <div class="question active" id="q1">
+            <h2>What's your age group?</h2>
+            <div class="button-group">
+                <button onclick="answerQuestion('age', 'child')">Elementary (K-5)</button>
+                <button onclick="answerQuestion('age', 'middle')">Middle School (6-8)</button>
+                <button onclick="answerQuestion('age', 'high')">High School (9-12)</button>
+                <button onclick="answerQuestion('age', 'young-adult')">Young Adult (18-35)</button>
+                <button onclick="answerQuestion('age', 'adult')">Adult (36-64)</button>
+                <button onclick="answerQuestion('age', 'senior')">Senior (65+)</button>
+            </div>
+        </div>
+
+        <!-- Question 2: Gender -->
+        <div class="question" id="q2">
+            <h2>Are you:</h2>
+            <div class="button-group">
+                <button onclick="answerQuestion('gender', 'male')">Male</button>
+                <button onclick="answerQuestion('gender', 'female')">Female</button>
+                <button onclick="answerQuestion('gender', 'skip')">Skip this question</button>
+            </div>
+        </div>
+
+        <!-- Question 3: State in Life -->
+        <div class="question" id="q3">
+            <h2>What's your state in life?</h2>
+            <div class="button-group">
+                <button onclick="answerQuestion('state', 'single')">Single</button>
+                <button onclick="answerQuestion('state', 'married')">Married</button>
+                <button onclick="answerQuestion('state', 'parent')">Parent</button>
+                <button onclick="answerQuestion('state', 'skip')">Skip this question</button>
+            </div>
+        </div>
+
+        <!-- Question 4: Interests -->
+        <div class="question" id="q4">
+            <h2>What interests you most?</h2>
+            <div class="button-group">
+                <button onclick="answerQuestion('interest', 'service')">Serving Others</button>
+                <button onclick="answerQuestion('interest', 'prayer')">Prayer & Worship</button>
+                <button onclick="answerQuestion('interest', 'education')">Learning & Teaching</button>
+                <button onclick="answerQuestion('interest', 'music')">Music & Arts</button>
+                <button onclick="answerQuestion('interest', 'fellowship')">Fellowship & Community</button>
+                <button onclick="answerQuestion('interest', 'all')">Show me everything!</button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="results">
+            <h2>Perfect! Here are ministries for you:</h2>
+            <div id="ministry-recommendations"></div>
+            
+            <div id="email-capture">
+                <h3>Want to learn more about these ministries?</h3>
+                <p>We can send you contact information and meeting times:</p>
+                <input type="text" id="name" placeholder="Your Name (optional)">
+                <input type="email" id="email" placeholder="Your Email">
+                <button onclick="submitInfo()">Send Me More Info</button>
+                <p style="font-size: 14px; color: #7f8c8d; margin-top: 10px;">Or just screenshot your results!</p>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; text-align: center;">
+                <p style="margin: 5px;"><strong>Questions?</strong></p>
+                <p style="margin: 5px;">Call the Parish Office: (615) 352-3087</p>
+                <p style="margin: 5px;">Visit: stedward.org</p>
+            </div>
+            
+            <button id="restart" onclick="restart()">Start Over</button>
+        </div>
+    </div>
+
+    <script>
+        // Store user answers
+        const answers = {};
+        let currentQuestion = 1;
+        const totalQuestions = 4;
+
+        // Ministry database with simple if-then rules
+        const ministries = {
+            // Children's Ministries
+            'catechesis': {
+                name: 'Catechesis of the Good Shepherd',
+                description: 'Montessori-based religious education',
+                details: 'Sundays during 9:30am Mass',
+                age: ['child'],
+                interest: ['education', 'prayer']
+            },
+            'altar-servers': {
+                name: 'Altar Servers',
+                description: 'Assist at Mass (must be baptized)',
+                details: 'Training provided - contact Fr. Reehil',
+                age: ['child', 'middle', 'high'],
+                interest: ['service', 'prayer']
+            },
+            
+            // Youth Ministries
+            'fraternus': {
+                name: 'Fraternus',
+                description: 'Mentorship program for young men',
+                details: 'Wednesdays 6:30-8pm',
+                age: ['middle', 'high'],
+                gender: ['male'],
+                interest: ['fellowship', 'education']
+            },
+            'fidelis': {
+                name: 'Fidelis',
+                description: 'Mentorship program for young women',
+                details: 'Wednesdays 6:30-8pm',
+                age: ['middle', 'high'],
+                gender: ['female'],
+                interest: ['fellowship', 'education']
+            },
+            'youth-group': {
+                name: 'Youth Group',
+                description: 'Fun, faith, and fellowship for teens',
+                details: 'Sundays 6-7:30pm',
+                age: ['middle', 'high'],
+                interest: ['fellowship', 'all']
+            },
+            
+            // Young Adult
+            'young-adult-ministry': {
+                name: 'Young Adult Ministry',
+                description: 'Social and spiritual events for 18-35',
+                details: 'Check bulletin for events',
+                age: ['young-adult'],
+                interest: ['fellowship', 'prayer', 'service']
+            },
+            
+            // Adult Education
+            'rcia': {
+                name: 'RCIA',
+                description: 'Become Catholic or complete sacraments',
+                details: 'Thursdays 7pm (Sept-Easter)',
+                age: ['young-adult', 'adult', 'senior'],
+                interest: ['education']
+            },
+            'bible-study': {
+                name: 'Bible Study',
+                description: 'Weekly scripture study groups',
+                details: 'Multiple times - check parish office',
+                age: ['young-adult', 'adult', 'senior'],
+                interest: ['education', 'fellowship']
+            },
+            'alpha': {
+                name: 'Alpha',
+                description: 'Explore life and Christian faith',
+                details: 'Tuesday evenings (10 weeks)',
+                age: ['young-adult', 'adult'],
+                interest: ['education', 'fellowship']
+            },
+            
+            // Service Ministries
+            'svdp': {
+                name: 'St. Vincent de Paul',
+                description: 'Help families in need',
+                details: 'Meetings 2nd Tuesday 7pm',
+                age: ['adult', 'senior'],
+                interest: ['service']
+            },
+            'room-inn': {
+                name: 'Room in the Inn',
+                description: 'Shelter for homeless (winter)',
+                details: 'November-March, various shifts',
+                age: ['young-adult', 'adult', 'senior'],
+                interest: ['service']
+            },
+            'food-pantry': {
+                name: 'Food Pantry',
+                description: 'Distribute food to those in need',
+                details: 'Saturdays 9-11am',
+                age: ['high', 'young-adult', 'adult', 'senior'],
+                interest: ['service']
+            },
+            
+            // Liturgical Ministries
+            'choir': {
+                name: 'Choir',
+                description: 'Sing at Mass',
+                details: 'Practice Thursdays 7pm',
+                age: ['young-adult', 'adult', 'senior'],
+                interest: ['music', 'prayer']
+            },
+            'lector': {
+                name: 'Lector',
+                description: 'Read scripture at Mass',
+                details: 'Training provided',
+                age: ['adult', 'senior'],
+                interest: ['prayer']
+            },
+            'eucharistic-minister': {
+                name: 'Eucharistic Minister',
+                description: 'Distribute communion',
+                details: 'Must be confirmed Catholic',
+                age: ['adult', 'senior'],
+                state: ['married'],
+                interest: ['prayer', 'service']
+            },
+            'adoration': {
+                name: 'Eucharistic Adoration',
+                description: 'Spend time in prayer before the Blessed Sacrament',
+                details: 'Daily 9am-6pm, need regular adorers',
+                age: ['high', 'young-adult', 'adult', 'senior'],
+                interest: ['prayer']
+            },
+            
+            // Fellowship Groups
+            'knights': {
+                name: 'Knights of Columbus',
+                description: 'Catholic men\'s fraternal organization',
+                details: '1st Tuesday 7pm',
+                age: ['adult', 'senior'],
+                gender: ['male'],
+                interest: ['fellowship', 'service']
+            },
+            'ladies-auxiliary': {
+                name: 'Ladies Auxiliary',
+                description: 'Women\'s fellowship and service',
+                details: '2nd Monday 7pm',
+                age: ['adult', 'senior'],
+                gender: ['female'],
+                interest: ['fellowship', 'service']
+            },
+            'moms-group': {
+                name: 'Moms Group',
+                description: 'Support and fellowship for mothers',
+                details: 'Fridays 9:30am (childcare provided)',
+                age: ['young-adult', 'adult'],
+                gender: ['female'],
+                state: ['parent'],
+                interest: ['fellowship']
+            }
+        };
+
+        function answerQuestion(type, answer) {
+            answers[type] = answer;
+            currentQuestion++;
+            updateProgress();
+            
+            if (currentQuestion <= totalQuestions) {
+                document.getElementById(`q${currentQuestion - 1}`).classList.remove('active');
+                document.getElementById(`q${currentQuestion}`).classList.add('active');
+            } else {
+                showResults();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion - 1) / totalQuestions * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        function showResults() {
+            document.getElementById(`q${totalQuestions}`).classList.remove('active');
+            document.getElementById('results').style.display = 'block';
+            
+            const recommendations = findMinistries();
+            const resultsDiv = document.getElementById('ministry-recommendations');
+            
+            if (recommendations.length === 0) {
+                resultsDiv.innerHTML = '<p>We couldn\'t find specific matches, but please contact the parish office!</p>';
+            } else {
+                let html = '';
+                recommendations.forEach(ministry => {
+                    html += `
+                        <div class="ministry-item">
+                            <h3>${ministry.name}</h3>
+                            <p>${ministry.description}</p>
+                            <p style="color: #3498db; font-weight: bold;">${ministry.details}</p>
+                        </div>
+                    `;
+                });
+                resultsDiv.innerHTML = html;
+            }
+        }
+
+        function findMinistries() {
+            const matches = [];
+            
+            for (const [key, ministry] of Object.entries(ministries)) {
+                let isMatch = true;
+                
+                // Check age
+                if (ministry.age && !ministry.age.includes(answers.age)) {
+                    isMatch = false;
+                }
+                
+                // Check gender (if specified and not skipped)
+                if (ministry.gender && answers.gender !== 'skip' && !ministry.gender.includes(answers.gender)) {
+                    isMatch = false;
+                }
+                
+                // Check state (if specified and not skipped)
+                if (ministry.state && answers.state !== 'skip' && !ministry.state.includes(answers.state)) {
+                    isMatch = false;
+                }
+                
+                // Check interest (always check unless 'all' is selected)
+                if (answers.interest !== 'all' && ministry.interest && !ministry.interest.includes(answers.interest)) {
+                    isMatch = false;
+                }
+                
+                if (isMatch) {
+                    matches.push(ministry);
+                }
+            }
+            
+            return matches;
+        }
+
+        function submitInfo() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            if (!email) {
+                alert('Please enter your email address');
+                return;
+            }
+            
+            // In a real app, this would send to your backend
+            const data = {
+                name: name || 'Not provided',
+                email: email,
+                answers: answers,
+                ministries: findMinistries().map(m => m.name),
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('Data to save:', data);
+            alert('Great! We\'ll send you more information about these ministries soon.');
+            
+            // For now, you could save to localStorage
+            const submissions = JSON.parse(localStorage.getItem('ministry_submissions') || '[]');
+            submissions.push(data);
+            localStorage.setItem('ministry_submissions', JSON.stringify(submissions));
+        }
+
+        function restart() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
