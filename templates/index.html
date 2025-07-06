@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stepping into St. Edward Church</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
-    
-    <!-- External Stylesheets -->
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
@@ -67,18 +65,31 @@
                     </div>
                 </div>
 
-                <!-- Question 3: State in Life -->
+                <!-- Question 3: State in Life (Updated to Checkboxes) -->
                 <div class="question" id="q3">
                     <h2>What's your state in life?</h2>
-                    <div class="button-group">
-                        <button class="option-btn" onclick="answerQuestion('state', 'single')">Single</button>
-                        <button class="option-btn" onclick="answerQuestion('state', 'married')">Married</button>
-                        <button class="option-btn" onclick="answerQuestion('state', 'parent')">Parent</button>
-                        <button class="option-btn" onclick="answerQuestion('state', 'skip')">Skip this question</button>
+                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
+                    <div class="checkbox-group" id="state-checkboxes">
+                        <div class="checkbox-item" onclick="toggleStateCheckbox('single')">
+                            <input type="checkbox" id="state-single" value="single" onchange="handleStateCheckboxChange('single')">
+                            <label for="state-single">Single</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleStateCheckbox('married')">
+                            <input type="checkbox" id="state-married" value="married" onchange="handleStateCheckboxChange('married')">
+                            <label for="state-married">Married</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleStateCheckbox('parent')">
+                            <input type="checkbox" id="state-parent" value="parent" onchange="handleStateCheckboxChange('parent')">
+                            <label for="state-parent">Parent</label>
+                        </div>
+                        <div class="checkbox-item" onclick="toggleStateCheckbox('none-of-above')">
+                            <input type="checkbox" id="state-none-of-above" value="none-of-above" onchange="handleStateCheckboxChange('none-of-above')">
+                            <label for="state-none-of-above">None of the above</label>
+                        </div>
                     </div>
                     <div class="navigation">
                         <button class="nav-btn" onclick="goBack(3)">← Back</button>
-                        <div></div>
+                        <button class="nav-btn primary" onclick="nextFromState()">Continue →</button>
                     </div>
                 </div>
 
@@ -88,28 +99,28 @@
                     <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
                     <div class="checkbox-group" id="situation-checkboxes">
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
-                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward" onchange="handleCheckboxChange('new-to-stedward')">
+                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward" onchange="handleSituationCheckboxChange('new-to-stedward')">
                             <label for="new-to-stedward">New to St. Edward</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
-                            <input type="checkbox" id="returning-to-church" value="returning-to-church" onchange="handleCheckboxChange('returning-to-church')">
+                            <input type="checkbox" id="returning-to-church" value="returning-to-church" onchange="handleSituationCheckboxChange('returning-to-church')">
                             <label for="returning-to-church">Returning to Church</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
-                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville" onchange="handleCheckboxChange('new-to-nashville')">
+                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville" onchange="handleSituationCheckboxChange('new-to-nashville')">
                             <label for="new-to-nashville">New to Nashville</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('current-parishioner')">
-                            <input type="checkbox" id="current-parishioner" value="current-parishioner" onchange="handleCheckboxChange('current-parishioner')">
+                            <input type="checkbox" id="current-parishioner" value="current-parishioner" onchange="handleSituationCheckboxChange('current-parishioner')">
                             <label for="current-parishioner">Current Parishioner</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('just-curious')">
-                            <input type="checkbox" id="just-curious" value="just-curious" onchange="handleCheckboxChange('just-curious')">
+                            <input type="checkbox" id="just-curious" value="just-curious" onchange="handleSituationCheckboxChange('just-curious')">
                             <label for="just-curious">Just Curious</label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('none-of-above')">
-                            <input type="checkbox" id="none-of-above" value="none-of-above" onchange="handleCheckboxChange('none-of-above')">
-                            <label for="none-of-above">None of the above</label>
+                        <div class="checkbox-item" onclick="toggleSituationCheckbox('situation-none-of-above')">
+                            <input type="checkbox" id="situation-none-of-above" value="situation-none-of-above" onchange="handleSituationCheckboxChange('situation-none-of-above')">
+                            <label for="situation-none-of-above">None of the above</label>
                         </div>
                     </div>
                     <div class="navigation">
@@ -171,9 +182,9 @@
         </div>
     </div>
 
-    <!-- External JavaScript Files -->
-    <script src="/static/js/ministries.js"></script>
-    <script src="/static/js/confetti.js"></script>
-    <script src="/static/js/quiz.js"></script>
+    <!-- Load JavaScript files -->
+    <script src="{{ url_for('static', filename='js/ministries.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
 </body>
 </html>
