@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
-import psycopg2
+import psycopg
 import os
 from datetime import datetime
 import json
@@ -12,12 +12,12 @@ CORS(app)
 def get_db_connection():
     DATABASE_URL = os.environ.get('DATABASE_URL')
     if DATABASE_URL:
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        conn = psycopg.connect(DATABASE_URL)
     else:
         # Local development
-        conn = psycopg2.connect(
+        conn = psycopg.connect(
             host='localhost',
-            database='st_edward_ministries',
+            dbname='st_edward_ministries',
             user='your_username',
             password='your_password'
         )
@@ -111,7 +111,7 @@ def submit_ministry_interest():
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': 'There was an error processing your request. Please try again or contact the parish office.'
+            'message': 'There was an error processing your request. Please try again or contact the parish office at (615) 833-5520.'
         }), 500
 
 @app.route('/api/submissions', methods=['GET'])
