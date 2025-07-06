@@ -992,16 +992,6 @@ def get_ministries():
     except Exception as e:
         logger.error(f"Error getting ministries: {e}")
         return jsonify({}), 500
-
-@app.route('/api/get-ministries', methods=['POST'])
-def get_ministries():
-    """Protected endpoint to get ministry data"""
-    try:
-        # Simple protection - could enhance later
-        return jsonify(MINISTRY_DATA)
-    except Exception as e:
-        logger.error(f"Error getting ministries: {e}")
-        return jsonify({}), 500
         
 @app.route('/health')
 def health_check():
