@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from flask_cors import CORS
 from functools import wraps
 import psycopg2
@@ -196,16 +196,17 @@ else:
 
 @app.route('/')
 def index():
-    # Serve the HTML file
+    # Serve the template
     try:
-        with open('index.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
-        return html_content
-    except FileNotFoundError:
-        return "index.html file not found", 404
+        return render_template('index.html')
     except Exception as e:
-        logger.error(f"Error serving index.html: {e}")
+        logger.error(f"Error serving template: {e}")
         return f"Error loading page: {e}", 500
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    """Serve static files"""
+    return send_from_directory('static', filename)
 
 @app.route('/api/submit', methods=['POST'])
 def submit_ministry_interest():
