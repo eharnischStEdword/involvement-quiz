@@ -174,9 +174,17 @@ def submit_ministry_interest():
         
     except psycopg2.Error as e:
         logger.error(f"Database error in submit_ministry_interest: {e}")
+        logger.error(f"Database error details: {e.pgcode} - {e.pgerror}")
         return jsonify({
             'success': False,
-            'message': f'Database error: Please try again or contact the parish office at (615) 833-5520'
+            'message': f'Database connection issue. Please try again or contact the parish office at (615) 833-5520. Error code: {e.pgcode}'
+        }), 500
+        
+    except json.JSONEncodeError as e:
+        logger.error(f"JSON encoding error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Data formatting error. Please try again.'
         }), 500
         
     except Exception as e:
@@ -304,8 +312,68 @@ def admin_dashboard():
     '''
     return admin_html
 
-@app.route('/health')
-def health_check():
+@app.route('/test-db')
+def test_database():
+    """Test database connection and table structure"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Test table exists
+        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_name = 'ministry_submissions'")
+        table_exists = cur.fetchone()
+        
+        # Test table structure
+        cur.execute("""
+            SELECT column_name, data_type, is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'ministry_submissions'
+            ORDER BY ordinal_position
+        """)
+        columns = cur.fetchall()
+        
+        # Test insert with minimal data
+        test_data = {
+            'name': 'Test User',
+            'email': 'test@example.com',
+            'age_group': 'college-young-adult',
+            'gender': 'skip',
+            'state_in_life': 'single',
+            'interest': 'fellowship',
+            'situation': '[]',
+            'recommended_ministries': '["Test Ministry"]'
+        }
+        
+        cur.execute('''
+            INSERT INTO ministry_submissions 
+            (name, email, age_group, gender, state_in_life, interest, situation, recommended_ministries)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        ''', tuple(test_data.values()))
+        
+        test_id = cur.fetchone()[0]
+        
+        # Clean up test data
+        cur.execute('DELETE FROM ministry_submissions WHERE id = %s', (test_id,))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({
+            'status': 'success',
+            'table_exists': bool(table_exists),
+            'columns': [{'name': col[0], 'type': col[1], 'nullable': col[2]} for col in columns],
+            'test_insert_id': test_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Database test failed: {e}")
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'error_type': type(e).__name__
+        }), 500
     """Health check endpoint for Render"""
     try:
         # Test database connection
