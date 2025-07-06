@@ -276,7 +276,7 @@ def submit_ministry_interest():
         
         return jsonify({
             'success': True,
-            'message': 'Thank you! We\'ll send you more information about these ministries soon.',
+            'message': 'Thank you for registering! Someone from St. Edward will be in touch soon.',
             'submission_id': submission_id
         })
         
