@@ -224,7 +224,23 @@ function nextFromSituation() {
 function populateInterestOptions() {
     const interestContainer = document.getElementById('interest-checkboxes');
     const ageGroup = answers.age;
-    const options = interestOptions[ageGroup] || interestOptions['journeying-adults'];
+    let options = interestOptions[ageGroup] || interestOptions['journeying-adults'];
+    
+    // MODIFY: Add "something for my children" option if user selected "parent"
+    if (states.includes('parent')) {
+        // Create a copy of the options array and add the children option
+        options = [...options];
+        
+        // Insert the children option before "Show me everything!"
+        const allIndex = options.findIndex(opt => opt.value === 'all');
+        const childrenOption = { value: 'children', label: 'Something for my children' };
+        
+        if (allIndex > -1) {
+            options.splice(allIndex, 0, childrenOption);
+        } else {
+            options.push(childrenOption);
+        }
+    }
     
     interestContainer.innerHTML = '';
     options.forEach(option => {
