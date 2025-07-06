@@ -656,6 +656,45 @@
             max-width: 400px;
             line-height: 1.4;
         }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            z-index: 1000;
+            pointer-events: none;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s linear forwards;
+        }
+
+        .confetti-1 { background-color: #005921; }
+        .confetti-2 { background-color: #00843D; }
+        .confetti-3 { background-color: #FFD700; }
+        .confetti-4 { background-color: #FF6B6B; }
+        .confetti-5 { background-color: #4ECDC4; }
+        .confetti-6 { background-color: #45B7D1; }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -1531,6 +1570,53 @@
             
             // Update progress bar to 100%
             document.getElementById('progress-bar').style.width = '100%';
+            
+            // Trigger confetti celebration!
+            triggerConfetti();
+        }
+
+        function triggerConfetti() {
+            // Create confetti container
+            const confettiContainer = document.createElement('div');
+            confettiContainer.className = 'confetti-container';
+            document.body.appendChild(confettiContainer);
+            
+            // Create multiple confetti pieces
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    createConfettiPiece(confettiContainer);
+                }, i * 50); // Stagger the confetti creation
+            }
+            
+            // Clean up after animation
+            setTimeout(() => {
+                document.body.removeChild(confettiContainer);
+            }, 4000);
+        }
+
+        function createConfettiPiece(container) {
+            const confetti = document.createElement('div');
+            confetti.className = `confetti confetti-${Math.floor(Math.random() * 6) + 1}`;
+            
+            // Random horizontal position
+            confetti.style.left = Math.random() * 100 + '%';
+            
+            // Random size variation
+            const size = Math.random() * 6 + 4; // 4-10px
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+            
+            // Random animation duration
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's'; // 2-4 seconds
+            
+            container.appendChild(confetti);
+            
+            // Remove individual confetti piece after animation
+            setTimeout(() => {
+                if (confetti.parentNode) {
+                    confetti.parentNode.removeChild(confetti);
+                }
+            }, 4000);
         }
 
         function findMinistries() {
