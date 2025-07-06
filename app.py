@@ -560,6 +560,32 @@ def test_database():
             'error_type': type(e).__name__
         }), 500
 
+# ===== ADD EVERYTHING BELOW THIS LINE =====
+
+# Ministry data (moved from JavaScript for protection)
+MINISTRY_DATA = {
+    # PASTE YOUR MINISTRY DATA FROM ministries.js HERE
+    # Example format:
+    'mass': {
+        'name': 'Daily & Sunday Mass',
+        'description': 'The source and summit of our faith',
+        'details': 'Mass times available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
+        'age': ['infant', 'kid', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
+        'interest': ['prayer', 'all']
+    },
+    # Add all your other ministries here...
+}
+
+@app.route('/api/get-ministries', methods=['POST'])
+def get_ministries():
+    """Protected endpoint to get ministry data"""
+    try:
+        # Simple protection - could enhance later
+        return jsonify(MINISTRY_DATA)
+    except Exception as e:
+        logger.error(f"Error getting ministries: {e}")
+        return jsonify({}), 500
+        
 @app.route('/health')
 def health_check():
     """Health check endpoint for Render"""
