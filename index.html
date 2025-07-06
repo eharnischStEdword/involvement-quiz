@@ -47,6 +47,10 @@
         button:hover {
             background-color: #2980b9;
         }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
         .back-button {
             background-color: #95a5a6;
             margin-top: 20px;
@@ -116,6 +120,27 @@
             border: 1px solid #bdc3c7;
             border-radius: 5px;
             box-sizing: border-box;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .success-message {
+            background-color: #d5f4e6;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
         }
     </style>
 </head>
@@ -187,7 +212,12 @@
                 <p>We can send you contact information and meeting times:</p>
                 <input type="text" id="name" placeholder="Your Name (optional)">
                 <input type="email" id="email" placeholder="Your Email">
-                <button onclick="submitInfo()">Send Me More Info</button>
+                <button id="submit-btn" onclick="submitInfo()">Send Me More Info</button>
+                <div class="loading" id="loading">
+                    <p>Submitting your information...</p>
+                </div>
+                <div class="success-message" id="success-message"></div>
+                <div class="error-message" id="error-message"></div>
                 <p style="font-size: 14px; color: #7f8c8d; margin-top: 10px;">Or just screenshot your results!</p>
             </div>
             
@@ -202,9 +232,6 @@
     </div>
 
     <script>
-        // To view saved submissions, open browser console and type: 
-        // JSON.parse(localStorage.getItem('ministry_submissions'))
-        
         // Store user answers
         const answers = {};
         let currentQuestion = 1;
@@ -482,6 +509,13 @@
             }
         }
 
+        function goBack(questionNum) {
+            currentQuestion = questionNum - 1;
+            updateProgress();
+            document.getElementById(`q${questionNum}`).classList.remove('active');
+            document.getElementById(`q${currentQuestion}`).classList.add('active');
+        }
+
         function updateProgress() {
             const progress = (currentQuestion - 1) / totalQuestions * 100;
             document.getElementById('progress-bar').style.width = progress + '%';
@@ -565,31 +599,73 @@
             return matches;
         }
 
-        function submitInfo() {
+        async function submitInfo() {
             const name = document.getElementById('name').value;
             const email = document.getElementById('email').value;
             
             if (!email) {
-                alert('Please enter your email address');
+                showError('Please enter your email address');
                 return;
             }
             
-            // In a real app, this would send to your backend
-            const data = {
-                name: name || 'Not provided',
-                email: email,
-                answers: answers,
-                ministries: findMinistries().map(m => m.name),
-                timestamp: new Date().toISOString()
-            };
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('Please enter a valid email address');
+                return;
+            }
             
-            console.log('Data to save:', data);
-            alert('Great! We\'ll send you more information about these ministries soon.');
+            showLoading(true);
             
-            // For now, save to localStorage
-            const submissions = JSON.parse(localStorage.getItem('ministry_submissions') || '[]');
-            submissions.push(data);
-            localStorage.setItem('ministry_submissions', JSON.stringify(submissions));
+            try {
+                const data = {
+                    name: name || '',
+                    email: email,
+                    answers: answers,
+                    ministries: findMinistries().map(m => m.name)
+                };
+                
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(result.message);
+                    document.getElementById('email-capture').style.display = 'none';
+                } else {
+                    showError(result.message);
+                }
+                
+            } catch (error) {
+                showError('There was an error submitting your information. Please try again or contact the parish office.');
+            }
+            
+            showLoading(false);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('submit-btn').disabled = show;
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
         }
 
         function restart() {
