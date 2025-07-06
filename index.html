@@ -557,19 +557,19 @@
                     <div class="checkbox-group" id="situation-checkboxes">
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
                             <input type="checkbox" id="new-to-stedward" value="new-to-stedward">
-                            <label for="new-to-stedward">New to St. Edward</label>
+                            <label for="new-to-stedward" onclick="event.stopPropagation(); toggleSituationCheckbox('new-to-stedward')">New to St. Edward</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
                             <input type="checkbox" id="returning-to-church" value="returning-to-church">
-                            <label for="returning-to-church">Returning to Church</label>
+                            <label for="returning-to-church" onclick="event.stopPropagation(); toggleSituationCheckbox('returning-to-church')">Returning to Church</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
                             <input type="checkbox" id="new-to-nashville" value="new-to-nashville">
-                            <label for="new-to-nashville">New to Nashville</label>
+                            <label for="new-to-nashville" onclick="event.stopPropagation(); toggleSituationCheckbox('new-to-nashville')">New to Nashville</label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('none-of-above')">
                             <input type="checkbox" id="none-of-above" value="none-of-above">
-                            <label for="none-of-above">None of the above</label>
+                            <label for="none-of-above" onclick="event.stopPropagation(); toggleSituationCheckbox('none-of-above')">None of the above</label>
                         </div>
                     </div>
                     <div class="navigation">
