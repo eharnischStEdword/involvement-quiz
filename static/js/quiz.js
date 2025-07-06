@@ -457,13 +457,16 @@ function showResults() {
         });
     }
     
-    // Add children's ministry section if applicable
-    if (childrenMinistries.length > 0) {
-        html += `
-            <div class="children-section">
-                <h2 class="children-header">For your children 👧👦</h2>
-                <div class="children-ministries">
-        `;
+// Add children's ministry section if applicable
+// Only show "For your children" if the user is NOT a child themselves
+const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
+
+if (childrenMinistries.length > 0 && !userIsChild) {
+    html += `
+        <div class="children-section">
+            <h2 class="children-header">For your children 👧👦</h2>
+            <div class="children-ministries">
+    `;
         
         childrenMinistries.forEach(ministry => {
             html += `
