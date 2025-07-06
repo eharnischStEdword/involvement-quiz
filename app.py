@@ -56,10 +56,22 @@ def init_db():
                 gender VARCHAR(20),
                 state_in_life VARCHAR(50),
                 interest VARCHAR(50),
-                situation JSONB,
+                situation JSONB DEFAULT '[]'::jsonb,
                 recommended_ministries TEXT,
                 submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+        ''')
+        
+        # Add situation column if it doesn't exist (for existing databases)
+        cur.execute('''
+            DO $ 
+            BEGIN 
+                BEGIN
+                    ALTER TABLE ministry_submissions ADD COLUMN situation JSONB DEFAULT '[]'::jsonb;
+                EXCEPTION
+                    WHEN duplicate_column THEN null;
+                END;
+            END $;
         ''')
         
         # Create ministries table for easier management
