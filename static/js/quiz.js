@@ -431,9 +431,22 @@ function findMinistries() {
     for (const [key, ministry] of Object.entries(ministries)) {
         let isMatch = true;
         
-        // Check age
-        if (ministry.age && !ministry.age.includes(answers.age)) {
-            isMatch = false;
+        // ENHANCED: Handle "something for my children" interest
+        const hasChildrenInterest = interests.includes('children');
+        const showAllInterests = interests.includes('all');
+        
+        // Check age - MODIFIED to include children's ministries when parent selects "children"
+        if (ministry.age) {
+            let ageMatches = ministry.age.includes(answers.age);
+            
+            // If parent selected "something for my children", also include kid/infant ministries
+            if (hasChildrenInterest && !ageMatches) {
+                ageMatches = ministry.age.some(age => ['infant', 'kid'].includes(age));
+            }
+            
+            if (!ageMatches) {
+                isMatch = false;
+            }
         }
         
         // Check gender (if specified and not skipped)
@@ -460,9 +473,21 @@ function findMinistries() {
             }
         }
         
-        // Check interests (support multiple selections)
-        if (interests.length > 0 && !interests.includes('all') && ministry.interest) {
-            const hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+        // ENHANCED: Check interests with children support
+        if (interests.length > 0 && !showAllInterests && ministry.interest) {
+            let hasMatchingInterest = false;
+            
+            // Check regular interests
+            hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+            
+            // If parent selected "children" interest, include ministries tagged for kids
+            if (!hasMatchingInterest && hasChildrenInterest) {
+                // Include ministries that are for kids/infants regardless of their interest tags
+                if (ministry.age && ministry.age.some(age => ['infant', 'kid'].includes(age))) {
+                    hasMatchingInterest = true;
+                }
+            }
+            
             if (!hasMatchingInterest) {
                 isMatch = false;
             }
@@ -473,9 +498,8 @@ function findMinistries() {
         }
     }
     
-    // Special handling for kids - always show core options
+    // Special handling for kids - always show core options (unchanged)
     if (answers.age === 'kid' && matches.length < 2) {
-        // Always include these for kids regardless of interest
         const coreKidsMinistries = [
             ministries['st-edward-school'],
             ministries['prep-kids'],
@@ -488,7 +512,6 @@ function findMinistries() {
             }
         });
         
-        // Add Cub Scouts if they selected fellowship or all
         if (interests.includes('fellowship') || interests.includes('all')) {
             if (!matches.some(m => m.name === ministries['cub-scouts'].name)) {
                 matches.push(ministries['cub-scouts']);
@@ -496,7 +519,25 @@ function findMinistries() {
         }
     }
     
-    // If no interests selected, show general options
+    // ENHANCED: Special handling for parents who selected "children" interest
+    if (hasChildrenInterest && matches.length < 3) {
+        // Ensure key children's ministries are included
+        const keyChildrenMinistries = [
+            ministries['st-edward-school'],
+            ministries['prep-kids'],
+            ministries['catechesis'],
+            ministries['totus-tuus-kids'],
+            ministries['cub-scouts']
+        ].filter(ministry => ministry); // Filter out any undefined ministries
+        
+        keyChildrenMinistries.forEach(ministry => {
+            if (!matches.some(m => m.name === ministry.name)) {
+                matches.push(ministry);
+            }
+        });
+    }
+    
+    // If no interests selected, show general options (unchanged)
     if (interests.length === 0) {
         return [
             {
@@ -507,7 +548,7 @@ function findMinistries() {
         ];
     }
     
-    // If we still have no matches for any age group, show general options
+    // If we still have no matches for any age group, show general options (unchanged)
     if (matches.length === 0) {
         return [
             {
