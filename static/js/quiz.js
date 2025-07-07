@@ -454,44 +454,53 @@ function createSelectionsummary() {
 }
 
 // ENHANCED RESULTS DISPLAY - NOW WITH PARENT/CHILDREN SEPARATION ✨
-function showResults() {
-    document.querySelector('.question.active').classList.remove('active');
-    document.getElementById('results').style.display = 'block';
-    
-    const allRecommendations = findMinistries();
-    const resultsDiv = document.getElementById('ministry-recommendations');
-    
-    // CREATE SELECTIONS SUMMARY
-    const selectionsHtml = createSelectionsummary();
-    
-    // Check if user IS a child
-    const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
-    
-    // SEPARATE ADULT AND CHILDREN'S MINISTRIES
-    const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
-    
-    let html = selectionsHtml; // Add selections summary at top
-    
-    // If user IS a child, merge all ministries together
-    if (userIsChild) {
-        // Show all ministries together without separation
-        const allMinistriesForChild = [...adultMinistries, ...childrenMinistries];
+// ENHANCED RESULTS DISPLAY - NOW WITH MASS ALWAYS FIRST ✨
+    function showResults() {
+        document.querySelector('.question.active').classList.remove('active');
+        document.getElementById('results').style.display = 'block';
         
-        allMinistriesForChild.forEach(ministry => {
-            html += `
-                <div class="ministry-item">
-                    <h3>${ministry.name}</h3>
-                    <p>${ministry.description}</p>
-                    <p class="details">${ministry.details}</p>
-                </div>
-            `;
+        const allRecommendations = findMinistries();
+        const resultsDiv = document.getElementById('ministry-recommendations');
+        
+        // CREATE SELECTIONS SUMMARY
+        const selectionsHtml = createSelectionsummary();
+        
+        // Check if user IS a child
+        const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
+        
+        // PRIORITIZE MASS - separate it from other ministries
+        let massMinistry = null;
+        const otherRecommendations = [];
+        
+        allRecommendations.forEach(ministry => {
+            if (ministry.name === 'Come to Mass!' || ministry.name === 'Daily & Sunday Mass') {
+                massMinistry = ministry;
+            } else {
+                otherRecommendations.push(ministry);
+            }
         });
-    } else {
-        // User is an adult - show separated sections
         
-        // Add adult ministry recommendations
-        if (adultMinistries.length > 0) {
-            adultMinistries.forEach(ministry => {
+        // SEPARATE ADULT AND CHILDREN'S MINISTRIES (excluding Mass)
+        const { adultMinistries, childrenMinistries } = separateMinistries(otherRecommendations);
+        
+        let html = selectionsHtml; // Add selections summary at top
+        
+        // If user IS a child, merge all ministries together with Mass first
+        if (userIsChild) {
+            // Show Mass first if it exists
+            if (massMinistry) {
+                html += `
+                    <div class="ministry-item">
+                        <h3>${massMinistry.name}</h3>
+                        <p>${massMinistry.description}</p>
+                        <p class="details">${massMinistry.details}</p>
+                    </div>
+                `;
+            }
+            
+            // Then show all other ministries
+            const allOtherMinistriesForChild = [...adultMinistries, ...childrenMinistries];
+            allOtherMinistriesForChild.forEach(ministry => {
                 html += `
                     <div class="ministry-item">
                         <h3>${ministry.name}</h3>
@@ -500,31 +509,69 @@ function showResults() {
                     </div>
                 `;
             });
-        }
-        
-        // Add children's ministry section for adults (parents)
-        if (childrenMinistries.length > 0) {
-            html += `
-                <div class="children-section">
-                    <h2 class="children-header">For your children 👧👦</h2>
-                    <div class="children-ministries">
-            `;
+        } else {
+            // User is an adult - show Mass first, then other adult ministries, then children's section
             
-            childrenMinistries.forEach(ministry => {
+            // Show Mass first if it exists
+            if (massMinistry) {
                 html += `
-                    <div class="ministry-item children-ministry">
-                        <h3>${ministry.name}</h3>
-                        <p>${ministry.description}</p>
-                        <p class="details">${ministry.details}</p>
+                    <div class="ministry-item">
+                        <h3>${massMinistry.name}</h3>
+                        <p>${massMinistry.description}</p>
+                        <p class="details">${massMinistry.details}</p>
                     </div>
                 `;
-            });
+            }
             
-            html += `
+            // Add other adult ministry recommendations
+            if (adultMinistries.length > 0) {
+                adultMinistries.forEach(ministry => {
+                    html += `
+                        <div class="ministry-item">
+                            <h3>${ministry.name}</h3>
+                            <p>${ministry.description}</p>
+                            <p class="details">${ministry.details}</p>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Add children's ministry section for adults (parents)
+            if (childrenMinistries.length > 0) {
+                html += `
+                    <div class="children-section">
+                        <h2 class="children-header">For your children 👧👦</h2>
+                        <div class="children-ministries">
+                `;
+                
+                childrenMinistries.forEach(ministry => {
+                    html += `
+                        <div class="ministry-item children-ministry">
+                            <h3>${ministry.name}</h3>
+                            <p>${ministry.description}</p>
+                            <p class="details">${ministry.details}</p>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
+        
+        resultsDiv.innerHTML = html;
+        
+        // Update progress bar to 100%
+        document.getElementById('progress-bar').style.width = '100%';
+        
+        // Submit anonymous analytics data (include Mass in the list if present)
+        const allMinistriesForAnalytics = massMinistry ? [massMinistry, ...adultMinistries, ...childrenMinistries] : [...adultMinistries, ...childrenMinistries];
+        submitAnalytics(allMinistriesForAnalytics);
+        
+        // Trigger confetti celebration!
+        triggerConfetti();
     }
     
     resultsDiv.innerHTML = html;
@@ -539,7 +586,7 @@ function showResults() {
     triggerConfetti();
 }
 
-// NEW FUNCTION - Separate adult and children's ministries
+// NEW FUNCTION - Separate adult and children's ministries with Mass prioritization
 function separateMinistries(allMinistries) {
     const adultMinistries = [];
     const childrenMinistries = [];
@@ -548,7 +595,20 @@ function separateMinistries(allMinistries) {
     const childrenAges = ['infant', 'kid', 'junior-high', 'high-school'];
     const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
     
+    // Separate Mass first to ensure it's prioritized
+    let massMinistry = null;
+    const otherMinistries = [];
+    
     allMinistries.forEach(ministry => {
+        if (ministry.name === 'Come to Mass!' || ministry.name === 'Daily & Sunday Mass') {
+            massMinistry = ministry;
+        } else {
+            otherMinistries.push(ministry);
+        }
+    });
+    
+    // Process other ministries
+    otherMinistries.forEach(ministry => {
         // Check if ministry is primarily for children
         const isChildrenMinistry = ministry.age && 
             ministry.age.some(age => childrenAges.includes(age)) &&
@@ -567,6 +627,11 @@ function separateMinistries(allMinistries) {
             adultMinistries.push(ministry);
         }
     });
+    
+    // Add Mass at the beginning of adult ministries if it exists
+    if (massMinistry) {
+        adultMinistries.unshift(massMinistry);
+    }
     
     return { adultMinistries, childrenMinistries };
 }
