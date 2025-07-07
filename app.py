@@ -566,9 +566,9 @@ def test_database():
 MINISTRY_DATA = {
     # Sacraments
     'mass': {
-        'name': 'Daily & Sunday Mass',
+        'name': 'Come to Mass!',
         'description': 'The source and summit of our faith',
-        'details': 'Mass times available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
+        'details': 'Daily & Sunday Mass times are available at <a href="https://stedward.org" target="_blank">stedward.org</a>.',
         'age': ['infant', 'kid', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'all']
     },
