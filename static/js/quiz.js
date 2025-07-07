@@ -7,6 +7,8 @@ let currentQuestion = 1;
 const totalQuestions = 5;
 // Load ministries from server (protected)
 let ministries = {};
+let loadingRetries = 0;
+const maxRetries = 3;
 
 async function loadMinistries() {
     try {
@@ -14,22 +16,78 @@ async function loadMinistries() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 10000 // 10 second timeout
         });
         
         if (response.ok) {
             ministries = await response.json();
             console.log('Ministries loaded successfully');
+            
+            // Hide loading screen on success
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            }
         } else {
-            console.error('Failed to load ministries');
-            ministries = {};
+            throw new Error(`Server error: ${response.status}`);
         }
     } catch (error) {
         console.error('Error loading ministries:', error);
-        ministries = {};
+        loadingRetries++;
+        
+        if (loadingRetries < maxRetries) {
+            // Retry after a delay
+            const retryDelay = loadingRetries * 2000; // 2s, 4s, 6s
+            console.log(`Retrying in ${retryDelay/1000} seconds...`);
+            
+            // Update loading message
+            const loadingText = document.querySelector('.loading-text');
+            const loadingSubtext = document.querySelector('.loading-subtext');
+            if (loadingText) {
+                loadingText.textContent = 'Still loading...';
+            }
+            if (loadingSubtext) {
+                loadingSubtext.textContent = `Attempt ${loadingRetries + 1} of ${maxRetries}. Please wait...`;
+            }
+            
+            setTimeout(() => loadMinistries(), retryDelay);
+        } else {
+            // Show error message after all retries failed
+            showLoadingError();
+        }
     }
 }
 
+function showLoadingError() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">😔</div>
+                <div class="loading-text" style="color: #dc3545; font-size: 24px; margin-bottom: 10px;">
+                    Unable to Load Ministry Finder
+                </div>
+                <div class="loading-subtext" style="color: #666; margin-bottom: 20px;">
+                    We're having trouble connecting to our server. This could be temporary.
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <button onclick="location.reload()" style="padding: 10px 20px; background: #005921; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                        🔄 Try Again
+                    </button>
+                </div>
+                <div style="color: #666; font-size: 14px;">
+                    If this problem continues, please contact:<br>
+                    📧 <a href="mailto:support@stedward.org" style="color: #005921;">support@stedward.org</a><br>
+                    📞 (615) 833-5520
+                </div>
+            </div>
+        `;
+    }
+}
 
 // ENHANCED Age-specific interest options with "Something for my children"
 const interestOptions = {
@@ -454,53 +512,44 @@ function createSelectionsummary() {
 }
 
 // ENHANCED RESULTS DISPLAY - NOW WITH PARENT/CHILDREN SEPARATION ✨
-// ENHANCED RESULTS DISPLAY - NOW WITH MASS ALWAYS FIRST ✨
-    function showResults() {
-        document.querySelector('.question.active').classList.remove('active');
-        document.getElementById('results').style.display = 'block';
+function showResults() {
+    document.querySelector('.question.active').classList.remove('active');
+    document.getElementById('results').style.display = 'block';
+    
+    const allRecommendations = findMinistries();
+    const resultsDiv = document.getElementById('ministry-recommendations');
+    
+    // CREATE SELECTIONS SUMMARY
+    const selectionsHtml = createSelectionsummary();
+    
+    // Check if user IS a child
+    const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
+    
+    // SEPARATE ADULT AND CHILDREN'S MINISTRIES
+    const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
+    
+    let html = selectionsHtml; // Add selections summary at top
+    
+    // If user IS a child, merge all ministries together
+    if (userIsChild) {
+        // Show all ministries together without separation
+        const allMinistriesForChild = [...adultMinistries, ...childrenMinistries];
         
-        const allRecommendations = findMinistries();
-        const resultsDiv = document.getElementById('ministry-recommendations');
-        
-        // CREATE SELECTIONS SUMMARY
-        const selectionsHtml = createSelectionsummary();
-        
-        // Check if user IS a child
-        const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
-        
-        // PRIORITIZE MASS - separate it from other ministries
-        let massMinistry = null;
-        const otherRecommendations = [];
-        
-        allRecommendations.forEach(ministry => {
-            if (ministry.name === 'Come to Mass!' || ministry.name === 'Daily & Sunday Mass') {
-                massMinistry = ministry;
-            } else {
-                otherRecommendations.push(ministry);
-            }
+        allMinistriesForChild.forEach(ministry => {
+            html += `
+                <div class="ministry-item">
+                    <h3>${ministry.name}</h3>
+                    <p>${ministry.description}</p>
+                    <p class="details">${ministry.details}</p>
+                </div>
+            `;
         });
+    } else {
+        // User is an adult - show separated sections
         
-        // SEPARATE ADULT AND CHILDREN'S MINISTRIES (excluding Mass)
-        const { adultMinistries, childrenMinistries } = separateMinistries(otherRecommendations);
-        
-        let html = selectionsHtml; // Add selections summary at top
-        
-        // If user IS a child, merge all ministries together with Mass first
-        if (userIsChild) {
-            // Show Mass first if it exists
-            if (massMinistry) {
-                html += `
-                    <div class="ministry-item">
-                        <h3>${massMinistry.name}</h3>
-                        <p>${massMinistry.description}</p>
-                        <p class="details">${massMinistry.details}</p>
-                    </div>
-                `;
-            }
-            
-            // Then show all other ministries
-            const allOtherMinistriesForChild = [...adultMinistries, ...childrenMinistries];
-            allOtherMinistriesForChild.forEach(ministry => {
+        // Add adult ministry recommendations
+        if (adultMinistries.length > 0) {
+            adultMinistries.forEach(ministry => {
                 html += `
                     <div class="ministry-item">
                         <h3>${ministry.name}</h3>
@@ -509,69 +558,31 @@ function createSelectionsummary() {
                     </div>
                 `;
             });
-        } else {
-            // User is an adult - show Mass first, then other adult ministries, then children's section
-            
-            // Show Mass first if it exists
-            if (massMinistry) {
-                html += `
-                    <div class="ministry-item">
-                        <h3>${massMinistry.name}</h3>
-                        <p>${massMinistry.description}</p>
-                        <p class="details">${massMinistry.details}</p>
-                    </div>
-                `;
-            }
-            
-            // Add other adult ministry recommendations
-            if (adultMinistries.length > 0) {
-                adultMinistries.forEach(ministry => {
-                    html += `
-                        <div class="ministry-item">
-                            <h3>${ministry.name}</h3>
-                            <p>${ministry.description}</p>
-                            <p class="details">${ministry.details}</p>
-                        </div>
-                    `;
-                });
-            }
-            
-            // Add children's ministry section for adults (parents)
-            if (childrenMinistries.length > 0) {
-                html += `
-                    <div class="children-section">
-                        <h2 class="children-header">For your children 👧👦</h2>
-                        <div class="children-ministries">
-                `;
-                
-                childrenMinistries.forEach(ministry => {
-                    html += `
-                        <div class="ministry-item children-ministry">
-                            <h3>${ministry.name}</h3>
-                            <p>${ministry.description}</p>
-                            <p class="details">${ministry.details}</p>
-                        </div>
-                    `;
-                });
-                
-                html += `
-                        </div>
-                    </div>
-                `;
-            }
         }
         
-        resultsDiv.innerHTML = html;
-        
-        // Update progress bar to 100%
-        document.getElementById('progress-bar').style.width = '100%';
-        
-        // Submit anonymous analytics data (include Mass in the list if present)
-        const allMinistriesForAnalytics = massMinistry ? [massMinistry, ...adultMinistries, ...childrenMinistries] : [...adultMinistries, ...childrenMinistries];
-        submitAnalytics(allMinistriesForAnalytics);
-        
-        // Trigger confetti celebration!
-        triggerConfetti();
+        // Add children's ministry section for adults (parents)
+        if (childrenMinistries.length > 0) {
+            html += `
+                <div class="children-section">
+                    <h2 class="children-header">For your children 👧👦</h2>
+                    <div class="children-ministries">
+            `;
+            
+            childrenMinistries.forEach(ministry => {
+                html += `
+                    <div class="ministry-item children-ministry">
+                        <h3>${ministry.name}</h3>
+                        <p>${ministry.description}</p>
+                        <p class="details">${ministry.details}</p>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
     }
     
     resultsDiv.innerHTML = html;
@@ -586,7 +597,7 @@ function createSelectionsummary() {
     triggerConfetti();
 }
 
-// NEW FUNCTION - Separate adult and children's ministries with Mass prioritization
+// NEW FUNCTION - Separate adult and children's ministries
 function separateMinistries(allMinistries) {
     const adultMinistries = [];
     const childrenMinistries = [];
@@ -595,20 +606,7 @@ function separateMinistries(allMinistries) {
     const childrenAges = ['infant', 'kid', 'junior-high', 'high-school'];
     const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
     
-    // Separate Mass first to ensure it's prioritized
-    let massMinistry = null;
-    const otherMinistries = [];
-    
     allMinistries.forEach(ministry => {
-        if (ministry.name === 'Come to Mass!' || ministry.name === 'Daily & Sunday Mass') {
-            massMinistry = ministry;
-        } else {
-            otherMinistries.push(ministry);
-        }
-    });
-    
-    // Process other ministries
-    otherMinistries.forEach(ministry => {
         // Check if ministry is primarily for children
         const isChildrenMinistry = ministry.age && 
             ministry.age.some(age => childrenAges.includes(age)) &&
@@ -627,11 +625,6 @@ function separateMinistries(allMinistries) {
             adultMinistries.push(ministry);
         }
     });
-    
-    // Add Mass at the beginning of adult ministries if it exists
-    if (massMinistry) {
-        adultMinistries.unshift(massMinistry);
-    }
     
     return { adultMinistries, childrenMinistries };
 }
@@ -671,6 +664,15 @@ function findMinistries() {
     const userAge = answers.age;
     const hasKidsInterest = interests.includes('kids');
     const isParent = states.includes('parent');
+    
+    // Check if ministries loaded
+    if (!ministries || Object.keys(ministries).length === 0) {
+        return [{
+            name: 'Unable to Load Ministries',
+            description: 'We apologize, but we cannot load the ministry list at this time.',
+            details: 'Please contact the parish office at (615) 833-5520 or email <a href="mailto:support@stedward.org">support@stedward.org</a> for assistance.'
+        }];
+    }
     
     for (const [key, ministry] of Object.entries(ministries)) {
         let isMatch = true;
@@ -811,14 +813,33 @@ function restart() {
 // Initialize progress bar
 updateProgress();
 
-// Hide loading overlay once page is fully loaded
-window.addEventListener('load', function() {
-    loadMinistries();
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.style.display = 'none';
-        }, 500);
+// Start loading ministries immediately
+loadMinistries();
+
+// Also check when DOM is ready
+window.addEventListener('DOMContentLoaded', function() {
+    // If ministries haven't loaded yet, ensure loading screen is visible
+    if (Object.keys(ministries).length === 0) {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+        }
     }
+});
+
+// Hide loading overlay once ministries are loaded
+window.addEventListener('load', function() {
+    // Give a small delay to ensure everything is ready
+    setTimeout(() => {
+        if (Object.keys(ministries).length > 0) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay && overlay.style.display !== 'none') {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+            }
+        }
+    }, 100);
 });
