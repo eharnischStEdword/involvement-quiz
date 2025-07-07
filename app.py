@@ -560,15 +560,15 @@ def test_database():
             'error_type': type(e).__name__
         }), 500
 
-# ===== ADD EVERYTHING BELOW THIS LINE TO YOUR APP.PY =====
+# Replace the MINISTRY_DATA section in your app.py (starting around line 446)
+# This fixes the missing comma syntax error
 
-# Ministry data (moved from JavaScript for protection)
 MINISTRY_DATA = {
     # Sacraments
     'mass': {
-        'name': 'Come to Mass!',
-        'description': 'The source and summit of our faith.',
-        'details': 'Daily & Weekend Mass times are available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
+        'name': 'Daily & Sunday Mass',
+        'description': 'The source and summit of our faith',
+        'details': 'Mass times available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
         'age': ['infant', 'kid', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'all']
     },
@@ -618,7 +618,7 @@ MINISTRY_DATA = {
         'age': ['college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'education', 'all'],
         'situation': ['returning-to-church']
-    },
+    },  # THIS COMMA WAS MISSING!
     
     # Knights of Columbus (by age group)
     'knights-ya': {
