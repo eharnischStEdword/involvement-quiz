@@ -156,55 +156,6 @@ const interestOptions = {
     ]
 };
 
-// Updated button emojis for better appropriateness
-const ageGroupEmojis = {
-    'infant': '👶',
-    'elementary': '🎒', 
-    'junior-high': '📚',
-    'high-school': '🎓',
-    'college-young-adult': '🎯',
-    'married-parents': '💚',
-    'journeying-adults': '🌟'
-};
-
-const genderEmojis = {
-    'male': '🚹',
-    'female': '🚺', 
-    'skip': '➡️'
-};
-
-const stateEmojis = {
-    'single': '🌱',
-    'married': '💒',
-    'parent': '💚',
-    'none-of-above': '✨'
-};
-
-const situationEmojis = {
-    'new-to-stedward': '🌟',
-    'returning-to-church': '🙌',
-    'new-to-nashville': '📍',
-    'current-parishioner': '💚',
-    'just-curious': '🔍',
-    'situation-none-of-above': '✨'
-};
-
-// Update the quiz interface icons
-const questionIcons = {
-    1: '👤', // Personal info
-    2: '⚡', // Gender 
-    3: '💫', // State in life
-    4: '📋', // Situation
-    5: '💡'  // Interests
-};
-
-// Results page emojis
-const resultEmojis = {
-    welcome: '💚',
-    success: '🎊',
-    children_header: '🧑‍🧒‍🧒'
-};
-
 function answerQuestion(type, answer) {
     answers[type] = answer;
     
@@ -476,7 +427,10 @@ function goBack(questionNum) {
 
 function showQuestion(questionNum) {
     document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
-    document.getElementById(`q${questionNum}`).classList.add('active');
+    const targetQuestion = document.getElementById(`q${questionNum}`);
+    if (targetQuestion) {
+        targetQuestion.classList.add('active');
+    }
 }
 
 function updateProgress() {
@@ -493,7 +447,10 @@ function updateProgress() {
     }
     
     const progress = Math.min(progressQuestions / totalQuestionsForUser * 100, 100);
-    document.getElementById('progress-bar').style.width = progress + '%';
+    const progressBar = document.getElementById('progress-bar');
+    if (progressBar) {
+        progressBar.style.width = progress + '%';
+    }
     
     // Update progress text
     const progressText = document.getElementById('progress-text');
@@ -654,8 +611,14 @@ function showResults() {
     resultsDiv.innerHTML = html;
     
     // Update progress bar to 100%
-    document.getElementById('progress-bar').style.width = '100%';
-    document.getElementById('progress-text').textContent = 'Complete! 🎉';
+    const progressBar = document.getElementById('progress-bar');
+    if (progressBar) {
+        progressBar.style.width = '100%';
+    }
+    const progressText = document.getElementById('progress-text');
+    if (progressText) {
+        progressText.textContent = 'Complete! 🎉';
+    }
     
     // Submit anonymous analytics data
     submitAnalytics([...adultMinistries, ...childrenMinistries]);
@@ -891,40 +854,41 @@ function restart() {
     location.reload();
 }
 
-// Initialize progress bar
-updateProgress();
-
-// Start loading ministries immediately
-loadMinistries();
-
-// Also check when DOM is ready
-window.addEventListener('DOMContentLoaded', function() {
-    // If ministries haven't loaded yet, ensure loading screen is visible
-    if (Object.keys(ministries).length === 0) {
-        const overlay = document.getElementById('loadingOverlay');
-        if (overlay) {
-            overlay.style.display = 'flex';
-            overlay.style.opacity = '1';
+// CRITICAL FIX: Ensure question visibility is properly set on load
+function initializeQuiz() {
+    // Hide all questions except the first one
+    document.querySelectorAll('.question').forEach((q, index) => {
+        if (index === 0) {
+            q.classList.add('active');
+        } else {
+            q.classList.remove('active');
         }
+    });
+    
+    // Hide results
+    const resultsDiv = document.getElementById('results');
+    if (resultsDiv) {
+        resultsDiv.style.display = 'none';
     }
+    
+    // Initialize progress bar
+    updateProgress();
+    
+    // Start loading ministries
+    loadMinistries();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeQuiz();
 });
 
-// Hide loading overlay once ministries are loaded
-window.addEventListener('load', function() {
-    // Give a small delay to ensure everything is ready
-    setTimeout(() => {
-        if (Object.keys(ministries).length > 0) {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay && overlay.style.display !== 'none') {
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 500);
-            }
-        }
-    }, 100);
-});
-// Add these functions to static/js/quiz.js
+// Also initialize immediately in case DOMContentLoaded already fired
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeQuiz);
+} else {
+    initializeQuiz();
+}
 
 function showContactForm() {
     document.querySelector('.contact-form-toggle').style.display = 'none';
@@ -940,7 +904,6 @@ function hideContactForm() {
 }
 
 function skipContact() {
-    // Hide the entire contact form section
     document.getElementById('contactFormSection').style.display = 'none';
 }
 
@@ -951,11 +914,9 @@ function submitContact(event) {
     const submitBtn = document.getElementById('submitContactBtn');
     const formData = new FormData(form);
     
-    // Disable submit button
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     
-    // Add quiz results to submission
     const contactData = {
         name: formData.get('name'),
         email: formData.get('email'),
@@ -980,7 +941,6 @@ function submitContact(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success message
             document.getElementById('userContactForm').style.display = 'none';
             document.getElementById('contactSuccess').style.display = 'block';
         } else {
