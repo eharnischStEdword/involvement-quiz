@@ -77,7 +77,7 @@ function initializeDashboard() {
 
 function loadChartJS() {
     const script = document.createElement('script');
-    script.src = '/static/vendor/chart.js/chart.min.js';
+    script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js';
     script.onload = () => {
         chartJsLoaded = true;
         if (submissionsData.length > 0) {
@@ -91,7 +91,7 @@ function loadChartJS() {
     script.onerror = () => {
         document.getElementById('chart-loading').style.display = 'none';
         document.getElementById('chart-error').style.display = 'block';
-        console.error('Failed to load Chart.js from local vendor directory');
+        console.error('Failed to load Chart.js');
     };
     
     document.head.appendChild(script);
