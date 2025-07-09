@@ -139,9 +139,9 @@
     color: var(--color-children-header);
 }
 
-/* Updated Parish registration section for better readability */
+/* Enhanced Parish registration section for better readability */
 .parish-registration {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: #ffffff; /* Changed from gold gradient to white */
     padding: var(--spacing-xl);
     border-radius: var(--radius-lg);
     text-align: center;
@@ -158,13 +158,25 @@
 }
 
 .parish-registration p {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-base); /* 18px minimum */
     margin-bottom: var(--spacing-md);
-    color: var(--color-text-primary);
+    color: var(--color-text-primary); /* Dark text for better contrast */
     font-weight: 500;
 }
 
+.registration-buttons {
+    margin: var(--spacing-lg) 0;
+}
+
 /* Enhanced social links with better contrast */
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-lg);
+}
+
 .social-links a {
     color: var(--color-text-white) !important;
     background-color: var(--color-primary);
@@ -183,29 +195,6 @@
     border-color: var(--color-primary-light);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 89, 33, 0.3);
-}
-
-/* Registration button enhancement */
-.registration-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-    color: var(--color-text-white);
-    padding: var(--spacing-lg) var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    text-decoration: none;
-    transition: all var(--transition-fast);
-    font-weight: 700;
-    font-size: var(--font-size-lg);
-    box-shadow: 0 6px 16px rgba(0, 89, 33, 0.3);
-}
-
-.registration-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 89, 33, 0.4);
-    text-decoration: none;
-    color: var(--color-text-white);
 }
 
 /* Contact info */
