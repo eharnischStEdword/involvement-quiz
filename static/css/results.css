@@ -167,6 +167,32 @@
 .registration-buttons {
     margin: var(--spacing-lg) 0;
 }
+/* Add this to static/css/results.css - Registration button fix */
+.registration-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    color: #ffffff !important; /* Force white text */
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    text-decoration: none !important; /* Remove underline */
+    transition: all var(--transition-fast);
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 89, 33, 0.3);
+}
+
+.registration-btn:hover {
+    color: #ffffff !important; /* Keep white on hover */
+    background-color: var(--color-primary-light);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 89, 33, 0.4);
+    text-decoration: none !important; /* No underline on hover */
+}
+
+.registration-btn:visited {
+    color: #ffffff !important; /* White text for visited links too */
+}
 
 /* Enhanced social links with better contrast */
 .social-links {
