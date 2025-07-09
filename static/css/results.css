@@ -177,9 +177,10 @@
     margin-top: var(--spacing-lg);
 }
 
+/* Fixed social links - white text on green background */
 .social-links a {
-    color: var(--color-text-white) !important;
-    background-color: var(--color-primary);
+    color: #ffffff !important; /* Force white text */
+    background-color: var(--color-primary); /* Green background */
     text-decoration: none;
     font-weight: 600;
     font-size: var(--font-size-base);
@@ -191,6 +192,7 @@
 }
 
 .social-links a:hover {
+    color: #ffffff !important; /* Keep white on hover */
     background-color: var(--color-primary-light);
     border-color: var(--color-primary-light);
     transform: translateY(-2px);
