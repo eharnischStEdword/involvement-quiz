@@ -185,17 +185,16 @@ def register_routes(app):
             logger.error(f"Error getting submissions: {e}")
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/admin')
-    @require_admin_auth
-    def admin_dashboard():
-        """Modern Admin dashboard with St. Edward branding"""
-        return '''<!DOCTYPE html>
+@app.route('/admin')
+@require_admin_auth
+def admin_dashboard():
+    """Modern Admin dashboard with St. Edward branding - FIXED Chart.js loading"""
+    return '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>St. Edward Ministry Finder - Admin Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -536,6 +535,13 @@ def register_routes(app):
             margin: 20px 0;
         }
 
+        #chart-loading {
+            display: block;
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
         @media (max-width: 1024px) {
             .charts-grid {
                 grid-template-columns: 1fr;
@@ -593,29 +599,36 @@ def register_routes(app):
                 <i class="fas fa-chart-line"></i> Analytics Overview
             </h2>
             
-            <div class="charts-grid">
-                <div class="chart-container">
-                    <div class="chart-title">Most Popular Ministries</div>
-                    <canvas id="ministriesChart" height="300"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">Age Distribution</div>
-                    <canvas id="ageChart" height="300"></canvas>
-                </div>
+            <div id="chart-loading">
+                <div class="spinner"></div>
+                <div>Loading Chart.js library...</div>
             </div>
+            
+            <div id="charts-content" style="display: none;">
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Most Popular Ministries</div>
+                        <canvas id="ministriesChart" height="300"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Age Distribution</div>
+                        <canvas id="ageChart" height="300"></canvas>
+                    </div>
+                </div>
 
-            <div class="pie-grid">
-                <div class="chart-container">
-                    <div class="chart-title">Gender Distribution</div>
-                    <canvas id="genderChart" height="250"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">Top Interests</div>
-                    <canvas id="interestChart" height="250"></canvas>
-                </div>
-                <div class="chart-container">
-                    <div class="chart-title">User Situations</div>
-                    <canvas id="situationChart" height="250"></canvas>
+                <div class="pie-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Gender Distribution</div>
+                        <canvas id="genderChart" height="250"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Top Interests</div>
+                        <canvas id="interestChart" height="250"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">User Situations</div>
+                        <canvas id="situationChart" height="250"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -655,9 +668,93 @@ def register_routes(app):
         </div>
     </div>
 
+    <!-- FIXED: Load Chart.js and wait for it to load -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
     <script>
         let submissionsData = [];
         let charts = {};
+
+        // FIXED: Wait for Chart.js to load before initializing
+        function waitForChart() {
+            if (typeof Chart !== 'undefined') {
+                // Chart.js is loaded, hide loading and show charts
+                document.getElementById('chart-loading').style.display = 'none';
+                document.getElementById('charts-content').style.display = 'block';
+                initializeDashboard();
+            } else {
+                // Chart.js not loaded yet, wait 100ms and try again
+                setTimeout(waitForChart, 100);
+            }
+        }
+
+        function initializeDashboard() {
+            document.getElementById('loading').style.display = 'block';
+            
+            fetch('/api/submissions')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    submissionsData = data;
+                    
+                    const total = data.length;
+                    const last24h = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 24*60*60*1000)).length;
+                    const last7days = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 7*24*60*60*1000)).length;
+                    const avg = total > 0 ? (data.reduce((sum, s) => sum + (Array.isArray(s.recommended_ministries) ? s.recommended_ministries.length : 0), 0) / total).toFixed(1) : 0;
+                    
+                    document.getElementById('stats').innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon submissions"><i class="fas fa-users"></i></div>
+                            </div>
+                            <div class="stat-number">${total}</div>
+                            <div class="stat-label">Total Submissions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon today"><i class="fas fa-calendar-day"></i></div>
+                            </div>
+                            <div class="stat-number">${last24h}</div>
+                            <div class="stat-label">Last 24 Hours</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon week"><i class="fas fa-calendar-week"></i></div>
+                            </div>
+                            <div class="stat-number">${last7days}</div>
+                            <div class="stat-label">Last 7 Days</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon avg"><i class="fas fa-chart-bar"></i></div>
+                            </div>
+                            <div class="stat-number">${avg}</div>
+                            <div class="stat-label">Avg Ministries</div>
+                        </div>
+                    `;
+                    
+                    createCharts(data);
+                    
+                    let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Ministries</th></tr>';
+                    data.slice(0, 50).forEach(sub => {
+                        const isRecent = new Date(sub.submitted_at) > new Date(Date.now() - 24*60*60*1000);
+                        html += `<tr ${isRecent ? 'class="recent"' : ''}>
+                            <td>${new Date(sub.submitted_at).toLocaleDateString()}</td>
+                            <td>${sub.age_group || ''}</td>
+                            <td>${sub.gender || ''}</td>
+                            <td>${Array.isArray(sub.state_in_life) ? sub.state_in_life.join(', ') : ''}</td>
+                            <td>${Array.isArray(sub.interest) ? sub.interest.join(', ') : sub.interest || ''}</td>
+                            <td>${Array.isArray(sub.situation) ? sub.situation.join(', ') : ''}</td>
+                            <td>${Array.isArray(sub.recommended_ministries) ? sub.recommended_ministries.slice(0, 3).join(', ') + (sub.recommended_ministries.length > 3 ? '...' : '') : ''}</td>
+                        </tr>`;
+                    });
+                    html += '</table>';
+                    document.getElementById('submissions').innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('submissions').innerHTML = `<div class="error-message">Error loading data: ${error.message}</div>`;
+                });
+        }
 
         function showClearModal() {
             document.getElementById('clearModal').style.display = 'block';
@@ -842,78 +939,16 @@ def register_routes(app):
             });
         }
 
-        document.getElementById('loading').style.display = 'block';
-        
-        fetch('/api/submissions')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('loading').style.display = 'none';
-                submissionsData = data;
-                
-                const total = data.length;
-                const last24h = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 24*60*60*1000)).length;
-                const last7days = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 7*24*60*60*1000)).length;
-                const avg = total > 0 ? (data.reduce((sum, s) => sum + (Array.isArray(s.recommended_ministries) ? s.recommended_ministries.length : 0), 0) / total).toFixed(1) : 0;
-                
-                document.getElementById('stats').innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon submissions"><i class="fas fa-users"></i></div>
-                        </div>
-                        <div class="stat-number">${total}</div>
-                        <div class="stat-label">Total Submissions</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon today"><i class="fas fa-calendar-day"></i></div>
-                        </div>
-                        <div class="stat-number">${last24h}</div>
-                        <div class="stat-label">Last 24 Hours</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon week"><i class="fas fa-calendar-week"></i></div>
-                        </div>
-                        <div class="stat-number">${last7days}</div>
-                        <div class="stat-label">Last 7 Days</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div class="stat-icon avg"><i class="fas fa-chart-bar"></i></div>
-                        </div>
-                        <div class="stat-number">${avg}</div>
-                        <div class="stat-label">Avg Ministries</div>
-                    </div>
-                `;
-                
-                createCharts(data);
-                
-                let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Ministries</th></tr>';
-                data.slice(0, 50).forEach(sub => {
-                    const isRecent = new Date(sub.submitted_at) > new Date(Date.now() - 24*60*60*1000);
-                    html += `<tr ${isRecent ? 'class="recent"' : ''}>
-                        <td>${new Date(sub.submitted_at).toLocaleDateString()}</td>
-                        <td>${sub.age_group || ''}</td>
-                        <td>${sub.gender || ''}</td>
-                        <td>${Array.isArray(sub.state_in_life) ? sub.state_in_life.join(', ') : ''}</td>
-                        <td>${Array.isArray(sub.interest) ? sub.interest.join(', ') : sub.interest || ''}</td>
-                        <td>${Array.isArray(sub.situation) ? sub.situation.join(', ') : ''}</td>
-                        <td>${Array.isArray(sub.recommended_ministries) ? sub.recommended_ministries.slice(0, 3).join(', ') + (sub.recommended_ministries.length > 3 ? '...' : '') : ''}</td>
-                    </tr>`;
-                });
-                html += '</table>';
-                document.getElementById('submissions').innerHTML = html;
-            })
-            .catch(error => {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('submissions').innerHTML = `<div class="error-message">Error loading data: ${error.message}</div>`;
-            });
-
         window.onclick = function(event) {
             if (event.target == document.getElementById('clearModal')) {
                 hideClearModal();
             }
         }
+
+        // FIXED: Start the initialization process when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            waitForChart();
+        });
     </script>
 </body>
 </html>'''
