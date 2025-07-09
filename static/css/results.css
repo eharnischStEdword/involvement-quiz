@@ -139,63 +139,73 @@
     color: var(--color-children-header);
 }
 
-/* Parish registration */
+/* Updated Parish registration section for better readability */
 .parish-registration {
-    background: linear-gradient(135deg, var(--color-secondary) 0%, #f4f1e8 100%);
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
     padding: var(--spacing-xl);
     border-radius: var(--radius-lg);
     text-align: center;
     margin: var(--spacing-xl) 0;
-    border: 2px solid var(--color-accent);
+    border: 3px solid var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0, 89, 33, 0.15);
 }
 
 .parish-registration h3 {
     color: var(--color-primary);
     margin-bottom: var(--spacing-md);
-    font-size: var(--font-size-xxl); /* 24px */
-    font-weight: 600;
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
 }
 
 .parish-registration p {
-    font-size: var(--font-size-base); /* 18px */
+    font-size: var(--font-size-base);
     margin-bottom: var(--spacing-md);
-}
-
-.registration-buttons {
-    margin: var(--spacing-lg) 0;
-}
-
-/* Social links with St. Edward branding */
-.social-links {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
-    margin: var(--spacing-lg) 0;
-}
-
-.social-links a {
-    color: var(--color-link) !important;
-    text-decoration: none;
+    color: var(--color-text-primary);
     font-weight: 500;
-    font-size: var(--font-size-base); /* 18px */
-    padding: var(--spacing-sm) var(--spacing-md);
+}
+
+/* Enhanced social links with better contrast */
+.social-links a {
+    color: var(--color-text-white) !important;
+    background-color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    padding: var(--spacing-md) var(--spacing-lg);
     border-radius: var(--radius-md);
     transition: all var(--transition-fast);
-    border: 2px solid var(--color-link);
+    border: 2px solid var(--color-primary);
+    display: inline-block;
 }
 
 .social-links a:hover {
-    color: var(--color-text-white) !important;
-    background-color: var(--color-link-hover);
-    border-color: var(--color-link-hover);
-    text-decoration: none;
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 89, 33, 0.3);
 }
 
-.social-links a:focus {
-    outline: 2px solid var(--color-link);
-    outline-offset: 4px;
+/* Registration button enhancement */
+.registration-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    color: var(--color-text-white);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    box-shadow: 0 6px 16px rgba(0, 89, 33, 0.3);
+}
+
+.registration-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 89, 33, 0.4);
+    text-decoration: none;
+    color: var(--color-text-white);
 }
 
 /* Contact info */
