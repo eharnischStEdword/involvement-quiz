@@ -11,24 +11,23 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stepping into St. Edward Church</title>
+    <title>Find Your Path at St. Edward</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Loading St. Edward Ministry Finder...</div>
+        <div class="loading-text">Preparing Your Journey...</div>
         <div class="loading-subtext">
-            If this is taking a while, our service might be starting up. 
-            Thank you for your patience! ⛪
+            Getting everything ready for you ⛪
         </div>
     </div>
     
     <header class="header">
         <div class="header-content">
             <div class="logo-text">⛪ St. Edward Church & School</div>
-            <div class="subtitle">Find Your Place in Our Community</div>
+            <div class="subtitle">Find Your Path in Our Community</div>
             <div class="theme-verse">"Through Love, Serve One Another" - Galatians 5:13</div>
         </div>
     </header>
@@ -36,36 +35,64 @@
     <div class="container">
         <div class="main-card">
             <div class="card-header">
-                <h1>Stepping into St. Edward Church</h1>
-                <p>Discover what St. Edward has to offer that matches your interests and life situation</p>
+                <div class="welcome-icon">🤝</div>
+                <h1>Welcome to St. Edward!</h1>
+                <p>Let's help you discover the perfect way to get involved in our community. This takes just 2-3 minutes!</p>
             </div>
 
             <div class="card-content">
-                <div class="progress">
-                    <div class="progress-bar" id="progress-bar"></div>
+                <div class="progress-container">
+                    <div class="progress">
+                        <div class="progress-bar" id="progress-bar"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Let's get started!</div>
                 </div>
                 
                 <!-- Question 1: Age -->
                 <div class="question active" id="q1">
-                    <h2>Choose what best describes you:</h2>
+                    <div class="question-icon">👤</div>
+                    <h2>First, tell us about yourself:</h2>
+                    <p class="question-helper">Select the option that best describes you or your child</p>
                     <div class="button-group">
-                        <button class="option-btn" onclick="answerQuestion('age', 'infant')">Infant (0-3)</button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'kid')">Kid (PreK-Grade 5)</button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'junior-high')">Junior High (Grades 6-8)</button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'high-school')">High School (Grades 9-12)</button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'college-young-adult')">College & Young Adult (18-35)</button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'married-parents')">Married Couples & Parents</button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'journeying-adults')">Journeying Adults (30+)</button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'infant')">
+                            <span class="btn-emoji">👶</span> Infant (0-3)
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'elementary')">
+                            <span class="btn-emoji">🎒</span> Elementary School (PreK-Grade 5)
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'junior-high')">
+                            <span class="btn-emoji">📚</span> Junior High (Grades 6-8)
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'high-school')">
+                            <span class="btn-emoji">🎓</span> High School (Grades 9-12)
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'college-young-adult')">
+                            <span class="btn-emoji">🎯</span> College & Young Adult (18-35)
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'married-parents')">
+                            <span class="btn-emoji">💑</span> Married Couples & Parents
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('age', 'journeying-adults')">
+                            <span class="btn-emoji">🌟</span> Journeying Adults (30+)
+                        </button>
                     </div>
                 </div>
 
                 <!-- Question 2: Gender -->
                 <div class="question" id="q2">
-                    <h2>Are you:</h2>
+                    <div class="question-icon">⚡</div>
+                    <h2>Some ministries are specific to men or women</h2>
+                    <p class="question-helper">This helps us show you all relevant opportunities</p>
                     <div class="button-group">
-                        <button class="option-btn" onclick="answerQuestion('gender', 'male')">Male</button>
-                        <button class="option-btn" onclick="answerQuestion('gender', 'female')">Female</button>
-                        <button class="option-btn" onclick="answerQuestion('gender', 'skip')">Skip this question</button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'male')">
+                            <span class="btn-emoji">♂️</span> Male
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'female')">
+                            <span class="btn-emoji">♀️</span> Female
+                        </button>
+                        <button class="option-btn" onclick="answerQuestion('gender', 'skip')">
+                            <span class="btn-emoji">➡️</span> Show me everything
+                        </button>
                     </div>
                     <div class="navigation">
                         <button class="nav-btn" onclick="goBack(2)">← Back</button>
@@ -73,26 +100,35 @@
                     </div>
                 </div>
 
-                <!-- Question 3: State in Life (Updated to Checkboxes) -->
+                <!-- Question 3: State in Life -->
                 <div class="question" id="q3">
-                    <h2>What's your state in life?</h2>
-                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
-                    <div class="checkbox-group" id="state-checkboxes">
+                    <div class="question-icon">💫</div>
+                    <h2>What describes your state in life?</h2>
+                    <p class="question-helper">Select all that apply to you:</p>
+                    <div class="checkbox-group modern" id="state-checkboxes">
                         <div class="checkbox-item" onclick="toggleStateCheckbox('single')">
                             <input type="checkbox" id="state-single" value="single" onchange="handleStateCheckboxChange('single')">
-                            <label for="state-single">Single</label>
+                            <label for="state-single">
+                                <span class="checkbox-emoji">🌱</span> Single
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleStateCheckbox('married')">
                             <input type="checkbox" id="state-married" value="married" onchange="handleStateCheckboxChange('married')">
-                            <label for="state-married">Married</label>
+                            <label for="state-married">
+                                <span class="checkbox-emoji">💍</span> Married
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleStateCheckbox('parent')">
                             <input type="checkbox" id="state-parent" value="parent" onchange="handleStateCheckboxChange('parent')">
-                            <label for="state-parent">Parent</label>
+                            <label for="state-parent">
+                                <span class="checkbox-emoji">👨‍👩‍👧‍👦</span> Parent
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleStateCheckbox('none-of-above')">
                             <input type="checkbox" id="state-none-of-above" value="none-of-above" onchange="handleStateCheckboxChange('none-of-above')">
-                            <label for="state-none-of-above">None of the above</label>
+                            <label for="state-none-of-above">
+                                <span class="checkbox-emoji">✨</span> None of the above
+                            </label>
                         </div>
                     </div>
                     <div class="navigation">
@@ -103,32 +139,45 @@
 
                 <!-- Question 4: Situation -->
                 <div class="question" id="q4">
-                    <h2>What describes your situation?</h2>
-                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
-                    <div class="checkbox-group" id="situation-checkboxes">
+                    <div class="question-icon">🌈</div>
+                    <h2>What brings you here today?</h2>
+                    <p class="question-helper">Select all that apply:</p>
+                    <div class="checkbox-group modern" id="situation-checkboxes">
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
                             <input type="checkbox" id="new-to-stedward" value="new-to-stedward" onchange="handleSituationCheckboxChange('new-to-stedward')">
-                            <label for="new-to-stedward">New to St. Edward</label>
+                            <label for="new-to-stedward">
+                                <span class="checkbox-emoji">🌟</span> New to St. Edward
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
                             <input type="checkbox" id="returning-to-church" value="returning-to-church" onchange="handleSituationCheckboxChange('returning-to-church')">
-                            <label for="returning-to-church">Returning to Church</label>
+                            <label for="returning-to-church">
+                                <span class="checkbox-emoji">🙏</span> Returning to Church
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
                             <input type="checkbox" id="new-to-nashville" value="new-to-nashville" onchange="handleSituationCheckboxChange('new-to-nashville')">
-                            <label for="new-to-nashville">New to Nashville</label>
+                            <label for="new-to-nashville">
+                                <span class="checkbox-emoji">📍</span> New to Nashville
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('current-parishioner')">
                             <input type="checkbox" id="current-parishioner" value="current-parishioner" onchange="handleSituationCheckboxChange('current-parishioner')">
-                            <label for="current-parishioner">Current Parishioner</label>
+                            <label for="current-parishioner">
+                                <span class="checkbox-emoji">💚</span> Current Parishioner
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('just-curious')">
                             <input type="checkbox" id="just-curious" value="just-curious" onchange="handleSituationCheckboxChange('just-curious')">
-                            <label for="just-curious">Just Curious</label>
+                            <label for="just-curious">
+                                <span class="checkbox-emoji">🔍</span> Just Exploring
+                            </label>
                         </div>
                         <div class="checkbox-item" onclick="toggleSituationCheckbox('situation-none-of-above')">
                             <input type="checkbox" id="situation-none-of-above" value="situation-none-of-above" onchange="handleSituationCheckboxChange('situation-none-of-above')">
-                            <label for="situation-none-of-above">None of the above</label>
+                            <label for="situation-none-of-above">
+                                <span class="checkbox-emoji">✨</span> None of the above
+                            </label>
                         </div>
                     </div>
                     <div class="navigation">
@@ -139,32 +188,38 @@
 
                 <!-- Question 5: Interests -->
                 <div class="question" id="q5">
+                    <div class="question-icon">💡</div>
                     <h2>What interests you most?</h2>
-                    <p style="margin-bottom: 1rem; color: #666;">Select all that apply:</p>
-                    <div class="checkbox-group" id="interest-checkboxes">
+                    <p class="question-helper">Select all areas you'd like to explore:</p>
+                    <div class="checkbox-group modern" id="interest-checkboxes">
                         <!-- Filled dynamically based on age -->
                     </div>
                     <div class="navigation">
                         <button class="nav-btn" onclick="goBack(5)">← Back</button>
-                        <button class="nav-btn primary" onclick="showResults()">See My Results →</button>
+                        <button class="nav-btn primary celebrate" onclick="showResults()">
+                            <span>See My Recommendations</span> 🎉
+                        </button>
                     </div>
                 </div>
 
                 <!-- Results -->
                 <div id="results">
-                    <h2>Here's what might be a good fit for you:</h2>
+                    <div class="results-header">
+                        <div class="success-icon">🎊</div>
+                        <h2>Perfect! Here's your personalized path:</h2>
+                    </div>
                     <div class="note">
-                        💡 <strong>Tip:</strong> You can screenshot your results for future reference!
+                        💡 <strong>Tip:</strong> You can screenshot or bookmark this page for future reference!
                     </div>
                     <div id="ministry-recommendations" class="ministry-list"></div>
                     
                     <div class="parish-registration">
-                        <h3>🎉 Ready to Get Connected?</h3>
-                        <p>Join our parish community and stay updated on all these great opportunities!</p>
+                        <h3>🎉 Ready to Take the Next Step?</h3>
+                        <p>Join our parish family and stay connected with all these opportunities!</p>
                         
                         <div class="registration-buttons">
                             <a href="https://stedwardnash.flocknote.com/register" target="_blank" class="registration-btn">
-                                📧 Register with Parish
+                                <span class="btn-icon">📧</span> Register with Our Parish
                             </a>
                         </div>
                         
@@ -176,14 +231,16 @@
                     </div>
                     
                     <div class="contact-info">
-                        <h4>Questions?</h4>
+                        <h4>Have Questions? We're Here to Help!</h4>
                         <p><strong>Call:</strong> (615) 833-5520</p>
                         <p><strong>Email:</strong> <a href="mailto:support@stedward.org">support@stedward.org</a></p>
                         <p><strong>Visit:</strong> <a href="https://stedward.org" target="_blank">stedward.org</a></p>
                     </div>
                     
-                    <div style="text-align: center;">
-                        <button class="restart-btn" onclick="restart()">🔄 Start Over</button>
+                    <div style="text-align: center; margin-top: 2rem;">
+                        <button class="restart-btn" onclick="restart()">
+                            <span class="btn-icon">🔄</span> Start Over
+                        </button>
                     </div>
                 </div>
             </div>
