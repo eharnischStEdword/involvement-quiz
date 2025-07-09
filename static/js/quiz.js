@@ -98,17 +98,17 @@ function showLoadingError() {
     }
 }
 
-// ENHANCED Age-specific interest options with "Something for my children" - UPDATED FOR ELEMENTARY
+// ENHANCED Age-specific interest options with improved emojis
 const interestOptions = {
     infant: [
-        { value: 'support', label: '🤱 Parent Support & Community' },
+        { value: 'support', label: '👥 Parent Support & Community' },
         { value: 'education', label: '📖 Learning About Faith' },
         { value: 'service', label: '🤝 Helping Others' },
         { value: 'all', label: '✨ Show me everything!' }
     ],
-    elementary: [  // CHANGED FROM 'kid' to 'elementary'
+    elementary: [
         { value: 'education', label: '📚 Learning & Growing in Faith' },
-        { value: 'fellowship', label: '👫 Making Friends' },
+        { value: 'fellowship', label: '🎯 Making Friends' },
         { value: 'music', label: '🎵 Music & Arts' },
         { value: 'service', label: '🤝 Helping Others' },
         { value: 'all', label: '✨ Show me everything!' }
@@ -116,44 +116,93 @@ const interestOptions = {
     'junior-high': [
         { value: 'fellowship', label: '👥 Fellowship & Community' },
         { value: 'education', label: '📖 Learning & Teaching' },
-        { value: 'service', label: '🤲 Serving Others' },
-        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'service', label: '🙏 Serving Others' },
+        { value: 'prayer', label: '✝️ Prayer & Worship' },
         { value: 'all', label: '✨ Show me everything!' }
     ],
     'high-school': [
         { value: 'fellowship', label: '👥 Fellowship & Community' },
-        { value: 'service', label: '🤲 Serving Others' },
-        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'service', label: '🙏 Serving Others' },
+        { value: 'prayer', label: '✝️ Prayer & Worship' },
         { value: 'music', label: '🎵 Music & Arts' },
         { value: 'education', label: '📖 Learning & Teaching' },
         { value: 'all', label: '✨ Show me everything!' }
     ],
     'college-young-adult': [
         { value: 'fellowship', label: '👥 Fellowship & Community' },
-        { value: 'service', label: '🤲 Serving Others' },
-        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'service', label: '🙏 Serving Others' },
+        { value: 'prayer', label: '✝️ Prayer & Worship' },
         { value: 'education', label: '📖 Learning & Teaching' },
         { value: 'music', label: '🎵 Music & Arts' },
         { value: 'all', label: '✨ Show me everything!' }
     ],
     'married-parents': [
         { value: 'fellowship', label: '👥 Fellowship & Community' },
-        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'service', label: '🙏 Serving Others' },
         { value: 'education', label: '📖 Learning & Teaching' },
-        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'prayer', label: '✝️ Prayer & Worship' },
         { value: 'support', label: '👨‍👩‍👧‍👦 Family Support' },
-        { value: 'kids', label: '👧 Something for my children' },
+        { value: 'kids', label: '👶 Something for my children' },
         { value: 'all', label: '✨ Show me everything!' }
     ],
     'journeying-adults': [
-        { value: 'prayer', label: '🙏 Prayer & Worship' },
-        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'prayer', label: '✝️ Prayer & Worship' },
+        { value: 'service', label: '🙏 Serving Others' },
         { value: 'fellowship', label: '👥 Fellowship & Community' },
         { value: 'education', label: '📖 Learning & Teaching' },
         { value: 'music', label: '🎵 Music & Arts' },
-        { value: 'kids', label: '👧 Something for my children' },
+        { value: 'kids', label: '👶 Something for my children' },
         { value: 'all', label: '✨ Show me everything!' }
     ]
+};
+
+// Updated button emojis for better appropriateness
+const ageGroupEmojis = {
+    'infant': '👶',
+    'elementary': '🎒', 
+    'junior-high': '📚',
+    'high-school': '🎓',
+    'college-young-adult': '🎯',
+    'married-parents': '💚',
+    'journeying-adults': '🌟'
+};
+
+const genderEmojis = {
+    'male': '🚹',
+    'female': '🚺', 
+    'skip': '➡️'
+};
+
+const stateEmojis = {
+    'single': '🌱',
+    'married': '💒',
+    'parent': '💚',
+    'none-of-above': '✨'
+};
+
+const situationEmojis = {
+    'new-to-stedward': '🌟',
+    'returning-to-church': '🙌',
+    'new-to-nashville': '📍',
+    'current-parishioner': '💚',
+    'just-curious': '🔍',
+    'situation-none-of-above': '✨'
+};
+
+// Update the quiz interface icons
+const questionIcons = {
+    1: '👤', // Personal info
+    2: '⚡', // Gender 
+    3: '💫', // State in life
+    4: '📋', // Situation
+    5: '💡'  // Interests
+};
+
+// Results page emojis
+const resultEmojis = {
+    welcome: '💚',
+    success: '🎊',
+    children_header: '🧑‍🧒‍🧒'
 };
 
 function answerQuestion(type, answer) {
