@@ -71,4 +71,26 @@
     .option-btn {
         font-size: var(--font-size-sm);
     }
+    
+    .welcome-icon, .question-icon, .success-icon {
+        font-size: 3rem;
+    }
+    
+    .btn-emoji, .checkbox-emoji {
+        font-size: 1.2rem;
+    }
+    
+    .option-btn, .checkbox-group.modern .checkbox-item {
+        min-height: 50px;
+        padding: var(--spacing-md);
+    }
+    
+    .card-header {
+        padding: var(--spacing-lg);
+    }
+    
+    .main-card {
+        border-radius: var(--radius-lg);
+        margin: var(--spacing-md);
+    }
 }
