@@ -1,7 +1,7 @@
 /* Questions */
 .question {
     display: none;
-    animation: fadeIn var(--transition-normal);
+    animation: slideIn var(--transition-normal);
 }
 
 .question.active {
@@ -18,4 +18,23 @@
     margin-bottom: var(--spacing-md);
     color: var(--color-text-secondary);
     text-align: center;
+}
+
+.question-helper {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-lg);
+    font-weight: 400;
+}
+
+/* Question transition animation */
+@keyframes slideIn {
+    from { 
+        opacity: 0; 
+        transform: translateX(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateX(0); 
+    }
 }
