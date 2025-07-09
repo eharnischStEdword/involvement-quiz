@@ -185,199 +185,277 @@ def register_routes(app):
             logger.error(f"Error getting submissions: {e}")
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/admin')
-    @require_admin_auth
-    def admin_dashboard():
-        """Enhanced Admin dashboard with charts and clear data functionality"""
-        admin_html = '''
-        <!DOCTYPE html>
-        <html>
+        @app.route('/admin')
+        @require_admin_auth
+        def admin_dashboard():
+            """Modern Admin dashboard with enhanced UI"""
+            return '''<!DOCTYPE html>
+        <html lang="en">
         <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>St. Edward Ministry Finder - Admin Dashboard</title>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
             <style>
-                body { 
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                    margin: 0; 
-                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                    min-height: 100vh;
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
                 }
-                .container { 
-                    max-width: 1600px; 
-                    margin: 0 auto; 
-                    background: white; 
+        
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     min-height: 100vh;
-                    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                    color: #2d3748;
                 }
-                .header { 
-                    background: linear-gradient(135deg, #005921 0%, #2d7a47 100%); 
-                    color: white; 
-                    padding: 30px; 
+        
+                .dashboard {
+                    max-width: 1400px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+        
+                .header {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
+                    padding: 30px;
+                    margin-bottom: 30px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
                     text-align: center;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
                 }
-                h1 { color: white; margin: 0; font-size: 2rem; }
-                .subtitle { font-size: 1.1rem; opacity: 0.9; margin-top: 10px; }
-                
-                .dashboard-content { padding: 30px; }
-                
-                /* Stats Cards */
-                .stats { 
-                    display: grid; 
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-                    gap: 20px; 
-                    margin-bottom: 40px; 
+        
+                .header h1 {
+                    font-size: 2.5rem;
+                    font-weight: 700;
+                    background: linear-gradient(135deg, #005921, #2d7a47);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    margin-bottom: 10px;
                 }
-                .stat-card { 
-                    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
-                    padding: 25px; 
-                    border-radius: 12px; 
-                    text-align: center; 
-                    border-left: 5px solid #005921;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                    transition: transform 0.2s ease;
+        
+                .header p {
+                    color: #64748b;
+                    font-size: 1.1rem;
                 }
-                .stat-card:hover { transform: translateY(-2px); }
-                .stat-number { 
-                    font-size: 2.5em; 
-                    font-weight: bold; 
-                    color: #005921; 
-                    margin-bottom: 5px;
+        
+                .stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 25px;
+                    margin-bottom: 40px;
                 }
-                .stat-label { 
-                    color: #6c757d; 
-                    font-weight: 500;
+        
+                .stat-card {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
+                    padding: 30px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    position: relative;
+                    overflow: hidden;
+                }
+        
+                .stat-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+                }
+        
+                .stat-card::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 4px;
+                    background: linear-gradient(90deg, #005921, #2d7a47, #52c41a);
+                }
+        
+                .stat-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 20px;
+                }
+        
+                .stat-icon {
+                    width: 50px;
+                    height: 50px;
+                    border-radius: 15px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    color: white;
+                }
+        
+                .stat-icon.submissions { background: linear-gradient(135deg, #667eea, #764ba2); }
+                .stat-icon.today { background: linear-gradient(135deg, #f093fb, #f5576c); }
+                .stat-icon.week { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+                .stat-icon.avg { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        
+                .stat-number {
+                    font-size: 3rem;
+                    font-weight: 800;
+                    color: #1a202c;
+                    line-height: 1;
+                }
+        
+                .stat-label {
+                    color: #64748b;
+                    font-weight: 600;
                     text-transform: uppercase;
-                    font-size: 0.9rem;
+                    font-size: 0.875rem;
                     letter-spacing: 0.5px;
                 }
-                
-                /* Action Buttons */
-                .action-buttons {
+        
+                .actions {
                     display: flex;
                     gap: 15px;
-                    margin-bottom: 30px;
+                    margin-bottom: 40px;
                     flex-wrap: wrap;
                 }
+        
                 .btn {
                     padding: 12px 24px;
                     border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
+                    border-radius: 12px;
                     font-weight: 600;
                     font-size: 0.95rem;
-                    transition: all 0.2s ease;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
                     gap: 8px;
+                    text-decoration: none;
+                    color: white;
                 }
-                .btn-primary { 
-                    background: linear-gradient(135deg, #005921 0%, #2d7a47 100%); 
-                    color: white; 
+        
+                .btn-primary {
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
                 }
-                .btn-primary:hover { 
+        
+                .btn-secondary {
+                    background: linear-gradient(135deg, #a8edea, #fed6e3);
+                    color: #2d3748;
+                    box-shadow: 0 4px 15px rgba(168, 237, 234, 0.3);
+                }
+        
+                .btn-danger {
+                    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+                }
+        
+                .btn:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(0, 89, 33, 0.3);
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
                 }
-                .btn-secondary { 
-                    background: #6c757d; 
-                    color: white; 
-                }
-                .btn-secondary:hover { 
-                    background: #5a6268;
-                    transform: translateY(-2px);
-                }
-                .btn-danger { 
-                    background: #dc3545; 
-                    color: white; 
-                }
-                .btn-danger:hover { 
-                    background: #c82333;
-                    transform: translateY(-2px);
-                }
-                
-                /* Charts Section */
+        
                 .charts-section {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
+                    padding: 40px;
                     margin-bottom: 40px;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
                 }
+        
+                .section-title {
+                    font-size: 1.8rem;
+                    font-weight: 700;
+                    color: #1a202c;
+                    margin-bottom: 30px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+        
                 .charts-grid {
                     display: grid;
-                    grid-template-columns: 2fr 1fr 1fr;
-                    gap: 25px;
+                    grid-template-columns: 2fr 1fr;
+                    gap: 30px;
                     margin-bottom: 30px;
                 }
+        
                 .chart-container {
                     background: white;
+                    border-radius: 16px;
                     padding: 25px;
-                    border-radius: 12px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                    border: 1px solid #e9ecef;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+                    border: 1px solid rgba(0, 0, 0, 0.05);
                 }
+        
                 .chart-title {
-                    font-size: 1.2rem;
+                    font-size: 1.1rem;
                     font-weight: 600;
-                    color: #005921;
+                    color: #2d3748;
                     margin-bottom: 20px;
                     text-align: center;
                 }
-                .pie-charts {
+        
+                .pie-grid {
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 25px;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 30px;
                 }
-                
-                /* Data Table */
-                .table-section {
-                    background: white;
-                    border-radius: 12px;
+        
+                .data-section {
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(10px);
+                    border-radius: 20px;
                     overflow: hidden;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
                 }
-                .table-header {
-                    background: #005921;
+        
+                .data-header {
+                    background: linear-gradient(135deg, #005921, #2d7a47);
                     color: white;
-                    padding: 20px;
-                    font-size: 1.2rem;
+                    padding: 25px 30px;
+                    font-size: 1.3rem;
                     font-weight: 600;
                 }
-                table { 
-                    border-collapse: collapse; 
-                    width: 100%; 
-                    font-size: 13px; 
+        
+                .table-container {
+                    overflow-x: auto;
+                    max-height: 600px;
                 }
-                th, td { 
-                    border: 1px solid #dee2e6; 
-                    padding: 10px 8px; 
-                    text-align: left; 
+        
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 0.9rem;
                 }
-                th { 
-                    background-color: #f8f9fa; 
-                    color: #005921; 
+        
+                th, td {
+                    padding: 15px 12px;
+                    text-align: left;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+        
+                th {
+                    background: #f8fafc;
                     font-weight: 600;
-                    position: sticky; 
-                    top: 0; 
+                    color: #2d3748;
+                    position: sticky;
+                    top: 0;
                     z-index: 10;
                 }
-                .ministries, .situation, .states, .interests { 
-                    max-width: 150px; 
-                    word-wrap: break-word; 
-                    font-size: 11px; 
+        
+                tr:hover {
+                    background: #f8fafc;
                 }
-                .recent { 
-                    background-color: #fff3cd !important; 
-                    font-weight: bold; 
+        
+                .recent {
+                    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 152, 0, 0.1)) !important;
+                    border-left: 4px solid #ffc107;
                 }
-                .error-message { 
-                    color: #dc3545; 
-                    padding: 30px; 
-                    text-align: center; 
-                    background: #f8d7da; 
-                    border: 1px solid #f5c6cb; 
-                    border-radius: 8px; 
-                    margin: 20px 0; 
-                }
-                
-                /* Modal Styles */
+        
                 .modal {
                     display: none;
                     position: fixed;
@@ -386,192 +464,219 @@ def register_routes(app):
                     top: 0;
                     width: 100%;
                     height: 100%;
-                    background-color: rgba(0,0,0,0.5);
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(5px);
                 }
+        
                 .modal-content {
-                    background-color: white;
+                    background: white;
                     margin: 15% auto;
-                    padding: 30px;
-                    border-radius: 12px;
-                    width: 400px;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                    padding: 40px;
+                    border-radius: 20px;
+                    width: 90%;
+                    max-width: 500px;
+                    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
                     text-align: center;
                 }
+        
                 .modal h3 {
-                    color: #dc3545;
+                    color: #e53e3e;
                     margin-bottom: 20px;
-                    font-size: 1.3rem;
+                    font-size: 1.5rem;
                 }
+        
                 .modal-buttons {
                     display: flex;
                     gap: 15px;
                     justify-content: center;
-                    margin-top: 25px;
+                    margin-top: 30px;
                 }
+        
                 .checkbox-container {
-                    margin: 20px 0;
+                    margin: 25px 0;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 10px;
+                    gap: 12px;
                 }
-                
-                /* Loading Spinner */
+        
+                .checkbox-container input[type="checkbox"] {
+                    width: 20px;
+                    height: 20px;
+                    accent-color: #005921;
+                }
+        
                 .loading {
                     display: none;
                     text-align: center;
-                    padding: 20px;
+                    padding: 60px 20px;
                 }
+        
                 .spinner {
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #005921;
+                    width: 50px;
+                    height: 50px;
+                    border: 4px solid #e2e8f0;
+                    border-top: 4px solid #667eea;
                     border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
                     animation: spin 1s linear infinite;
-                    margin: 0 auto 15px;
+                    margin: 0 auto 20px;
                 }
+        
                 @keyframes spin {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
-                
-                @media (max-width: 1200px) {
+        
+                .error-message {
+                    background: linear-gradient(135deg, #fed7d7, #feb2b2);
+                    color: #c53030;
+                    padding: 30px;
+                    border-radius: 16px;
+                    text-align: center;
+                    margin: 20px 0;
+                }
+        
+                @media (max-width: 1024px) {
                     .charts-grid {
                         grid-template-columns: 1fr;
-                    }
-                    .pie-charts {
-                        grid-template-columns: 1fr 1fr;
                     }
                 }
+        
                 @media (max-width: 768px) {
-                    .charts-grid {
+                    .dashboard {
+                        padding: 15px;
+                    }
+                    
+                    .header h1 {
+                        font-size: 2rem;
+                    }
+                    
+                    .stats-grid {
                         grid-template-columns: 1fr;
                     }
-                    .pie-charts {
-                        grid-template-columns: 1fr;
-                    }
-                    .action-buttons {
+                    
+                    .actions {
                         flex-direction: column;
+                    }
+                    
+                    .btn {
+                        justify-content: center;
                     }
                 }
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="dashboard">
                 <div class="header">
-                    <h1>🛡️ St. Edward Ministry Finder</h1>
-                    <div class="subtitle">Admin Dashboard & Analytics</div>
+                    <h1><i class="fas fa-church"></i> St. Edward Ministry Finder</h1>
+                    <p>Admin Dashboard & Analytics</p>
                 </div>
-                
-                <div class="dashboard-content">
-                    <!-- Stats Cards -->
-                    <div class="stats" id="stats"></div>
+        
+                <div class="stats-grid" id="stats">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+        
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="exportToCSV()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button class="btn btn-secondary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="btn btn-danger" onclick="showClearModal()">
+                        <i class="fas fa-trash-alt"></i> Clear All Data
+                    </button>
+                </div>
+        
+                <div class="charts-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-chart-line"></i> Analytics Overview
+                    </h2>
                     
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="exportToCSV()">
-                            📊 Export to CSV
-                        </button>
-                        <button class="btn btn-secondary" onclick="location.reload()">
-                            🔄 Refresh Data
-                        </button>
-                        <button class="btn btn-danger" onclick="showClearModal()">
-                            🗑️ Clear All Data
-                        </button>
-                    </div>
-                    
-                    <!-- Charts Section -->
-                    <div class="charts-section">
-                        <h2 style="color: #005921; margin-bottom: 25px;">📈 Analytics Dashboard</h2>
-                        <div class="charts-grid">
-                            <div class="chart-container">
-                                <div class="chart-title">Top 5 Most Recommended Ministries</div>
-                                <canvas id="ministriesChart"></canvas>
-                            </div>
-                            <div class="chart-container">
-                                <div class="chart-title">Age Groups</div>
-                                <canvas id="ageChart"></canvas>
-                            </div>
-                            <div class="chart-container">
-                                <div class="chart-title">Gender Distribution</div>
-                                <canvas id="genderChart"></canvas>
-                            </div>
+                    <div class="charts-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">Most Popular Ministries</div>
+                            <canvas id="ministriesChart" height="300"></canvas>
                         </div>
-                        <div class="pie-charts">
-                            <div class="chart-container">
-                                <div class="chart-title">State in Life</div>
-                                <canvas id="stateChart"></canvas>
-                            </div>
-                            <div class="chart-container">
-                                <div class="chart-title">Top Interests</div>
-                                <canvas id="interestChart"></canvas>
-                            </div>
-                            <div class="chart-container">
-                                <div class="chart-title">Situations</div>
-                                <canvas id="situationChart"></canvas>
-                            </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Age Distribution</div>
+                            <canvas id="ageChart" height="300"></canvas>
                         </div>
                     </div>
-                    
-                    <!-- Data Table -->
-                    <div class="table-section">
-                        <div class="table-header">
-                            📋 Recent Submissions
+        
+                    <div class="pie-grid">
+                        <div class="chart-container">
+                            <div class="chart-title">Gender Distribution</div>
+                            <canvas id="genderChart" height="250"></canvas>
                         </div>
-                        <div class="loading" id="loading">
-                            <div class="spinner"></div>
-                            Loading data...
+                        <div class="chart-container">
+                            <div class="chart-title">Top Interests</div>
+                            <canvas id="interestChart" height="250"></canvas>
                         </div>
+                        <div class="chart-container">
+                            <div class="chart-title">User Situations</div>
+                            <canvas id="situationChart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="data-section">
+                    <div class="data-header">
+                        <i class="fas fa-table"></i> Recent Submissions
+                    </div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <div>Loading dashboard data...</div>
+                    </div>
+                    <div class="table-container">
                         <div id="submissions"></div>
                     </div>
                 </div>
             </div>
-            
+        
             <!-- Clear Data Modal -->
             <div id="clearModal" class="modal">
                 <div class="modal-content">
-                    <h3>⚠️ Clear All Data</h3>
-                    <p>This action will permanently delete ALL ministry submissions and analytics data.</p>
-                    <p><strong>This cannot be undone!</strong></p>
+                    <h3><i class="fas fa-exclamation-triangle"></i> Confirm Data Deletion</h3>
+                    <p>This will permanently delete ALL ministry submissions and analytics data.</p>
+                    <p><strong>This action cannot be undone!</strong></p>
                     
                     <div class="checkbox-container">
-                        <input type="checkbox" id="confirmClear" style="transform: scale(1.2);">
-                        <label for="confirmClear" style="font-weight: 600;">I understand this action cannot be undone</label>
+                        <input type="checkbox" id="confirmClear">
+                        <label for="confirmClear">I understand this action cannot be undone</label>
                     </div>
                     
                     <div class="modal-buttons">
                         <button class="btn btn-secondary" onclick="hideClearModal()">Cancel</button>
-                        <button class="btn btn-danger" onclick="clearAllData()" id="confirmBtn" disabled>Clear All Data</button>
+                        <button class="btn btn-danger" onclick="clearAllData()" id="confirmBtn" disabled>
+                            <i class="fas fa-trash"></i> Delete All Data
+                        </button>
                     </div>
                 </div>
             </div>
-            
+        
             <script>
                 let submissionsData = [];
                 let charts = {};
-                
-                // Modal Functions
+        
                 function showClearModal() {
                     document.getElementById('clearModal').style.display = 'block';
                     document.getElementById('confirmClear').checked = false;
                     document.getElementById('confirmBtn').disabled = true;
                 }
-                
+        
                 function hideClearModal() {
                     document.getElementById('clearModal').style.display = 'none';
                 }
-                
-                // Enable/disable confirm button based on checkbox
+        
                 document.getElementById('confirmClear').addEventListener('change', function() {
                     document.getElementById('confirmBtn').disabled = !this.checked;
                 });
-                
-                // Clear all data function
+        
                 function clearAllData() {
                     if (!document.getElementById('confirmClear').checked) return;
                     
-                    if (confirm('FINAL CONFIRMATION: Are you absolutely sure you want to delete all data?')) {
+                    if (confirm('FINAL CONFIRMATION: Delete all submission data?')) {
                         fetch('/api/clear-all-data', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' }
@@ -579,63 +684,51 @@ def register_routes(app):
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                alert('✅ All data has been cleared successfully');
+                                alert('✅ All data cleared successfully');
                                 location.reload();
                             } else {
-                                alert('❌ Error clearing data: ' + data.message);
+                                alert('❌ Error: ' + data.message);
                             }
                         })
-                        .catch(error => {
-                            alert('❌ Error: ' + error.message);
-                        });
+                        .catch(error => alert('❌ Error: ' + error.message));
                         hideClearModal();
                     }
                 }
-                
-                // CSV Export Function
+        
                 function exportToCSV() {
                     const csvContent = convertToCSV(submissionsData);
                     const blob = new Blob([csvContent], { type: 'text/csv' });
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'st_edward_ministry_submissions_' + new Date().toISOString().split('T')[0] + '.csv';
+                    a.download = `st_edward_ministry_data_${new Date().toISOString().split('T')[0]}.csv`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     window.URL.revokeObjectURL(url);
                 }
-                
+        
                 function convertToCSV(data) {
-                    const headers = ['Date', 'Name', 'Email', 'Age Group', 'Gender', 'States', 'Interests', 'Situation', 'Recommended Ministries', 'IP Address'];
+                    const headers = ['Date', 'Age Group', 'Gender', 'States', 'Interests', 'Situation', 'Ministries', 'IP'];
                     let csv = headers.join(',') + '\\n';
                     
                     data.forEach(row => {
-                        const situation = Array.isArray(row.situation) ? row.situation.join('; ') : '';
-                        const states = Array.isArray(row.state_in_life) ? row.state_in_life.join('; ') : '';
-                        const interests = Array.isArray(row.interest) ? row.interest.join('; ') : row.interest || '';
-                        const ministries = Array.isArray(row.recommended_ministries) ? row.recommended_ministries.join('; ') : '';
                         const csvRow = [
                             new Date(row.submitted_at).toLocaleDateString(),
-                            `"${row.name || ''}"`,
-                            `"${row.email}"`,
                             `"${row.age_group || ''}"`,
                             `"${row.gender || ''}"`,
-                            `"${states}"`,
-                            `"${interests}"`,
-                            `"${situation}"`,
-                            `"${ministries}"`,
+                            `"${Array.isArray(row.state_in_life) ? row.state_in_life.join('; ') : ''}"`,
+                            `"${Array.isArray(row.interest) ? row.interest.join('; ') : row.interest || ''}"`,
+                            `"${Array.isArray(row.situation) ? row.situation.join('; ') : ''}"`,
+                            `"${Array.isArray(row.recommended_ministries) ? row.recommended_ministries.join('; ') : ''}"`,
                             `"${row.ip_address || ''}"`
                         ];
                         csv += csvRow.join(',') + '\\n';
                     });
-                    
                     return csv;
                 }
-                
-                // Chart Creation Functions
-                function createChartsFromData(data) {
-                    // Top 5 Ministries Chart
+        
+                function createCharts(data) {
                     const ministryCount = {};
                     data.forEach(sub => {
                         if (Array.isArray(sub.recommended_ministries)) {
@@ -647,41 +740,27 @@ def register_routes(app):
                     
                     const topMinistries = Object.entries(ministryCount)
                         .sort(([,a], [,b]) => b - a)
-                        .slice(0, 5);
+                        .slice(0, 8);
                     
                     createBarChart('ministriesChart', {
-                        labels: topMinistries.map(([name]) => name.length > 20 ? name.substring(0, 20) + '...' : name),
+                        labels: topMinistries.map(([name]) => name.length > 25 ? name.substring(0, 25) + '...' : name),
                         data: topMinistries.map(([,count]) => count)
-                    }, 'Most Recommended Ministries');
-                    
-                    // Age Groups Chart
+                    });
+        
                     const ageCount = {};
                     data.forEach(sub => {
                         const age = sub.age_group || 'Unknown';
                         ageCount[age] = (ageCount[age] || 0) + 1;
                     });
                     createPieChart('ageChart', ageCount);
-                    
-                    // Gender Chart
+        
                     const genderCount = {};
                     data.forEach(sub => {
                         const gender = sub.gender || 'Not specified';
                         genderCount[gender] = (genderCount[gender] || 0) + 1;
                     });
                     createPieChart('genderChart', genderCount);
-                    
-                    // State Chart
-                    const stateCount = {};
-                    data.forEach(sub => {
-                        if (Array.isArray(sub.state_in_life)) {
-                            sub.state_in_life.forEach(state => {
-                                stateCount[state] = (stateCount[state] || 0) + 1;
-                            });
-                        }
-                    });
-                    createPieChart('stateChart', stateCount);
-                    
-                    // Interest Chart
+        
                     const interestCount = {};
                     data.forEach(sub => {
                         if (Array.isArray(sub.interest)) {
@@ -691,8 +770,7 @@ def register_routes(app):
                         }
                     });
                     createPieChart('interestChart', interestCount);
-                    
-                    // Situation Chart
+        
                     const situationCount = {};
                     data.forEach(sub => {
                         if (Array.isArray(sub.situation)) {
@@ -703,8 +781,8 @@ def register_routes(app):
                     });
                     createPieChart('situationChart', situationCount);
                 }
-                
-                function createBarChart(canvasId, data, title) {
+        
+                function createBarChart(canvasId, data) {
                     const ctx = document.getElementById(canvasId).getContext('2d');
                     if (charts[canvasId]) charts[canvasId].destroy();
                     
@@ -713,52 +791,39 @@ def register_routes(app):
                         data: {
                             labels: data.labels,
                             datasets: [{
-                                label: 'Recommendations',
                                 data: data.data,
-                                backgroundColor: [
-                                    '#005921',
-                                    '#2d7a47',
-                                    '#52c41a',
-                                    '#73d13d',
-                                    '#95de64'
-                                ],
-                                borderColor: '#005921',
-                                borderWidth: 1
+                                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                                borderColor: 'rgba(102, 126, 234, 1)',
+                                borderWidth: 2,
+                                borderRadius: 8
                             }]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false }
-                            },
+                            plugins: { legend: { display: false } },
                             scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: { stepSize: 1 }
-                                }
+                                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                                x: { ticks: { maxRotation: 45 } }
                             }
                         }
                     });
                 }
-                
+        
                 function createPieChart(canvasId, data) {
                     const ctx = document.getElementById(canvasId).getContext('2d');
                     if (charts[canvasId]) charts[canvasId].destroy();
                     
-                    const colors = [
-                        '#005921', '#2d7a47', '#52c41a', '#73d13d', '#95de64',
-                        '#b7eb8f', '#d9f7be', '#f6ffed', '#237804', '#389e0d'
-                    ];
+                    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', '#43e97b', '#38f9d7', '#feca57', '#ff6b6b'];
                     
                     charts[canvasId] = new Chart(ctx, {
-                        type: 'pie',
+                        type: 'doughnut',
                         data: {
                             labels: Object.keys(data),
                             datasets: [{
                                 data: Object.values(data),
                                 backgroundColor: colors.slice(0, Object.keys(data).length),
-                                borderWidth: 2,
+                                borderWidth: 3,
                                 borderColor: '#fff'
                             }]
                         },
@@ -768,83 +833,70 @@ def register_routes(app):
                             plugins: {
                                 legend: {
                                     position: 'bottom',
-                                    labels: { 
-                                        font: { size: 11 },
-                                        padding: 10
-                                    }
+                                    labels: { padding: 20, usePointStyle: true }
                                 }
                             }
                         }
                     });
                 }
-                
-                // Load and display data
+        
                 document.getElementById('loading').style.display = 'block';
                 
                 fetch('/api/submissions')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Server error: ${response.status}`);
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
                         document.getElementById('loading').style.display = 'none';
-                        
-                        if (!Array.isArray(data)) {
-                            throw new Error('Invalid data format - expected array');
-                        }
-                        
                         submissionsData = data;
                         
-                        // Calculate and show stats
-                        const totalSubmissions = data.length;
+                        const total = data.length;
                         const last24h = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 24*60*60*1000)).length;
                         const last7days = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 7*24*60*60*1000)).length;
-                        const avgMinistries = totalSubmissions > 0 ? 
-                            (data.reduce((sum, s) => sum + (Array.isArray(s.recommended_ministries) ? s.recommended_ministries.length : 0), 0) / totalSubmissions).toFixed(1) : 
-                            0;
+                        const avg = total > 0 ? (data.reduce((sum, s) => sum + (Array.isArray(s.recommended_ministries) ? s.recommended_ministries.length : 0), 0) / total).toFixed(1) : 0;
                         
                         document.getElementById('stats').innerHTML = `
                             <div class="stat-card">
-                                <div class="stat-number">${totalSubmissions}</div>
+                                <div class="stat-header">
+                                    <div class="stat-icon submissions"><i class="fas fa-users"></i></div>
+                                </div>
+                                <div class="stat-number">${total}</div>
                                 <div class="stat-label">Total Submissions</div>
                             </div>
                             <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon today"><i class="fas fa-calendar-day"></i></div>
+                                </div>
                                 <div class="stat-number">${last24h}</div>
                                 <div class="stat-label">Last 24 Hours</div>
                             </div>
                             <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-icon week"><i class="fas fa-calendar-week"></i></div>
+                                </div>
                                 <div class="stat-number">${last7days}</div>
                                 <div class="stat-label">Last 7 Days</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">${avgMinistries}</div>
-                                <div class="stat-label">Avg Ministries per User</div>
+                                <div class="stat-header">
+                                    <div class="stat-icon avg"><i class="fas fa-chart-bar"></i></div>
+                                </div>
+                                <div class="stat-number">${avg}</div>
+                                <div class="stat-label">Avg Ministries</div>
                             </div>
                         `;
                         
-                        // Create charts
-                        createChartsFromData(data);
+                        createCharts(data);
                         
-                        // Show submissions table
-                        let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Recommended Ministries</th><th>IP</th></tr>';
-                        data.forEach(sub => {
+                        let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Ministries</th></tr>';
+                        data.slice(0, 50).forEach(sub => {
                             const isRecent = new Date(sub.submitted_at) > new Date(Date.now() - 24*60*60*1000);
-                            const situationText = Array.isArray(sub.situation) ? sub.situation.join(', ') : (sub.situation || '');
-                            const statesText = Array.isArray(sub.state_in_life) ? sub.state_in_life.join(', ') : (sub.state_in_life || '');
-                            const interestsText = Array.isArray(sub.interest) ? sub.interest.join(', ') : (sub.interest || '');
-                            const ministriesText = Array.isArray(sub.recommended_ministries) ? sub.recommended_ministries.join(', ') : (sub.recommended_ministries || '');
-                            
                             html += `<tr ${isRecent ? 'class="recent"' : ''}>
-                                <td>${new Date(sub.submitted_at).toLocaleDateString()} ${new Date(sub.submitted_at).toLocaleTimeString()}</td>
+                                <td>${new Date(sub.submitted_at).toLocaleDateString()}</td>
                                 <td>${sub.age_group || ''}</td>
                                 <td>${sub.gender || ''}</td>
-                                <td class="states">${statesText}</td>
-                                <td class="interests">${interestsText}</td>
-                                <td class="situation">${situationText}</td>
-                                <td class="ministries">${ministriesText}</td>
-                                <td>${sub.ip_address || ''}</td>
+                                <td>${Array.isArray(sub.state_in_life) ? sub.state_in_life.join(', ') : ''}</td>
+                                <td>${Array.isArray(sub.interest) ? sub.interest.join(', ') : sub.interest || ''}</td>
+                                <td>${Array.isArray(sub.situation) ? sub.situation.join(', ') : ''}</td>
+                                <td>${Array.isArray(sub.recommended_ministries) ? sub.recommended_ministries.slice(0, 3).join(', ') + (sub.recommended_ministries.length > 3 ? '...' : '') : ''}</td>
                             </tr>`;
                         });
                         html += '</table>';
@@ -852,27 +904,17 @@ def register_routes(app):
                     })
                     .catch(error => {
                         document.getElementById('loading').style.display = 'none';
-                        console.error('Error:', error);
-                        document.getElementById('submissions').innerHTML = `
-                            <div class="error-message">
-                                <h3>Error loading submissions</h3>
-                                <p>${error.message}</p>
-                                <p>Please check your authentication or try refreshing the page.</p>
-                            </div>
-                        `;
+                        document.getElementById('submissions').innerHTML = `<div class="error-message">Error loading data: ${error.message}</div>`;
                     });
-                
-                // Close modal when clicking outside
+        
                 window.onclick = function(event) {
-                    const modal = document.getElementById('clearModal');
-                    if (event.target == modal) {
+                    if (event.target == document.getElementById('clearModal')) {
                         hideClearModal();
                     }
                 }
             </script>
         </body>
-        </html>
-        '''
+        </html>'''
         return admin_html
 
     @app.route('/api/clear-all-data', methods=['POST'])
