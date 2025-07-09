@@ -10,6 +10,15 @@ let ministries = {};
 let loadingRetries = 0;
 const maxRetries = 3;
 
+// Progress messages for each step
+const progressMessages = {
+    1: "Let's get started!",
+    2: "Great choice! Keep going...",
+    3: "You're doing great!",
+    4: "Almost there!",
+    5: "Last question!"
+};
+
 async function loadMinistries() {
     try {
         const response = await fetch('/api/get-ministries', {
@@ -89,61 +98,61 @@ function showLoadingError() {
     }
 }
 
-// ENHANCED Age-specific interest options with "Something for my children"
+// ENHANCED Age-specific interest options with "Something for my children" - UPDATED FOR ELEMENTARY
 const interestOptions = {
     infant: [
-        { value: 'support', label: 'Parent Support & Community' },
-        { value: 'education', label: 'Learning About Faith' },
-        { value: 'service', label: 'Helping Others' },
-        { value: 'all', label: 'Show me everything!' }
+        { value: 'support', label: '🤱 Parent Support & Community' },
+        { value: 'education', label: '📖 Learning About Faith' },
+        { value: 'service', label: '🤝 Helping Others' },
+        { value: 'all', label: '✨ Show me everything!' }
     ],
-    kid: [
-        { value: 'education', label: 'Learning & Growing in Faith' },
-        { value: 'fellowship', label: 'Making Friends' },
-        { value: 'music', label: 'Music & Arts' },
-        { value: 'service', label: 'Helping Others' },
-        { value: 'all', label: 'Show me everything!' }
+    elementary: [  // CHANGED FROM 'kid' to 'elementary'
+        { value: 'education', label: '📚 Learning & Growing in Faith' },
+        { value: 'fellowship', label: '👫 Making Friends' },
+        { value: 'music', label: '🎵 Music & Arts' },
+        { value: 'service', label: '🤝 Helping Others' },
+        { value: 'all', label: '✨ Show me everything!' }
     ],
     'junior-high': [
-        { value: 'fellowship', label: 'Fellowship & Community' },
-        { value: 'education', label: 'Learning & Teaching' },
-        { value: 'service', label: 'Serving Others' },
-        { value: 'prayer', label: 'Prayer & Worship' },
-        { value: 'all', label: 'Show me everything!' }
+        { value: 'fellowship', label: '👥 Fellowship & Community' },
+        { value: 'education', label: '📖 Learning & Teaching' },
+        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'all', label: '✨ Show me everything!' }
     ],
     'high-school': [
-        { value: 'fellowship', label: 'Fellowship & Community' },
-        { value: 'service', label: 'Serving Others' },
-        { value: 'prayer', label: 'Prayer & Worship' },
-        { value: 'music', label: 'Music & Arts' },
-        { value: 'education', label: 'Learning & Teaching' },
-        { value: 'all', label: 'Show me everything!' }
+        { value: 'fellowship', label: '👥 Fellowship & Community' },
+        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'music', label: '🎵 Music & Arts' },
+        { value: 'education', label: '📖 Learning & Teaching' },
+        { value: 'all', label: '✨ Show me everything!' }
     ],
     'college-young-adult': [
-        { value: 'fellowship', label: 'Fellowship & Community' },
-        { value: 'service', label: 'Serving Others' },
-        { value: 'prayer', label: 'Prayer & Worship' },
-        { value: 'education', label: 'Learning & Teaching' },
-        { value: 'music', label: 'Music & Arts' },
-        { value: 'all', label: 'Show me everything!' }
+        { value: 'fellowship', label: '👥 Fellowship & Community' },
+        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'education', label: '📖 Learning & Teaching' },
+        { value: 'music', label: '🎵 Music & Arts' },
+        { value: 'all', label: '✨ Show me everything!' }
     ],
     'married-parents': [
-        { value: 'fellowship', label: 'Fellowship & Community' },
-        { value: 'service', label: 'Serving Others' },
-        { value: 'education', label: 'Learning & Teaching' },
-        { value: 'prayer', label: 'Prayer & Worship' },
-        { value: 'support', label: 'Family Support' },
-        { value: 'kids', label: 'Something for my children' }, // NEW OPTION
-        { value: 'all', label: 'Show me everything!' }
+        { value: 'fellowship', label: '👥 Fellowship & Community' },
+        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'education', label: '📖 Learning & Teaching' },
+        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'support', label: '👨‍👩‍👧‍👦 Family Support' },
+        { value: 'kids', label: '👧 Something for my children' },
+        { value: 'all', label: '✨ Show me everything!' }
     ],
     'journeying-adults': [
-        { value: 'prayer', label: 'Prayer & Worship' },
-        { value: 'service', label: 'Serving Others' },
-        { value: 'fellowship', label: 'Fellowship & Community' },
-        { value: 'education', label: 'Learning & Teaching' },
-        { value: 'music', label: 'Music & Arts' },
-        { value: 'kids', label: 'Something for my children' }, // NEW OPTION
-        { value: 'all', label: 'Show me everything!' }
+        { value: 'prayer', label: '🙏 Prayer & Worship' },
+        { value: 'service', label: '🤲 Serving Others' },
+        { value: 'fellowship', label: '👥 Fellowship & Community' },
+        { value: 'education', label: '📖 Learning & Teaching' },
+        { value: 'music', label: '🎵 Music & Arts' },
+        { value: 'kids', label: '👧 Something for my children' },
+        { value: 'all', label: '✨ Show me everything!' }
     ]
 };
 
@@ -157,15 +166,15 @@ function answerQuestion(type, answer) {
     
     // Wait a moment for visual feedback
     setTimeout(() => {
-        // For younger age groups, skip state in life question
-        if (type === 'age' && ['infant', 'kid', 'junior-high', 'high-school'].includes(answer)) {
+        // For younger age groups, skip state in life question - UPDATED FOR ELEMENTARY
+        if (type === 'age' && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answer)) {
             states.push('single'); // Auto-assign single for younger ages
         }
         
         currentQuestion++;
         
-        // Skip question 3 (state in life) for younger age groups
-        if (currentQuestion === 3 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+        // Skip question 3 (state in life) for younger age groups - UPDATED FOR ELEMENTARY
+        if (currentQuestion === 3 && answers.age && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age)) {
             currentQuestion = 4; // Jump to situation question
         }
         
@@ -319,7 +328,9 @@ function populateInterestOptions() {
         
         checkboxDiv.innerHTML = `
             <input type="checkbox" id="interest-${option.value}" value="${option.value}" onchange="handleInterestCheckboxChange('${option.value}')">
-            <label for="interest-${option.value}">${option.label}</label>
+            <label for="interest-${option.value}">
+                <span class="checkbox-emoji">${option.label.split(' ')[0]}</span> ${option.label.substring(option.label.indexOf(' ') + 1)}
+            </label>
         `;
         
         interestContainer.appendChild(checkboxDiv);
@@ -401,10 +412,10 @@ function goBack(questionNum) {
         states.length = 0;
     }
     
-    // Handle going back when state question was skipped
-    if (questionNum === 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+    // Handle going back when state question was skipped - UPDATED FOR ELEMENTARY
+    if (questionNum === 4 && answers.age && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age)) {
         currentQuestion = 2; // Go back to gender question
-    } else if (questionNum === 5 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+    } else if (questionNum === 5 && answers.age && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age)) {
         currentQuestion = 4; // Go back to situation question
     } else {
         currentQuestion = questionNum - 1;
@@ -421,30 +432,36 @@ function showQuestion(questionNum) {
 
 function updateProgress() {
     let totalQuestionsForUser = totalQuestions;
-    // If younger age group, they skip state question, so only 4 questions total
-    if (answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+    // If younger age group, they skip state question, so only 4 questions total - UPDATED FOR ELEMENTARY
+    if (answers.age && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age)) {
         totalQuestionsForUser = 4;
     }
     
     let progressQuestions = currentQuestion - 1;
-    // Adjust for skipped question
-    if (currentQuestion >= 4 && answers.age && ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age)) {
+    // Adjust for skipped question - UPDATED FOR ELEMENTARY
+    if (currentQuestion >= 4 && answers.age && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age)) {
         progressQuestions = currentQuestion - 2; // Account for skipped state question
     }
     
     const progress = Math.min(progressQuestions / totalQuestionsForUser * 100, 100);
     document.getElementById('progress-bar').style.width = progress + '%';
+    
+    // Update progress text
+    const progressText = document.getElementById('progress-text');
+    if (progressText) {
+        progressText.textContent = progressMessages[currentQuestion] || '';
+    }
 }
 
 // NEW FUNCTION - Create selections summary
 function createSelectionsummary() {
     const summaryItems = [];
     
-    // Age group
+    // Age group - UPDATED FOR ELEMENTARY
     if (answers.age) {
         const ageLabels = {
             'infant': 'Infant (0-3)',
-            'kid': 'Kid (PreK-Grade 5)', 
+            'elementary': 'Elementary School (PreK-Grade 5)', // CHANGED FROM 'kid'
             'junior-high': 'Junior High (Grades 6-8)',
             'high-school': 'High School (Grades 9-12)',
             'college-young-adult': 'College & Young Adult (18-35)',
@@ -477,7 +494,7 @@ function createSelectionsummary() {
             'returning-to-church': 'Returning to Church',
             'new-to-nashville': 'New to Nashville',
             'current-parishioner': 'Current Parishioner',
-            'just-curious': 'Just Curious'
+            'just-curious': 'Just Exploring'
         };
         const situationTexts = situation.map(s => situationLabels[s] || s).join(', ');
         summaryItems.push(`<strong>Situation:</strong> ${situationTexts}`);
@@ -505,7 +522,7 @@ function createSelectionsummary() {
     
     return `
         <div class="selections-summary">
-            <h3>Your Selections:</h3>
+            <h3>🎯 Your Path Profile:</h3>
             <p>${summaryItems.join(' • ')}</p>
         </div>
     `;
@@ -522,8 +539,8 @@ function showResults() {
     // CREATE SELECTIONS SUMMARY
     const selectionsHtml = createSelectionsummary();
     
-    // Check if user IS a child
-    const userIsChild = ['infant', 'kid', 'junior-high', 'high-school'].includes(answers.age);
+    // Check if user IS a child - UPDATED FOR ELEMENTARY
+    const userIsChild = ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age);
     
     // SEPARATE ADULT AND CHILDREN'S MINISTRIES
     const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
@@ -589,6 +606,7 @@ function showResults() {
     
     // Update progress bar to 100%
     document.getElementById('progress-bar').style.width = '100%';
+    document.getElementById('progress-text').textContent = 'Complete! 🎉';
     
     // Submit anonymous analytics data
     submitAnalytics([...adultMinistries, ...childrenMinistries]);
@@ -602,8 +620,8 @@ function separateMinistries(allMinistries) {
     const adultMinistries = [];
     const childrenMinistries = [];
     
-    // Define children's age groups
-    const childrenAges = ['infant', 'kid', 'junior-high', 'high-school'];
+    // Define children's age groups - UPDATED FOR ELEMENTARY
+    const childrenAges = ['infant', 'elementary', 'junior-high', 'high-school'];
     const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
     
     allMinistries.forEach(ministry => {
@@ -681,7 +699,7 @@ function findMinistries() {
         // include children's ministries regardless of user's age
         const effectiveAges = [userAge];
         if (hasKidsInterest || isParent) {
-            effectiveAges.push('infant', 'kid', 'junior-high', 'high-school');
+            effectiveAges.push('infant', 'elementary', 'junior-high', 'high-school'); // UPDATED
         }
         
         // Check age (enhanced to include children's ages for parents)
@@ -721,9 +739,9 @@ function findMinistries() {
             
             // SPECIAL CASE: If user selected "kids" interest, match children's ministries
             if (!hasMatchingInterest && hasKidsInterest) {
-                // Check if this is a children's ministry
+                // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
                 const isChildrensMinistry = ministry.age && ministry.age.some(age => 
-                    ['infant', 'kid', 'junior-high', 'high-school'].includes(age)
+                    ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
                 );
                 if (isChildrensMinistry) {
                     hasMatchingInterest = true;
@@ -758,9 +776,9 @@ function findMinistries() {
         });
     }
     
-    // Special handling for kids - always show core options
-    if (answers.age === 'kid' && matches.length < 2) {
-        // Always include these for kids regardless of interest
+    // Special handling for elementary - always show core options - UPDATED
+    if (answers.age === 'elementary' && matches.length < 2) {
+        // Always include these for elementary kids regardless of interest
         const coreKidsMinistries = [
             ministries['st-edward-school'],
             ministries['prep-kids'],
