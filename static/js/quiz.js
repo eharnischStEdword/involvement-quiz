@@ -924,3 +924,75 @@ window.addEventListener('load', function() {
         }
     }, 100);
 });
+// Add these functions to static/js/quiz.js
+
+function showContactForm() {
+    document.querySelector('.contact-form-toggle').style.display = 'none';
+    document.getElementById('contactForm').style.display = 'block';
+}
+
+function hideContactForm() {
+    document.querySelector('.contact-form-toggle').style.display = 'flex';
+    document.getElementById('contactForm').style.display = 'none';
+    document.getElementById('contactSuccess').style.display = 'none';
+    document.getElementById('userContactForm').style.display = 'block';
+    document.getElementById('userContactForm').reset();
+}
+
+function skipContact() {
+    // Hide the entire contact form section
+    document.getElementById('contactFormSection').style.display = 'none';
+}
+
+function submitContact(event) {
+    event.preventDefault();
+    
+    const form = document.getElementById('userContactForm');
+    const submitBtn = document.getElementById('submitContactBtn');
+    const formData = new FormData(form);
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    
+    // Add quiz results to submission
+    const contactData = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        message: formData.get('message'),
+        quiz_results: {
+            answers: answers,
+            states: states,
+            interests: interests,
+            situation: situation,
+            recommended_ministries: findMinistries().map(m => m.name)
+        }
+    };
+    
+    fetch('/api/submit-contact', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            document.getElementById('userContactForm').style.display = 'none';
+            document.getElementById('contactSuccess').style.display = 'block';
+        } else {
+            alert('There was an issue submitting your information. Please try again or call (615) 833-5520.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="btn-icon">📧</span> Send My Information';
+        }
+    })
+    .catch(error => {
+        console.error('Contact form error:', error);
+        alert('There was a network error. Please try again or call (615) 833-5520.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="btn-icon">📧</span> Send My Information';
+    });
+}
