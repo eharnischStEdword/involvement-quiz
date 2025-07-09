@@ -1,0 +1,21 @@
+/* Questions */
+.question {
+    display: none;
+    animation: fadeIn var(--transition-normal);
+}
+
+.question.active {
+    display: block;
+}
+
+.question h2 {
+    font-size: var(--font-size-xxl);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.question p {
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text-secondary);
+    text-align: center;
+}
