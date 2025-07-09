@@ -12,19 +12,38 @@
     align-items: center;
 }
 
+/* Update these sections in static/css/layout.css */
+
 .header-content {
     max-width: 800px;
     margin: 0 auto;
     display: flex;
     align-items: center;
+    justify-content: center; /* CENTER the logo and text */
     gap: var(--spacing-md);
     width: 100%;
 }
 
 .header-logo {
-    width: 35px; /* Much smaller logo */
+    width: 21px; /* 60% of 35px = 21px */
     height: auto;
     flex-shrink: 0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .header {
+        height: 45px;
+        padding: var(--spacing-xs) var(--spacing-sm);
+    }
+    
+    .header-logo {
+        width: 18px; /* 60% of 30px = 18px */
+    }
+    
+    .logo-text {
+        font-size: 1rem;
+    }
 }
 
 .logo-text {
