@@ -5,9 +5,9 @@ import logging
 import psycopg2.extras
 from datetime import datetime
 
-from models import get_db_connection
-from ministries import MINISTRY_DATA
-from utils import check_rate_limit, require_admin_auth
+from app.models import get_db_connection
+from app.ministries import MINISTRY_DATA
+from app.utils import check_rate_limit, require_admin_auth
 
 logger = logging.getLogger(__name__)
 
