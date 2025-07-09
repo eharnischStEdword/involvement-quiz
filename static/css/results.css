@@ -1,0 +1,105 @@
+/* Results */
+#results {
+    display: none;
+}
+
+#results h2 {
+    font-size: var(--font-size-xxl);
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+/* Selections summary */
+.selections-summary {
+    background-color: var(--color-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.selections-summary h3 {
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Ministry items */
+.ministry-list {
+    margin-bottom: var(--spacing-xl);
+}
+
+.ministry-item {
+    background-color: var(--color-bg-white);
+    border: 1px solid #e0e0e0;
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
+    transition: all var(--transition-fast);
+}
+
+.ministry-item:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.ministry-item h3 {
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.ministry-item p {
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.ministry-item .details {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.ministry-item .details a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.ministry-item .details a:hover {
+    text-decoration: underline;
+}
+
+/* Children's section */
+.children-section {
+    margin-top: var(--spacing-xxl);
+    padding: var(--spacing-lg);
+    background-color: var(--color-children-bg);
+    border: 2px solid var(--color-children-border);
+    border-radius: var(--radius-lg);
+}
+
+.children-header {
+    color: var(--color-children-header);
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-xxl);
+}
+
+.children-ministry {
+    background-color: var(--color-bg-white);
+    border-color: var(--color-children-border);
+}
+
+/* Parish registration */
+.parish-registration {
+    background-color: var(--color-secondary);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    margin: var(--spacing-xl) 0;
+}
+
+.parish-registration h3 {
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.registration-buttons {
+    margin: var(--spacing-lg) 0;
+}
