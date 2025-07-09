@@ -174,14 +174,20 @@ MINISTRY_DATA = {
         'interest': ['fellowship', 'education']
     },
     
-    # Totus Tuus (by age group)
-    'totus-tuus': {
+    # Totus Tuus (by age group) - CONSOLIDATED
+    'totus-tuus-kids': {
         'name': 'Totus Tuus Summer Program',
-        'description': 'Week-long summer catechetical program serving grades 1-12 with age-appropriate activities, games, and leadership opportunities',
-        'details': 'Programs available for:<br>• <strong>Grades 1-6:</strong> Games, activities, and faith formation<br>• <strong>Grades 7-8:</strong> Peer ministry and deeper exploration<br>• <strong>Grades 9-12:</strong> Apologetics, fellowship, and leadership roles<br>• <strong>College students:</strong> Missionary team opportunities<br><br>Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
-        'age': ['elementary', 'junior-high', 'high-school', 'college-young-adult'],
-        'interest': ['education', 'fellowship', 'prayer', 'service', 'kids']
+        'description': 'Week-long summer catechetical program for grades 1-6 with games, activities, and faith formation',
+        'details': 'Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
+        'age': ['elementary'],
+        'interest': ['education', 'fellowship', 'prayer', 'kids']
     },
+    'totus-tuus-teens': {
+        'name': 'Totus Tuus Teen Program',
+        'description': 'Week-long summer program for grades 7-12 with apologetics, fellowship, and leadership opportunities',
+        'details': 'Programs include:<br>• <strong>Grades 7-8:</strong> Peer ministry and deeper exploration<br>• <strong>Grades 9-12:</strong> Apologetics, fellowship, and leadership roles<br><br>Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
+        'age': ['junior-high', 'high-school'],
+        'interest': ['education', 'fellowship', 'prayer', 'service']
     },
     'totus-tuus-missionary': {
         'name': 'Totus Tuus Missionary Team',
