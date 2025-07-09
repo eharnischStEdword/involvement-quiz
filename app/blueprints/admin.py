@@ -6,7 +6,7 @@ import psycopg2.extras
 from app.database import get_db_connection
 from app.auth import require_admin_auth_enhanced as require_admin_auth, require_csrf_token
 
-admin_bp = Blueprint('admin', __name__, strict_slashes=False)
+admin_bp = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
 
 @admin_bp.route('/admin')
