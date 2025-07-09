@@ -377,31 +377,36 @@ def register_routes(app):
 
         .charts-grid {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
         .chart-container {
             background: white;
             border-radius: 16px;
-            padding: 25px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 250px;
         }
 
         .chart-title {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #2d3748;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             text-align: center;
         }
 
         .pie-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .pie-grid .chart-container {
+            height: 200px;
         }
 
         .data-section {
