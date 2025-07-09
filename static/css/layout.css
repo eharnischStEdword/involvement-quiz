@@ -1,10 +1,10 @@
 /* Header */
 .header {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     color: var(--color-text-white);
     padding: var(--spacing-xl) var(--spacing-md);
     text-align: center;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 12px rgba(0, 89, 33, 0.2);
 }
 
 .header-content {
@@ -44,7 +44,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--color-bg-white);
+    background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
     z-index: 9999;
     display: flex;
     flex-direction: column;
@@ -54,18 +54,19 @@
 }
 
 .loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid var(--color-secondary);
-    border-top: 5px solid var(--color-primary);
+    width: 60px;
+    height: 60px;
+    border: 6px solid var(--color-secondary);
+    border-top: 6px solid var(--color-primary);
     border-radius: var(--radius-full);
     animation: spin 1s linear infinite;
 }
 
 .loading-text {
     margin-top: var(--spacing-lg);
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-xl);
     color: var(--color-primary);
+    font-weight: 600;
 }
 
 .loading-subtext {
@@ -105,10 +106,11 @@
 /* Contact info */
 .contact-info {
     text-align: center;
-    padding: var(--spacing-lg);
-    background-color: var(--color-secondary);
-    border-radius: var(--radius-md);
+    padding: var(--spacing-xl);
+    background: linear-gradient(135deg, var(--color-secondary) 0%, #f0f9f0 100%);
+    border-radius: var(--radius-lg);
     margin-bottom: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .contact-info h4 {
