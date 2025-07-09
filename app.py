@@ -402,6 +402,7 @@ def admin_dashboard():
             .export-btn { background: #005921; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
             .export-btn:hover { background: #004a1e; }
             .recent { color: #e74c3c; font-weight: bold; }
+            .error-message { color: #dc3545; padding: 20px; text-align: center; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px 0; }
         </style>
     </head>
     <body>
@@ -424,8 +425,16 @@ def admin_dashboard():
         <script>
             function exportToCSV() {
                 fetch('/api/submissions')
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch data');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        if (!Array.isArray(data)) {
+                            throw new Error('Invalid data format');
+                        }
                         const csvContent = convertToCSV(data);
                         const blob = new Blob([csvContent], { type: 'text/csv' });
                         const url = window.URL.createObjectURL(blob);
@@ -436,6 +445,9 @@ def admin_dashboard():
                         a.click();
                         document.body.removeChild(a);
                         window.URL.revokeObjectURL(url);
+                    })
+                    .catch(error => {
+                        alert('Error exporting data: ' + error.message);
                     });
             }
             
@@ -446,7 +458,7 @@ def admin_dashboard():
                 data.forEach(row => {
                     const situation = Array.isArray(row.situation) ? row.situation.join('; ') : '';
                     const states = Array.isArray(row.state_in_life) ? row.state_in_life.join('; ') : '';
-                    const interests = Array.isArray(row.interest) ? row.interest.join('; ') : '';
+                    const interests = Array.isArray(row.interest) ? row.interest.join('; ') : row.interest || '';
                     const ministries = Array.isArray(row.recommended_ministries) ? row.recommended_ministries.join('; ') : '';
                     const csvRow = [
                         new Date(row.submitted_at).toLocaleDateString(),
@@ -468,12 +480,25 @@ def admin_dashboard():
             
             // Load submissions
             fetch('/api/submissions')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    // Ensure data is an array
+                    if (!Array.isArray(data)) {
+                        console.error('Data received:', data);
+                        throw new Error('Invalid data format - expected array');
+                    }
+                    
                     // Calculate stats
                     const totalSubmissions = data.length;
                     const last24h = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 24*60*60*1000)).length;
-                    const avgMinistries = data.reduce((sum, s) => sum + (s.recommended_ministries?.length || 0), 0) / totalSubmissions;
+                    const avgMinistries = totalSubmissions > 0 ? 
+                        (data.reduce((sum, s) => sum + (Array.isArray(s.recommended_ministries) ? s.recommended_ministries.length : 0), 0) / totalSubmissions).toFixed(1) : 
+                        0;
                     
                     // Show stats
                     document.getElementById('stats').innerHTML = `
@@ -486,7 +511,7 @@ def admin_dashboard():
                             <div>Last 24 Hours</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">${avgMinistries.toFixed(1)}</div>
+                            <div class="stat-number">${avgMinistries}</div>
                             <div>Avg Ministries per User</div>
                         </div>
                     `;
@@ -515,7 +540,14 @@ def admin_dashboard():
                     document.getElementById('submissions').innerHTML = html;
                 })
                 .catch(error => {
-                    document.getElementById('submissions').innerHTML = '<p style="color: red;">Error loading submissions: ' + error.message + '</p>';
+                    console.error('Error:', error);
+                    document.getElementById('submissions').innerHTML = `
+                        <div class="error-message">
+                            <h3>Error loading submissions</h3>
+                            <p>${error.message}</p>
+                            <p>Please check your authentication or try refreshing the page.</p>
+                        </div>
+                    `;
                 });
         </script>
     </body>
