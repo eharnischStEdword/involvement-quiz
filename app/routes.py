@@ -185,11 +185,11 @@ def register_routes(app):
             logger.error(f"Error getting submissions: {e}")
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/admin')
-    @require_admin_auth
-    def admin_dashboard():
-        """Modern Admin dashboard with St. Edward branding - FIXED Chart.js loading"""
-        return '''<!DOCTYPE html>
+@app.route('/admin')
+@require_admin_auth
+def admin_dashboard():
+    """Modern Admin dashboard with St. Edward branding - FIXED Chart.js loading"""
+    return '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -389,6 +389,8 @@ def register_routes(app):
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(0, 0, 0, 0.05);
             height: 250px;
+            position: relative;
+            overflow: hidden;
         }
 
         .chart-title {
@@ -407,6 +409,12 @@ def register_routes(app):
 
         .pie-grid .chart-container {
             height: 200px;
+        }
+
+        /* Fix for text overflow in charts */
+        canvas {
+            max-width: 100% !important;
+            height: auto !important;
         }
 
         .data-section {
@@ -817,11 +825,15 @@ def register_routes(app):
             try {
                 const stEdwardColors = ['#005921', '#00843D', '#DAAA00', '#DDCC71', '#003764', '#2d7a47'];
                 
+                // FILTER OUT "Come to Mass!" from ministry count
                 const ministryCount = {};
                 data.forEach(sub => {
                     if (Array.isArray(sub.recommended_ministries)) {
                         sub.recommended_ministries.forEach(ministry => {
-                            ministryCount[ministry] = (ministryCount[ministry] || 0) + 1;
+                            // Skip "Come to Mass!" in analytics
+                            if (ministry !== 'Come to Mass!') {
+                                ministryCount[ministry] = (ministryCount[ministry] || 0) + 1;
+                            }
                         });
                     }
                 });
@@ -831,7 +843,10 @@ def register_routes(app):
                     .slice(0, 8);
                 
                 createBarChart('ministriesChart', {
-                    labels: topMinistries.map(([name]) => name.length > 25 ? name.substring(0, 25) + '...' : name),
+                    labels: topMinistries.map(([name]) => {
+                        // Truncate long ministry names more aggressively
+                        return name.length > 20 ? name.substring(0, 20) + '...' : name;
+                    }),
                     data: topMinistries.map(([,count]) => count)
                 });
 
@@ -894,10 +909,34 @@ def register_routes(app):
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                // Show full ministry name in tooltip
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    // You might need to store full names separately if truncated
+                                    return data.labels[index];
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { ticks: { maxRotation: 45 } }
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1 } 
+                        },
+                        x: { 
+                            ticks: { 
+                                maxRotation: 45,
+                                minRotation: 45,
+                                autoSkip: false,
+                                font: {
+                                    size: 11
+                                }
+                            } 
+                        }
                     }
                 }
             });
@@ -926,7 +965,14 @@ def register_routes(app):
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { padding: 20, usePointStyle: true }
+                            labels: { 
+                                padding: 15, 
+                                usePointStyle: true,
+                                font: {
+                                    size: 11
+                                },
+                                boxWidth: 15
+                            }
                         }
                     }
                 }
