@@ -50,7 +50,7 @@ MINISTRY_DATA = {
     'returning-catholic': {
         'name': "If It's Been A While...",
         'description': "Welcome! We're happy you're here!",
-        'details': 'Call (615) 833-5520 or email <a href="mailto:support@stedward.org">support@stedward.org</a>',
+        'details': 'Call (615) 833-5520 or <a href="https://stedward.org/contact-us" target="_blank">contact the Church Office</a>',
         'age': ['college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'education', 'all'],
         'situation': ['returning-to-church']
@@ -135,7 +135,7 @@ MINISTRY_DATA = {
     'fraternus-jr': {
         'name': 'Fraternus',
         'description': 'Brotherhood & virtue formation - Weekly meetings and excursions developing Catholic men',
-        'details': 'Wednesdays 6:00-8:00pm. Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': 'Wednesdays 6:00-8:00pm. <a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['junior-high'],
         'gender': ['male'],
         'interest': ['fellowship', 'education']
@@ -143,7 +143,7 @@ MINISTRY_DATA = {
     'fraternus-hs': {
         'name': 'Fraternus',
         'description': 'Brotherhood & virtue formation - Weekly formation, excursions, and retreats developing virtuous Catholic men',
-        'details': 'Wednesdays 6:00-8:00pm with 4 weekend excursions. Contact <a href="mailto:support@stedward.org">support@stedward.org</a>',
+        'details': 'Wednesdays 6:00-8:00pm with 4 weekend excursions. <a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['high-school'],
         'gender': ['male'],
         'interest': ['fellowship', 'education']
@@ -151,7 +151,7 @@ MINISTRY_DATA = {
     'fraternus-mentors': {
         'name': 'Fraternus Adult Mentors',
         'description': 'College men serve younger boys (Wednesday evenings)',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['college-young-adult'],
         'gender': ['male'],
         'interest': ['service', 'fellowship']
@@ -283,7 +283,7 @@ MINISTRY_DATA = {
     'catechesis': {
         'name': 'Catechesis of the Good Shepherd Atrium',
         'description': 'Montessori-based religious education for Pre-K-2',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for enrollment',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for enrollment',
         'age': ['elementary'],
         'interest': ['education', 'prayer']
     },
@@ -308,14 +308,14 @@ MINISTRY_DATA = {
     'ocia-sponsors': {
         'name': 'OCIA Sponsors',
         'description': 'Accompany adults entering the Church',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['college-young-adult'],
         'interest': ['service', 'education']
     },
     'room-inn-ya': {
         'name': 'Room-in-the-Inn Shelter Crew',
         'description': 'Saturday-night hospitality for homeless men during winter months',
-        'details': 'Contact Greg Beem at <a href="mailto:support@stedward.org">support@stedward.org</a>',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information about Greg Beem',
         'age': ['college-young-adult'],
         'interest': ['service']
     },
@@ -331,7 +331,7 @@ MINISTRY_DATA = {
     'marriage-enrichment': {
         'name': 'Marriage Enrichment Nights',
         'description': 'Strengthen your marriage through faith',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for schedule',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for schedule',
         'age': ['married-parents'],
         'state': ['married'],
         'interest': ['fellowship', 'education', 'support']
@@ -348,14 +348,14 @@ MINISTRY_DATA = {
     'adoration-guild': {
         'name': 'Adoration Guild',
         'description': 'Committed prayer before the Blessed Sacrament',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['journeying-adults'],
         'interest': ['prayer']
     },
     'catechists': {
         'name': 'Catechists',
         'description': 'Teach faith formation classes',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['journeying-adults'],
         'interest': ['education', 'service']
     },
@@ -369,21 +369,21 @@ MINISTRY_DATA = {
     'room-inn-adults': {
         'name': 'Room In The Inn',
         'description': 'Service & hospitality for homeless men during winter months',
-        'details': 'Visit <a href="https://stedward.org/room-in-the-inn" target="_blank">stedward.org/room-in-the-inn</a> or contact Greg Beem',
+        'details': 'Visit <a href="https://stedward.org/room-in-the-inn" target="_blank">stedward.org/room-in-the-inn</a> or <a href="https://stedward.org/contact-us" target="_blank">contact the Church Office</a> for Greg Beem',
         'age': ['journeying-adults'],
         'interest': ['service']
     },
     'haiti-sister-parish': {
         'name': 'Haiti Sister Parish Support',
         'description': 'Support our sister parish in Haiti',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['journeying-adults'],
         'interest': ['service']
     },
     'bible-bunco': {
         'name': 'Bible Bunco & Blessings',
         'description': 'Faith and fellowship through games',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for information',
+        'details': '<a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office</a> for information',
         'age': ['journeying-adults'],
         'gender': ['female'],
         'interest': ['fellowship', 'education']
