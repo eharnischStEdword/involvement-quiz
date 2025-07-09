@@ -15,7 +15,7 @@ def admin_dashboard():
     """Admin dashboard"""
     return render_template('admin.html')
 
-@admin_bp.route('/submissions')
+@admin_bp.route('/api/submissions')  # Changed from /submissions
 @require_admin_auth
 def get_submissions():
     """Get all submissions for admin view"""
