@@ -687,7 +687,6 @@ def register_routes(app):
         let charts = {};
         let chartJsLoaded = false;
 
-        // Load dashboard data immediately
         function initializeDashboard() {
             document.getElementById('loading').style.display = 'block';
             
@@ -733,14 +732,12 @@ def register_routes(app):
                         </div>
                     `;
                     
-                    // Try to create charts if Chart.js loaded
                     if (chartJsLoaded && typeof Chart !== 'undefined') {
                         createCharts(data);
                         document.getElementById('chart-loading').style.display = 'none';
                         document.getElementById('charts-content').style.display = 'block';
                     }
                     
-                    // Always show data table
                     let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Ministries</th></tr>';
                     data.slice(0, 50).forEach(sub => {
                         const isRecent = new Date(sub.submitted_at) > new Date(Date.now() - 24*60*60*1000);
@@ -763,7 +760,6 @@ def register_routes(app):
                 });
         }
 
-        // Try to load Chart.js
         function loadChartJS() {
             const urls = [
                 'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js',
@@ -775,7 +771,6 @@ def register_routes(app):
             
             function tryNextUrl() {
                 if (currentUrl >= urls.length) {
-                    // All URLs failed
                     document.getElementById('chart-loading').style.display = 'none';
                     document.getElementById('chart-error').style.display = 'block';
                     return;
@@ -785,7 +780,6 @@ def register_routes(app):
                 script.src = urls[currentUrl];
                 script.onload = () => {
                     chartJsLoaded = true;
-                    // Chart.js loaded successfully
                     if (submissionsData.length > 0) {
                         createCharts(submissionsData);
                         document.getElementById('chart-loading').style.display = 'none';
@@ -799,7 +793,6 @@ def register_routes(app):
                     tryNextUrl();
                 };
                 
-                // 5 second timeout per attempt
                 setTimeout(() => {
                     if (!chartJsLoaded) {
                         currentUrl++;
@@ -819,7 +812,6 @@ def register_routes(app):
             try {
                 const stEdwardColors = ['#005921', '#00843D', '#DAAA00', '#DDCC71', '#003764', '#2d7a47'];
                 
-                // Ministry popularity
                 const ministryCount = {};
                 data.forEach(sub => {
                     if (Array.isArray(sub.recommended_ministries)) {
@@ -838,7 +830,6 @@ def register_routes(app):
                     data: topMinistries.map(([,count]) => count)
                 });
 
-                // Age distribution
                 const ageCount = {};
                 data.forEach(sub => {
                     const age = sub.age_group || 'Unknown';
@@ -846,7 +837,6 @@ def register_routes(app):
                 });
                 createPieChart('ageChart', ageCount);
 
-                // Gender distribution
                 const genderCount = {};
                 data.forEach(sub => {
                     const gender = sub.gender || 'Not specified';
@@ -854,7 +844,6 @@ def register_routes(app):
                 });
                 createPieChart('genderChart', genderCount);
 
-                // Interest distribution
                 const interestCount = {};
                 data.forEach(sub => {
                     if (Array.isArray(sub.interest)) {
@@ -865,7 +854,6 @@ def register_routes(app):
                 });
                 createPieChart('interestChart', interestCount);
 
-                // Situation distribution
                 const situationCount = {};
                 data.forEach(sub => {
                     if (Array.isArray(sub.situation)) {
@@ -1015,12 +1003,8 @@ def register_routes(app):
             }
         }
 
-        // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Load data immediately
             initializeDashboard();
-            
-            // Try to load Chart.js in parallel
             setTimeout(loadChartJS, 100);
         });
     </script>
