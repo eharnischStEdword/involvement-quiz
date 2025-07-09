@@ -346,25 +346,67 @@ def get_submissions():
         for row in cur.fetchall():
             submission = dict(row)
             
-            # Handle JSONB fields
-            if submission['situation']:
-                if isinstance(submission['situation'], str):
-                    submission['situation'] = json.loads(submission['situation'])
+            # Handle JSONB/JSON fields safely
+            try:
+                if submission['situation']:
+                    if isinstance(submission['situation'], str):
+                        try:
+                            submission['situation'] = json.loads(submission['situation'])
+                        except json.JSONDecodeError:
+                            submission['situation'] = []
+                    elif not isinstance(submission['situation'], list):
+                        submission['situation'] = []
+                else:
+                    submission['situation'] = []
+            except Exception:
+                submission['situation'] = []
             
-            if submission['state_in_life']:
-                if isinstance(submission['state_in_life'], str):
-                    submission['state_in_life'] = json.loads(submission['state_in_life'])
+            try:
+                if submission['state_in_life']:
+                    if isinstance(submission['state_in_life'], str):
+                        try:
+                            submission['state_in_life'] = json.loads(submission['state_in_life'])
+                        except json.JSONDecodeError:
+                            submission['state_in_life'] = []
+                    elif not isinstance(submission['state_in_life'], list):
+                        submission['state_in_life'] = []
+                else:
+                    submission['state_in_life'] = []
+            except Exception:
+                submission['state_in_life'] = []
             
-            if submission['interest']:
-                if isinstance(submission['interest'], str):
-                    submission['interest'] = json.loads(submission['interest'])
+            try:
+                if submission['interest']:
+                    if isinstance(submission['interest'], str):
+                        try:
+                            submission['interest'] = json.loads(submission['interest'])
+                        except json.JSONDecodeError:
+                            # If it's not JSON, it might be a single string value
+                            submission['interest'] = [submission['interest']] if submission['interest'] else []
+                    elif not isinstance(submission['interest'], list):
+                        submission['interest'] = []
+                else:
+                    submission['interest'] = []
+            except Exception:
+                submission['interest'] = []
             
-            if submission['recommended_ministries']:
-                if isinstance(submission['recommended_ministries'], str):
-                    submission['recommended_ministries'] = json.loads(submission['recommended_ministries'])
+            try:
+                if submission['recommended_ministries']:
+                    if isinstance(submission['recommended_ministries'], str):
+                        try:
+                            submission['recommended_ministries'] = json.loads(submission['recommended_ministries'])
+                        except json.JSONDecodeError:
+                            submission['recommended_ministries'] = []
+                    elif not isinstance(submission['recommended_ministries'], list):
+                        submission['recommended_ministries'] = []
+                else:
+                    submission['recommended_ministries'] = []
+            except Exception:
+                submission['recommended_ministries'] = []
             
             if submission['submitted_at']:
                 submission['submitted_at'] = submission['submitted_at'].isoformat()
+            
             submissions.append(submission)
         
         cur.close()
@@ -375,7 +417,6 @@ def get_submissions():
     except Exception as e:
         logger.error(f"Error getting submissions: {e}")
         return jsonify({'error': str(e)}), 500
-
 @app.route('/admin')
 @require_admin_auth
 def admin_dashboard():
