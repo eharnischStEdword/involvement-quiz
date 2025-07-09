@@ -1025,3 +1025,113 @@ def register_routes(app):
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             }), 500
+    @app.route('/api/submit-contact', methods=['POST'])
+def submit_contact():
+    """Handle contact form submissions with quiz results"""
+    try:
+        # Get client IP address
+        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
+        if ',' in ip_address:
+            ip_address = ip_address.split(',')[0].strip()
+        
+        # Check rate limit (same as quiz)
+        if not check_rate_limit(ip_address):
+            logger.warning(f"Rate limit exceeded for contact form from IP: {ip_address}")
+            return jsonify({
+                'success': False,
+                'message': 'Too many submissions from this location. Please try again in an hour.'
+            }), 429
+        
+        data = request.json
+        logger.info(f"Received contact form from IP {ip_address}: {data.get('name', 'Unknown')}")
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Create contact_submissions table if it doesn't exist
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS contact_submissions (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL,
+                phone VARCHAR(20),
+                message TEXT,
+                quiz_results JSONB,
+                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ip_address VARCHAR(45),
+                contacted BOOLEAN DEFAULT FALSE
+            )
+        ''')
+        
+        # Insert contact submission
+        cur.execute('''
+            INSERT INTO contact_submissions 
+            (name, email, phone, message, quiz_results, ip_address)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
+        ''', (
+            data.get('name', ''),
+            data.get('email', ''),
+            data.get('phone', ''),
+            data.get('message', ''),
+            json.dumps(data.get('quiz_results', {})),
+            ip_address
+        ))
+        
+        contact_id = cur.fetchone()[0]
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        logger.info(f"Successfully saved contact submission {contact_id} from {data.get('name', 'Unknown')}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Contact information received successfully!',
+            'contact_id': contact_id
+        })
+        
+    except psycopg2.Error as e:
+        logger.error(f"Database error in submit_contact: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'Database error. Please try again or call (615) 833-5520.'
+        }), 500
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in submit_contact: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred. Please try again or call (615) 833-5520.'
+        }), 500
+
+    @app.route('/admin/contacts')
+    @require_admin_auth
+    def admin_contacts():
+        """Admin endpoint to view contact submissions"""
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            cur.execute('''
+                SELECT id, name, email, phone, message, quiz_results, 
+                       submitted_at, contacted
+                FROM contact_submissions
+                ORDER BY submitted_at DESC
+            ''')
+            
+            contacts = []
+            for row in cur.fetchall():
+                contact = dict(row)
+                if contact['submitted_at']:
+                    contact['submitted_at'] = contact['submitted_at'].isoformat()
+                contacts.append(contact)
+            
+            cur.close()
+            conn.close()
+            
+            return jsonify(contacts)
+            
+        except Exception as e:
+            logger.error(f"Error getting contact submissions: {e}")
+            return jsonify({'error': str(e)}), 500
