@@ -9,13 +9,13 @@ from app.auth import require_admin_auth_enhanced as require_admin_auth, require_
 admin_bp = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
 
-@admin_bp.route('/')
+@admin_bp.route('/admin')
 @require_admin_auth
 def admin_dashboard():
     """Admin dashboard"""
     return render_template('admin.html')
 
-@admin_bp.route('/api/submissions')
+@admin_bp.route('/submissions')
 @require_admin_auth
 def get_submissions():
     """Get all submissions for admin view"""
