@@ -175,30 +175,17 @@ MINISTRY_DATA = {
     },
     
     # Totus Tuus (by age group)
-    'totus-tuus-kids': {
-        'name': 'Totus Tuus Summer Program (Grades 1-6)',
-        'description': 'Week-long summer catechetical program with games and activities',
-        'details': 'Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
-        'age': ['elementary'],  # CHANGED FROM 'kid'
-        'interest': ['education', 'fellowship', 'prayer']
-    },
-    'totus-tuus-jr': {
+    'totus-tuus': {
         'name': 'Totus Tuus Summer Program',
-        'description': 'Summer catechetical program with peer ministry opportunities',
-        'details': 'Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
-        'age': ['junior-high'],
-        'interest': ['education', 'fellowship', 'prayer']
+        'description': 'Week-long summer catechetical program serving grades 1-12 with age-appropriate activities, games, and leadership opportunities',
+        'details': 'Programs available for:<br>• <strong>Grades 1-6:</strong> Games, activities, and faith formation<br>• <strong>Grades 7-8:</strong> Peer ministry and deeper exploration<br>• <strong>Grades 9-12:</strong> Apologetics, fellowship, and leadership roles<br>• <strong>College students:</strong> Missionary team opportunities<br><br>Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
+        'age': ['elementary', 'junior-high', 'high-school', 'college-young-adult'],
+        'interest': ['education', 'fellowship', 'prayer', 'service', 'kids']
     },
-    'totus-tuus-hs': {
-        'name': 'Totus Tuus Summer Program',
-        'description': 'Apologetics & fellowship for high schoolers with leadership opportunities',
-        'details': 'Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
-        'age': ['high-school'],
-        'interest': ['education', 'fellowship', 'prayer']
     },
     'totus-tuus-missionary': {
-        'name': 'Totus Tuus Missionary Teams',
-        'description': 'Summer evangelization work teaching children and teens',
+        'name': 'Totus Tuus Missionary Team',
+        'description': 'Summer evangelization work teaching children and teens across different parishes',
         'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for application',
         'age': ['college-young-adult'],
         'interest': ['service', 'education', 'prayer']
