@@ -4,14 +4,14 @@ MINISTRY_DATA = {
         'name': 'Come to Mass!',
         'description': 'The source and summit of our faith',
         'details': 'Daily & Sunday Mass times are available at <a href="https://stedward.org" target="_blank">stedward.org</a>.',
-        'age': ['infant', 'elementary', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],  # CHANGED
+        'age': ['infant', 'elementary', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'all']
     },
     'confession': {
         'name': 'Sacrament of Confession',
         'description': 'Reconciliation and spiritual healing',
         'details': 'Confession times available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
-        'age': ['elementary', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],  # CHANGED
+        'age': ['elementary', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'all']
     },
     'ocia': {
@@ -174,7 +174,7 @@ MINISTRY_DATA = {
         'interest': ['fellowship', 'education']
     },
     
-    # Totus Tuus (by age group) - CONSOLIDATED
+    # Totus Tuus (by age group) - FIXED AND CONSOLIDATED
     'totus-tuus-kids': {
         'name': 'Totus Tuus Summer Program',
         'description': 'Week-long summer catechetical program for grades 1-6 with games, activities, and faith formation',
@@ -202,7 +202,7 @@ MINISTRY_DATA = {
         'name': 'PREP - Sunday Religious Ed',
         'description': 'Faith formation including First Confession & First Holy Communion prep',
         'details': 'Visit <a href="https://stedward.org/prep" target="_blank">stedward.org/prep</a> to register',
-        'age': ['elementary'],  # CHANGED FROM 'kid'
+        'age': ['elementary'],
         'interest': ['education', 'prayer']
     },
     'prep-jr': {
@@ -291,21 +291,21 @@ MINISTRY_DATA = {
         'name': 'St. Edward School (PreK-8th Grade)',
         'description': 'Catholic education in a faith-filled community environment',
         'details': 'Apply for enrollment: <a href="https://ses.stedward.org/apply" target="_blank">ses.stedward.org/apply</a>',
-        'age': ['elementary'],  # CHANGED FROM 'kid'
+        'age': ['elementary'],
         'interest': ['education', 'fellowship', 'all']
     },
     'cub-scouts': {
         'name': 'Cub Scouts',
         'description': 'Character development and outdoor adventures for boys and girls',
         'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for more information',
-        'age': ['elementary'],  # CHANGED FROM 'kid'
+        'age': ['elementary'],
         'interest': ['fellowship', 'service', 'all']
     },
     'catechesis': {
         'name': 'Catechesis of the Good Shepherd Atrium',
         'description': 'Montessori-based religious education for Pre-K-2',
         'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for enrollment',
-        'age': ['elementary'],  # CHANGED FROM 'kid' (for younger elementary)
+        'age': ['elementary'],
         'interest': ['education', 'prayer']
     },
     
