@@ -228,6 +228,25 @@ function handleStateCheckboxChange(value) {
             const noneIndex = states.indexOf('none-of-above');
             if (noneIndex > -1) states.splice(noneIndex, 1);
         }
+        
+        // MUTUAL EXCLUSIVITY: Can't be both single AND married
+        if (value === 'single' && checkbox.checked) {
+            const marriedCheckbox = document.getElementById('state-married');
+            if (marriedCheckbox && marriedCheckbox.checked) {
+                marriedCheckbox.checked = false;
+                marriedCheckbox.parentElement.classList.remove('selected');
+                const marriedIndex = states.indexOf('married');
+                if (marriedIndex > -1) states.splice(marriedIndex, 1);
+            }
+        } else if (value === 'married' && checkbox.checked) {
+            const singleCheckbox = document.getElementById('state-single');
+            if (singleCheckbox && singleCheckbox.checked) {
+                singleCheckbox.checked = false;
+                singleCheckbox.parentElement.classList.remove('selected');
+                const singleIndex = states.indexOf('single');
+                if (singleIndex > -1) states.splice(singleIndex, 1);
+            }
+        }
     }
     
     // Update the states array and styling
@@ -705,6 +724,11 @@ function findMinistries() {
     }
     
     for (const [key, ministry] of Object.entries(ministries)) {
+        // Skip the welcome committee unless user specifically selected "new-to-stedward"
+        if (key === 'welcome-committee' && !situation.includes('new-to-stedward')) {
+            continue;
+        }
+        
         let isMatch = true;
         
         // ENHANCED LOGIC: If user selected "something for my children" or is a parent,
