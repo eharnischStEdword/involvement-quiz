@@ -185,7 +185,7 @@ def register_routes(app):
             logger.error(f"Error getting submissions: {e}")
             return jsonify({'error': str(e)}), 500
 
-    @app.route('/admin')
+@app.route('/admin')
     @require_admin_auth
     def admin_dashboard():
         """Modern Admin dashboard with St. Edward branding - FIXED Chart.js loading"""
@@ -535,11 +535,20 @@ def register_routes(app):
             margin: 20px 0;
         }
 
-        #chart-loading {
-            display: block;
+        .chart-loading {
             text-align: center;
             padding: 40px;
             color: #64748b;
+        }
+
+        .chart-error {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            background: #f8f9fa;
+            border-radius: 16px;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
         }
 
         @media (max-width: 1024px) {
@@ -599,9 +608,14 @@ def register_routes(app):
                 <i class="fas fa-chart-line"></i> Analytics Overview
             </h2>
             
-            <div id="chart-loading">
+            <div id="chart-loading" class="chart-loading">
                 <div class="spinner"></div>
-                <div>Loading Chart.js library...</div>
+                <div>Loading charts...</div>
+            </div>
+            
+            <div id="chart-error" class="chart-error" style="display: none;">
+                <div><i class="fas fa-info-circle"></i> Charts temporarily unavailable</div>
+                <div style="font-size: 14px; margin-top: 10px;">Data tables and export functions are working normally</div>
             </div>
             
             <div id="charts-content" style="display: none;">
@@ -668,25 +682,12 @@ def register_routes(app):
         </div>
     </div>
 
-    <!-- FIXED: Load Chart.js and wait for it to load -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js"></script>
     <script>
         let submissionsData = [];
         let charts = {};
+        let chartJsLoaded = false;
 
-        // FIXED: Wait for Chart.js to load before initializing
-        function waitForChart() {
-            if (typeof Chart !== 'undefined') {
-                // Chart.js is loaded, hide loading and show charts
-                document.getElementById('chart-loading').style.display = 'none';
-                document.getElementById('charts-content').style.display = 'block';
-                initializeDashboard();
-            } else {
-                // Chart.js not loaded yet, wait 100ms and try again
-                setTimeout(waitForChart, 100);
-            }
-        }
-
+        // Load dashboard data immediately
         function initializeDashboard() {
             document.getElementById('loading').style.display = 'block';
             
@@ -732,8 +733,14 @@ def register_routes(app):
                         </div>
                     `;
                     
-                    createCharts(data);
+                    // Try to create charts if Chart.js loaded
+                    if (chartJsLoaded && typeof Chart !== 'undefined') {
+                        createCharts(data);
+                        document.getElementById('chart-loading').style.display = 'none';
+                        document.getElementById('charts-content').style.display = 'block';
+                    }
                     
+                    // Always show data table
                     let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Ministries</th></tr>';
                     data.slice(0, 50).forEach(sub => {
                         const isRecent = new Date(sub.submitted_at) > new Date(Date.now() - 24*60*60*1000);
@@ -754,6 +761,183 @@ def register_routes(app):
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('submissions').innerHTML = `<div class="error-message">Error loading data: ${error.message}</div>`;
                 });
+        }
+
+        // Try to load Chart.js
+        function loadChartJS() {
+            const urls = [
+                'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js',
+                'https://unpkg.com/chart.js@4.4.0/dist/chart.min.js'
+            ];
+            
+            let currentUrl = 0;
+            
+            function tryNextUrl() {
+                if (currentUrl >= urls.length) {
+                    // All URLs failed
+                    document.getElementById('chart-loading').style.display = 'none';
+                    document.getElementById('chart-error').style.display = 'block';
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = urls[currentUrl];
+                script.onload = () => {
+                    chartJsLoaded = true;
+                    // Chart.js loaded successfully
+                    if (submissionsData.length > 0) {
+                        createCharts(submissionsData);
+                        document.getElementById('chart-loading').style.display = 'none';
+                        document.getElementById('charts-content').style.display = 'block';
+                    } else {
+                        document.getElementById('chart-loading').style.display = 'none';
+                    }
+                };
+                script.onerror = () => {
+                    currentUrl++;
+                    tryNextUrl();
+                };
+                
+                // 5 second timeout per attempt
+                setTimeout(() => {
+                    if (!chartJsLoaded) {
+                        currentUrl++;
+                        tryNextUrl();
+                    }
+                }, 5000);
+                
+                document.head.appendChild(script);
+            }
+            
+            tryNextUrl();
+        }
+
+        function createCharts(data) {
+            if (!chartJsLoaded || typeof Chart === 'undefined') return;
+            
+            try {
+                const stEdwardColors = ['#005921', '#00843D', '#DAAA00', '#DDCC71', '#003764', '#2d7a47'];
+                
+                // Ministry popularity
+                const ministryCount = {};
+                data.forEach(sub => {
+                    if (Array.isArray(sub.recommended_ministries)) {
+                        sub.recommended_ministries.forEach(ministry => {
+                            ministryCount[ministry] = (ministryCount[ministry] || 0) + 1;
+                        });
+                    }
+                });
+                
+                const topMinistries = Object.entries(ministryCount)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 8);
+                
+                createBarChart('ministriesChart', {
+                    labels: topMinistries.map(([name]) => name.length > 25 ? name.substring(0, 25) + '...' : name),
+                    data: topMinistries.map(([,count]) => count)
+                });
+
+                // Age distribution
+                const ageCount = {};
+                data.forEach(sub => {
+                    const age = sub.age_group || 'Unknown';
+                    ageCount[age] = (ageCount[age] || 0) + 1;
+                });
+                createPieChart('ageChart', ageCount);
+
+                // Gender distribution
+                const genderCount = {};
+                data.forEach(sub => {
+                    const gender = sub.gender || 'Not specified';
+                    genderCount[gender] = (genderCount[gender] || 0) + 1;
+                });
+                createPieChart('genderChart', genderCount);
+
+                // Interest distribution
+                const interestCount = {};
+                data.forEach(sub => {
+                    if (Array.isArray(sub.interest)) {
+                        sub.interest.forEach(interest => {
+                            interestCount[interest] = (interestCount[interest] || 0) + 1;
+                        });
+                    }
+                });
+                createPieChart('interestChart', interestCount);
+
+                // Situation distribution
+                const situationCount = {};
+                data.forEach(sub => {
+                    if (Array.isArray(sub.situation)) {
+                        sub.situation.forEach(situation => {
+                            situationCount[situation] = (situationCount[situation] || 0) + 1;
+                        });
+                    }
+                });
+                createPieChart('situationChart', situationCount);
+            } catch (error) {
+                console.error('Error creating charts:', error);
+                document.getElementById('chart-loading').style.display = 'none';
+                document.getElementById('chart-error').style.display = 'block';
+            }
+        }
+
+        function createBarChart(canvasId, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (charts[canvasId]) charts[canvasId].destroy();
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.data,
+                        backgroundColor: 'rgba(0, 89, 33, 0.8)',
+                        borderColor: 'rgba(0, 89, 33, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                        x: { ticks: { maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+
+        function createPieChart(canvasId, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (charts[canvasId]) charts[canvasId].destroy();
+            
+            const stEdwardColors = ['#005921', '#00843D', '#DAAA00', '#DDCC71', '#003764', '#2d7a47', '#52c41a', '#73d13d', '#95de64', '#b7eb8f'];
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: stEdwardColors.slice(0, Object.keys(data).length),
+                        borderWidth: 3,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        }
+                    }
+                }
+            });
         }
 
         function showClearModal() {
@@ -825,129 +1009,19 @@ def register_routes(app):
             return csv;
         }
 
-        function createCharts(data) {
-            const stEdwardColors = ['#005921', '#00843D', '#DAAA00', '#DDCC71', '#003764', '#2d7a47'];
-            
-            const ministryCount = {};
-            data.forEach(sub => {
-                if (Array.isArray(sub.recommended_ministries)) {
-                    sub.recommended_ministries.forEach(ministry => {
-                        ministryCount[ministry] = (ministryCount[ministry] || 0) + 1;
-                    });
-                }
-            });
-            
-            const topMinistries = Object.entries(ministryCount)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 8);
-            
-            createBarChart('ministriesChart', {
-                labels: topMinistries.map(([name]) => name.length > 25 ? name.substring(0, 25) + '...' : name),
-                data: topMinistries.map(([,count]) => count)
-            });
-
-            const ageCount = {};
-            data.forEach(sub => {
-                const age = sub.age_group || 'Unknown';
-                ageCount[age] = (ageCount[age] || 0) + 1;
-            });
-            createPieChart('ageChart', ageCount);
-
-            const genderCount = {};
-            data.forEach(sub => {
-                const gender = sub.gender || 'Not specified';
-                genderCount[gender] = (genderCount[gender] || 0) + 1;
-            });
-            createPieChart('genderChart', genderCount);
-
-            const interestCount = {};
-            data.forEach(sub => {
-                if (Array.isArray(sub.interest)) {
-                    sub.interest.forEach(interest => {
-                        interestCount[interest] = (interestCount[interest] || 0) + 1;
-                    });
-                }
-            });
-            createPieChart('interestChart', interestCount);
-
-            const situationCount = {};
-            data.forEach(sub => {
-                if (Array.isArray(sub.situation)) {
-                    sub.situation.forEach(situation => {
-                        situationCount[situation] = (situationCount[situation] || 0) + 1;
-                    });
-                }
-            });
-            createPieChart('situationChart', situationCount);
-        }
-
-        function createBarChart(canvasId, data) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            if (charts[canvasId]) charts[canvasId].destroy();
-            
-            charts[canvasId] = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        data: data.data,
-                        backgroundColor: 'rgba(0, 89, 33, 0.8)',
-                        borderColor: 'rgba(0, 89, 33, 1)',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { ticks: { maxRotation: 45 } }
-                    }
-                }
-            });
-        }
-
-        function createPieChart(canvasId, data) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            if (charts[canvasId]) charts[canvasId].destroy();
-            
-            const stEdwardColors = ['#005921', '#00843D', '#DAAA00', '#DDCC71', '#003764', '#2d7a47', '#52c41a', '#73d13d', '#95de64', '#b7eb8f'];
-            
-            charts[canvasId] = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(data),
-                    datasets: [{
-                        data: Object.values(data),
-                        backgroundColor: stEdwardColors.slice(0, Object.keys(data).length),
-                        borderWidth: 3,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { padding: 20, usePointStyle: true }
-                        }
-                    }
-                }
-            });
-        }
-
         window.onclick = function(event) {
             if (event.target == document.getElementById('clearModal')) {
                 hideClearModal();
             }
         }
 
-        // FIXED: Start the initialization process when page loads
+        // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            waitForChart();
+            // Load data immediately
+            initializeDashboard();
+            
+            // Try to load Chart.js in parallel
+            setTimeout(loadChartJS, 100);
         });
     </script>
 </body>
