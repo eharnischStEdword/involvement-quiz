@@ -22,11 +22,12 @@ MINISTRY_DATA = {
         'interest': ['education', 'prayer']
     },
     'infant-baptism': {
-        'name': 'Infant Baptism (0-5 yrs)',
-        'description': 'Baptism preparation for families with young children',
-        'details': 'Visit <a href="https://stedward.org/baptism" target="_blank">stedward.org/baptism</a> to register',
-        'age': ['infant'],
-        'interest': ['education', 'prayer', 'all']
+        'name': 'Baptism',
+        'description': "We're looking forward to your children receiving the grace of Baptism!",
+        'details': 'To start with Baptism preparation for families with young children, visit <a href="https://stedward.org/baptism" target="_blank">stedward.org/baptism</a>',
+        'age': ['infant', 'married-parents', 'journeying-adults'],
+        'state': ['parent'],
+        'interest': ['education', 'prayer', 'kids', 'all']
     },
     'marriage-convalidation': {
         'name': 'Marriage Convalidation',
@@ -157,60 +158,38 @@ MINISTRY_DATA = {
     },
     
     # Fidelis (by age group)
-    'fidelis-jr': {
+    'fidelis-hs': {
         'name': 'Fidelis',
         'description': 'Sisterhood & virtue formation - Faith-filled friendships through discussion, activities, and fun',
         'details': 'Bi-weekly Wednesdays 6:30-8:30pm. Contact <a href="mailto:fidelisnashville@gmail.com">fidelisnashville@gmail.com</a>',
-        'age': ['junior-high'],
-        'gender': ['female'],
-        'interest': ['fellowship', 'education']
-    },
-    'fidelis-hs': {
-        'name': 'Fidelis',
-        'description': 'Sisterhood & virtue formation - Weekly formation, excursions, and retreats for young women in faith',
-        'details': 'Bi-weekly Wednesdays 6:30-8:30pm. Contact <a href="mailto:fidelisnashville@gmail.com">fidelisnashville@gmail.com</a>',
-        'age': ['high-school'],
+        'age': ['junior-high', 'high-school'],
         'gender': ['female'],
         'interest': ['fellowship', 'education']
     },
     
-    # Totus Tuus (by age group) - FIXED AND CONSOLIDATED
+    # Totus Tuus (corrected)
     'totus-tuus-kids': {
-        'name': 'Totus Tuus Summer Program',
-        'description': 'Week-long summer catechetical program for grades 1-6 with games, activities, and faith formation',
-        'details': 'Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
+        'name': 'Totus Tuus Summer Program (Grades 1-6)',
+        'description': 'Week-long summer catechetical program with games, activities, and faith formation',
+        'details': 'Similar to Vacation Bible School with college-age teachers. The week is filled with faith, fun, and friendship through engaging activities based on Sacred Scripture and the Catechism.<br><br>Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
         'age': ['elementary'],
         'interest': ['education', 'fellowship', 'prayer', 'kids']
     },
     'totus-tuus-teens': {
-        'name': 'Totus Tuus Teen Program',
-        'description': 'Week-long summer program for grades 7-12 with apologetics, fellowship, and leadership opportunities',
-        'details': 'Programs include:<br>• <strong>Grades 7-8:</strong> Peer ministry and deeper exploration<br>• <strong>Grades 9-12:</strong> Apologetics, fellowship, and leadership roles<br><br>Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
+        'name': 'Totus Tuus Summer Program (Grades 7-12)',
+        'description': 'Week-long summer catechetical program for teens with faith formation and fellowship',
+        'details': 'College-age missionaries provide catechetical instruction based on Sacred Scripture and the Catechism. The week is filled with faith, fun, and friendship through engaging activities.<br><br>Visit <a href="https://stedward.org/totus-tuus" target="_blank">stedward.org/totus-tuus</a> - registration opens in spring',
         'age': ['junior-high', 'high-school'],
-        'interest': ['education', 'fellowship', 'prayer', 'service']
-    },
-    'totus-tuus-missionary': {
-        'name': 'Totus Tuus Missionary Team',
-        'description': 'Summer evangelization work teaching children and teens across different parishes',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for application',
-        'age': ['college-young-adult'],
-        'interest': ['service', 'education', 'prayer']
+        'interest': ['education', 'fellowship', 'prayer']
     },
     
-    # PREP (by age group)
+    # PREP (consolidated)
     'prep-kids': {
         'name': 'PREP - Sunday Religious Ed',
-        'description': 'Faith formation including First Confession & First Holy Communion prep',
+        'description': 'Faith formation including First Confession & First Holy Communion prep, and sacrament preparation for all ages',
         'details': 'Visit <a href="https://stedward.org/prep" target="_blank">stedward.org/prep</a> to register',
-        'age': ['elementary'],
-        'interest': ['education', 'prayer']
-    },
-    'prep-jr': {
-        'name': 'PREP - Sacrament Prep & Faith Formation',
-        'description': 'Religious education and sacrament preparation',
-        'details': 'Visit <a href="https://stedward.org/prep" target="_blank">stedward.org/prep</a> to register',
-        'age': ['junior-high'],
-        'interest': ['education', 'prayer']
+        'age': ['elementary', 'junior-high'],
+        'interest': ['education', 'prayer', 'kids']
     },
     
     # Coffee & Donuts (by age group)
@@ -297,7 +276,7 @@ MINISTRY_DATA = {
     'cub-scouts': {
         'name': 'Cub Scouts',
         'description': 'Character development and outdoor adventures for boys and girls',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for more information',
+        'details': 'Visit <a href="https://stedward.org/scouting" target="_blank">stedward.org/scouting</a> for more information and contact details',
         'age': ['elementary'],
         'interest': ['fellowship', 'service', 'all']
     },
@@ -313,7 +292,7 @@ MINISTRY_DATA = {
     'liturgical-hs': {
         'name': 'Liturgical Ministries (Age 16+)',
         'description': 'Serve as lector, hospitality, or EMHC',
-        'details': 'Contact <a href="mailto:support@stedward.org">support@stedward.org</a> for training',
+        'details': '<a href="https://stedward.org/lectors" target="_blank">Lector Ministry</a> • <a href="https://stedward.org/hospitality-ministry" target="_blank">Hospitality Ministry</a> • <a href="https://stedward.org/eucharistic-ministers" target="_blank">EMHC Ministry</a><br><br><a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office to learn more</a>',
         'age': ['high-school'],
         'interest': ['service', 'prayer']
     },
@@ -383,7 +362,7 @@ MINISTRY_DATA = {
     'liturgical-adults': {
         'name': 'Serving at Mass',
         'description': 'Lector, EMHC, Usher',
-        'details': 'Visit <a href="https://stedward.org/liturgical" target="_blank">stedward.org/liturgical</a> for training',
+        'details': '<a href="https://stedward.org/lectors" target="_blank">Lector Ministry</a> • <a href="https://stedward.org/hospitality-ministry" target="_blank">Hospitality Ministry</a> • <a href="https://stedward.org/eucharistic-ministers" target="_blank">EMHC Ministry</a><br><br><a href="https://stedward.org/contact-us" target="_blank">Contact the Church Office to learn more</a>',
         'age': ['journeying-adults'],
         'interest': ['prayer', 'service']
     },
