@@ -188,76 +188,422 @@ def register_routes(app):
     @app.route('/admin')
     @require_admin_auth
     def admin_dashboard():
-        """Admin dashboard - NOW REQUIRES AUTHENTICATION"""
+        """Enhanced Admin dashboard with charts and clear data functionality"""
         admin_html = '''
         <!DOCTYPE html>
         <html>
         <head>
-            <title>St. Edward Ministry Submissions - Admin Dashboard</title>
+            <title>St. Edward Ministry Finder - Admin Dashboard</title>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
             <style>
-                body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-                .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
-                .header { background: #005921; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center; }
-                h1 { color: white; margin: 0; }
-                .logout { float: right; color: #ccc; text-decoration: none; }
-                .logout:hover { color: white; }
-                table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 12px; }
-                th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-                th { background-color: #005921; color: white; position: sticky; top: 0; }
-                .ministries, .situation, .states, .interests { max-width: 150px; word-wrap: break-word; font-size: 10px; }
-                .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px; }
-                .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border-left: 4px solid #005921; }
-                .stat-number { font-size: 2em; font-weight: bold; color: #005921; }
-                .export-btn { background: #005921; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px; }
-                .export-btn:hover { background: #004a1e; }
-                .recent { color: #e74c3c; font-weight: bold; }
-                .error-message { color: #dc3545; padding: 20px; text-align: center; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; margin: 20px 0; }
+                body { 
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                    margin: 0; 
+                    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                    min-height: 100vh;
+                }
+                .container { 
+                    max-width: 1600px; 
+                    margin: 0 auto; 
+                    background: white; 
+                    min-height: 100vh;
+                    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+                }
+                .header { 
+                    background: linear-gradient(135deg, #005921 0%, #2d7a47 100%); 
+                    color: white; 
+                    padding: 30px; 
+                    text-align: center;
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                }
+                h1 { color: white; margin: 0; font-size: 2rem; }
+                .subtitle { font-size: 1.1rem; opacity: 0.9; margin-top: 10px; }
+                
+                .dashboard-content { padding: 30px; }
+                
+                /* Stats Cards */
+                .stats { 
+                    display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+                    gap: 20px; 
+                    margin-bottom: 40px; 
+                }
+                .stat-card { 
+                    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+                    padding: 25px; 
+                    border-radius: 12px; 
+                    text-align: center; 
+                    border-left: 5px solid #005921;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    transition: transform 0.2s ease;
+                }
+                .stat-card:hover { transform: translateY(-2px); }
+                .stat-number { 
+                    font-size: 2.5em; 
+                    font-weight: bold; 
+                    color: #005921; 
+                    margin-bottom: 5px;
+                }
+                .stat-label { 
+                    color: #6c757d; 
+                    font-weight: 500;
+                    text-transform: uppercase;
+                    font-size: 0.9rem;
+                    letter-spacing: 0.5px;
+                }
+                
+                /* Action Buttons */
+                .action-buttons {
+                    display: flex;
+                    gap: 15px;
+                    margin-bottom: 30px;
+                    flex-wrap: wrap;
+                }
+                .btn {
+                    padding: 12px 24px;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 0.95rem;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .btn-primary { 
+                    background: linear-gradient(135deg, #005921 0%, #2d7a47 100%); 
+                    color: white; 
+                }
+                .btn-primary:hover { 
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(0, 89, 33, 0.3);
+                }
+                .btn-secondary { 
+                    background: #6c757d; 
+                    color: white; 
+                }
+                .btn-secondary:hover { 
+                    background: #5a6268;
+                    transform: translateY(-2px);
+                }
+                .btn-danger { 
+                    background: #dc3545; 
+                    color: white; 
+                }
+                .btn-danger:hover { 
+                    background: #c82333;
+                    transform: translateY(-2px);
+                }
+                
+                /* Charts Section */
+                .charts-section {
+                    margin-bottom: 40px;
+                }
+                .charts-grid {
+                    display: grid;
+                    grid-template-columns: 2fr 1fr 1fr;
+                    gap: 25px;
+                    margin-bottom: 30px;
+                }
+                .chart-container {
+                    background: white;
+                    padding: 25px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                    border: 1px solid #e9ecef;
+                }
+                .chart-title {
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                    color: #005921;
+                    margin-bottom: 20px;
+                    text-align: center;
+                }
+                .pie-charts {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 25px;
+                }
+                
+                /* Data Table */
+                .table-section {
+                    background: white;
+                    border-radius: 12px;
+                    overflow: hidden;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                }
+                .table-header {
+                    background: #005921;
+                    color: white;
+                    padding: 20px;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                }
+                table { 
+                    border-collapse: collapse; 
+                    width: 100%; 
+                    font-size: 13px; 
+                }
+                th, td { 
+                    border: 1px solid #dee2e6; 
+                    padding: 10px 8px; 
+                    text-align: left; 
+                }
+                th { 
+                    background-color: #f8f9fa; 
+                    color: #005921; 
+                    font-weight: 600;
+                    position: sticky; 
+                    top: 0; 
+                    z-index: 10;
+                }
+                .ministries, .situation, .states, .interests { 
+                    max-width: 150px; 
+                    word-wrap: break-word; 
+                    font-size: 11px; 
+                }
+                .recent { 
+                    background-color: #fff3cd !important; 
+                    font-weight: bold; 
+                }
+                .error-message { 
+                    color: #dc3545; 
+                    padding: 30px; 
+                    text-align: center; 
+                    background: #f8d7da; 
+                    border: 1px solid #f5c6cb; 
+                    border-radius: 8px; 
+                    margin: 20px 0; 
+                }
+                
+                /* Modal Styles */
+                .modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 1000;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0,0,0,0.5);
+                }
+                .modal-content {
+                    background-color: white;
+                    margin: 15% auto;
+                    padding: 30px;
+                    border-radius: 12px;
+                    width: 400px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+                    text-align: center;
+                }
+                .modal h3 {
+                    color: #dc3545;
+                    margin-bottom: 20px;
+                    font-size: 1.3rem;
+                }
+                .modal-buttons {
+                    display: flex;
+                    gap: 15px;
+                    justify-content: center;
+                    margin-top: 25px;
+                }
+                .checkbox-container {
+                    margin: 20px 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+                
+                /* Loading Spinner */
+                .loading {
+                    display: none;
+                    text-align: center;
+                    padding: 20px;
+                }
+                .spinner {
+                    border: 4px solid #f3f3f3;
+                    border-top: 4px solid #005921;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                    margin: 0 auto 15px;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                @media (max-width: 1200px) {
+                    .charts-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .pie-charts {
+                        grid-template-columns: 1fr 1fr;
+                    }
+                }
+                @media (max-width: 768px) {
+                    .charts-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    .pie-charts {
+                        grid-template-columns: 1fr;
+                    }
+                    .action-buttons {
+                        flex-direction: column;
+                    }
+                }
             </style>
         </head>
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🛡️ St. Edward Ministry Finder - Admin Dashboard</h1>
-                    <p>Secure access to ministry submissions and analytics</p>
+                    <h1>🛡️ St. Edward Ministry Finder</h1>
+                    <div class="subtitle">Admin Dashboard & Analytics</div>
                 </div>
                 
-                <div class="stats" id="stats"></div>
-                
-                <div style="margin: 20px 0;">
-                    <button class="export-btn" onclick="exportToCSV()">📊 Export to CSV</button>
-                    <button class="export-btn" onclick="location.reload()">🔄 Refresh Data</button>
+                <div class="dashboard-content">
+                    <!-- Stats Cards -->
+                    <div class="stats" id="stats"></div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="exportToCSV()">
+                            📊 Export to CSV
+                        </button>
+                        <button class="btn btn-secondary" onclick="location.reload()">
+                            🔄 Refresh Data
+                        </button>
+                        <button class="btn btn-danger" onclick="showClearModal()">
+                            🗑️ Clear All Data
+                        </button>
+                    </div>
+                    
+                    <!-- Charts Section -->
+                    <div class="charts-section">
+                        <h2 style="color: #005921; margin-bottom: 25px;">📈 Analytics Dashboard</h2>
+                        <div class="charts-grid">
+                            <div class="chart-container">
+                                <div class="chart-title">Top 5 Most Recommended Ministries</div>
+                                <canvas id="ministriesChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-title">Age Groups</div>
+                                <canvas id="ageChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-title">Gender Distribution</div>
+                                <canvas id="genderChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="pie-charts">
+                            <div class="chart-container">
+                                <div class="chart-title">State in Life</div>
+                                <canvas id="stateChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-title">Top Interests</div>
+                                <canvas id="interestChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-title">Situations</div>
+                                <canvas id="situationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Table -->
+                    <div class="table-section">
+                        <div class="table-header">
+                            📋 Recent Submissions
+                        </div>
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            Loading data...
+                        </div>
+                        <div id="submissions"></div>
+                    </div>
                 </div>
-                
-                <div id="submissions"></div>
+            </div>
+            
+            <!-- Clear Data Modal -->
+            <div id="clearModal" class="modal">
+                <div class="modal-content">
+                    <h3>⚠️ Clear All Data</h3>
+                    <p>This action will permanently delete ALL ministry submissions and analytics data.</p>
+                    <p><strong>This cannot be undone!</strong></p>
+                    
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="confirmClear" style="transform: scale(1.2);">
+                        <label for="confirmClear" style="font-weight: 600;">I understand this action cannot be undone</label>
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn btn-secondary" onclick="hideClearModal()">Cancel</button>
+                        <button class="btn btn-danger" onclick="clearAllData()" id="confirmBtn" disabled>Clear All Data</button>
+                    </div>
+                </div>
             </div>
             
             <script>
-                function exportToCSV() {
-                    fetch('/api/submissions')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Failed to fetch data');
-                            }
-                            return response.json();
+                let submissionsData = [];
+                let charts = {};
+                
+                // Modal Functions
+                function showClearModal() {
+                    document.getElementById('clearModal').style.display = 'block';
+                    document.getElementById('confirmClear').checked = false;
+                    document.getElementById('confirmBtn').disabled = true;
+                }
+                
+                function hideClearModal() {
+                    document.getElementById('clearModal').style.display = 'none';
+                }
+                
+                // Enable/disable confirm button based on checkbox
+                document.getElementById('confirmClear').addEventListener('change', function() {
+                    document.getElementById('confirmBtn').disabled = !this.checked;
+                });
+                
+                // Clear all data function
+                function clearAllData() {
+                    if (!document.getElementById('confirmClear').checked) return;
+                    
+                    if (confirm('FINAL CONFIRMATION: Are you absolutely sure you want to delete all data?')) {
+                        fetch('/api/clear-all-data', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
                         })
+                        .then(response => response.json())
                         .then(data => {
-                            if (!Array.isArray(data)) {
-                                throw new Error('Invalid data format');
+                            if (data.success) {
+                                alert('✅ All data has been cleared successfully');
+                                location.reload();
+                            } else {
+                                alert('❌ Error clearing data: ' + data.message);
                             }
-                            const csvContent = convertToCSV(data);
-                            const blob = new Blob([csvContent], { type: 'text/csv' });
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'st_edward_ministry_submissions_' + new Date().toISOString().split('T')[0] + '.csv';
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
                         })
                         .catch(error => {
-                            alert('Error exporting data: ' + error.message);
+                            alert('❌ Error: ' + error.message);
                         });
+                        hideClearModal();
+                    }
+                }
+                
+                // CSV Export Function
+                function exportToCSV() {
+                    const csvContent = convertToCSV(submissionsData);
+                    const blob = new Blob([csvContent], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'st_edward_ministry_submissions_' + new Date().toISOString().split('T')[0] + '.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
                 }
                 
                 function convertToCSV(data) {
@@ -287,7 +633,154 @@ def register_routes(app):
                     return csv;
                 }
                 
-                // Load submissions
+                // Chart Creation Functions
+                function createChartsFromData(data) {
+                    // Top 5 Ministries Chart
+                    const ministryCount = {};
+                    data.forEach(sub => {
+                        if (Array.isArray(sub.recommended_ministries)) {
+                            sub.recommended_ministries.forEach(ministry => {
+                                ministryCount[ministry] = (ministryCount[ministry] || 0) + 1;
+                            });
+                        }
+                    });
+                    
+                    const topMinistries = Object.entries(ministryCount)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 5);
+                    
+                    createBarChart('ministriesChart', {
+                        labels: topMinistries.map(([name]) => name.length > 20 ? name.substring(0, 20) + '...' : name),
+                        data: topMinistries.map(([,count]) => count)
+                    }, 'Most Recommended Ministries');
+                    
+                    // Age Groups Chart
+                    const ageCount = {};
+                    data.forEach(sub => {
+                        const age = sub.age_group || 'Unknown';
+                        ageCount[age] = (ageCount[age] || 0) + 1;
+                    });
+                    createPieChart('ageChart', ageCount);
+                    
+                    // Gender Chart
+                    const genderCount = {};
+                    data.forEach(sub => {
+                        const gender = sub.gender || 'Not specified';
+                        genderCount[gender] = (genderCount[gender] || 0) + 1;
+                    });
+                    createPieChart('genderChart', genderCount);
+                    
+                    // State Chart
+                    const stateCount = {};
+                    data.forEach(sub => {
+                        if (Array.isArray(sub.state_in_life)) {
+                            sub.state_in_life.forEach(state => {
+                                stateCount[state] = (stateCount[state] || 0) + 1;
+                            });
+                        }
+                    });
+                    createPieChart('stateChart', stateCount);
+                    
+                    // Interest Chart
+                    const interestCount = {};
+                    data.forEach(sub => {
+                        if (Array.isArray(sub.interest)) {
+                            sub.interest.forEach(interest => {
+                                interestCount[interest] = (interestCount[interest] || 0) + 1;
+                            });
+                        }
+                    });
+                    createPieChart('interestChart', interestCount);
+                    
+                    // Situation Chart
+                    const situationCount = {};
+                    data.forEach(sub => {
+                        if (Array.isArray(sub.situation)) {
+                            sub.situation.forEach(situation => {
+                                situationCount[situation] = (situationCount[situation] || 0) + 1;
+                            });
+                        }
+                    });
+                    createPieChart('situationChart', situationCount);
+                }
+                
+                function createBarChart(canvasId, data, title) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    if (charts[canvasId]) charts[canvasId].destroy();
+                    
+                    charts[canvasId] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'Recommendations',
+                                data: data.data,
+                                backgroundColor: [
+                                    '#005921',
+                                    '#2d7a47',
+                                    '#52c41a',
+                                    '#73d13d',
+                                    '#95de64'
+                                ],
+                                borderColor: '#005921',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                function createPieChart(canvasId, data) {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    if (charts[canvasId]) charts[canvasId].destroy();
+                    
+                    const colors = [
+                        '#005921', '#2d7a47', '#52c41a', '#73d13d', '#95de64',
+                        '#b7eb8f', '#d9f7be', '#f6ffed', '#237804', '#389e0d'
+                    ];
+                    
+                    charts[canvasId] = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(data),
+                            datasets: [{
+                                data: Object.values(data),
+                                backgroundColor: colors.slice(0, Object.keys(data).length),
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: { 
+                                        font: { size: 11 },
+                                        padding: 10
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Load and display data
+                document.getElementById('loading').style.display = 'block';
+                
                 fetch('/api/submissions')
                     .then(response => {
                         if (!response.ok) {
@@ -296,34 +789,43 @@ def register_routes(app):
                         return response.json();
                     })
                     .then(data => {
-                        // Ensure data is an array
+                        document.getElementById('loading').style.display = 'none';
+                        
                         if (!Array.isArray(data)) {
-                            console.error('Data received:', data);
                             throw new Error('Invalid data format - expected array');
                         }
                         
-                        // Calculate stats
+                        submissionsData = data;
+                        
+                        // Calculate and show stats
                         const totalSubmissions = data.length;
                         const last24h = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 24*60*60*1000)).length;
+                        const last7days = data.filter(s => new Date(s.submitted_at) > new Date(Date.now() - 7*24*60*60*1000)).length;
                         const avgMinistries = totalSubmissions > 0 ? 
                             (data.reduce((sum, s) => sum + (Array.isArray(s.recommended_ministries) ? s.recommended_ministries.length : 0), 0) / totalSubmissions).toFixed(1) : 
                             0;
                         
-                        // Show stats
                         document.getElementById('stats').innerHTML = `
                             <div class="stat-card">
                                 <div class="stat-number">${totalSubmissions}</div>
-                                <div>Total Submissions</div>
+                                <div class="stat-label">Total Submissions</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-number">${last24h}</div>
-                                <div>Last 24 Hours</div>
+                                <div class="stat-label">Last 24 Hours</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${last7days}</div>
+                                <div class="stat-label">Last 7 Days</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-number">${avgMinistries}</div>
-                                <div>Avg Ministries per User</div>
+                                <div class="stat-label">Avg Ministries per User</div>
                             </div>
                         `;
+                        
+                        // Create charts
+                        createChartsFromData(data);
                         
                         // Show submissions table
                         let html = '<table><tr><th>Date</th><th>Age</th><th>Gender</th><th>States</th><th>Interests</th><th>Situation</th><th>Recommended Ministries</th><th>IP</th></tr>';
@@ -349,6 +851,7 @@ def register_routes(app):
                         document.getElementById('submissions').innerHTML = html;
                     })
                     .catch(error => {
+                        document.getElementById('loading').style.display = 'none';
                         console.error('Error:', error);
                         document.getElementById('submissions').innerHTML = `
                             <div class="error-message">
@@ -358,11 +861,56 @@ def register_routes(app):
                             </div>
                         `;
                     });
+                
+                // Close modal when clicking outside
+                window.onclick = function(event) {
+                    const modal = document.getElementById('clearModal');
+                    if (event.target == modal) {
+                        hideClearModal();
+                    }
+                }
             </script>
         </body>
         </html>
         '''
         return admin_html
+
+    @app.route('/api/clear-all-data', methods=['POST'])
+    @require_admin_auth
+    def clear_all_data():
+        """Admin endpoint to clear all submission data - REQUIRES AUTHENTICATION"""
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            
+            # Get count before deletion for confirmation
+            cur.execute('SELECT COUNT(*) FROM ministry_submissions')
+            count_before = cur.fetchone()[0]
+            
+            # Clear all data from the submissions table
+            cur.execute('DELETE FROM ministry_submissions')
+            
+            # Reset the auto-increment counter
+            cur.execute('ALTER SEQUENCE ministry_submissions_id_seq RESTART WITH 1')
+            
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            logger.info(f"Admin cleared all data: {count_before} records deleted")
+            
+            return jsonify({
+                'success': True,
+                'message': f'Successfully cleared {count_before} submission records',
+                'records_deleted': count_before
+            })
+            
+        except Exception as e:
+            logger.error(f"Error clearing all data: {e}")
+            return jsonify({
+                'success': False,
+                'message': f'Database error: {str(e)}'
+            }), 500
 
     @app.route('/test-db')
     def test_database():
