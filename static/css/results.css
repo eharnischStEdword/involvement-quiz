@@ -139,9 +139,9 @@
     color: var(--color-children-header);
 }
 
-/* Enhanced Parish registration section for better readability */
+/* Parish registration section */
 .parish-registration {
-    background: #ffffff; /* Changed from gold gradient to white */
+    background: #ffffff;
     padding: var(--spacing-xl);
     border-radius: var(--radius-lg);
     text-align: center;
@@ -172,7 +172,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-sm);
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-medium) 100%);
     color: #ffffff !important; /* Force white text */
     padding: var(--spacing-lg) var(--spacing-xl);
     border-radius: var(--radius-lg);
