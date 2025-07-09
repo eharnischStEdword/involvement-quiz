@@ -2,250 +2,233 @@
 
 An interactive web application that helps parishioners discover ministries matching their age, interests, and life situation through a celebratory quiz experience.
 
-## 🌟 Features
+🌐 **Live Application:** [https://involvement-quiz.onrender.com](https://involvement-quiz.onrender.com)
 
-- **Interactive 4-5 Question Quiz** with smart question flow adaptation
-- **40+ Ministry Database** with direct contact links and meeting details
-- **Multi-Selection Support** for both situations and interests
-- **Celebratory User Experience** with confetti animation upon completion
-- **Mobile-First Design** optimized for phones and tablets
-- **Anonymous Analytics** tracking usage without collecting personal data
+## 🌟 Overview
+
+The St. Edward Ministry Finder is a production-ready quiz application that guides parishioners through 4-5 personalized questions to match them with relevant ministries at St. Edward Church in Nashville. The app features a celebratory user experience with confetti animations and provides anonymous analytics for parish leadership.
+
+### Key Features
+
+- **Interactive Quiz Flow** with smart question adaptation based on user responses
+- **40+ Ministries** with direct contact links and meeting details
+- **Multi-Select Support** for life situations and interests
+- **Celebratory UX** with confetti animation upon completion
+- **Mobile-First Design** optimized for all devices
+- **Anonymous Analytics** tracking without collecting personal data
+- **Optional Contact Form** for follow-up by ministry coordinators
 - **Secure Admin Dashboard** with password protection and CSV export
-- **Rate Limiting** protection against spam submissions
-- **Zero Data Collection** - directs users to existing parish systems
+- **Rate Limiting** protection (5 submissions per hour per IP)
 
-## 🏗️ Architecture
+## 🏗️ Technical Architecture
 
-**Backend:** Flask (Python 3.11.9) with PostgreSQL database
-**Frontend:** Template-based with separated static assets
-**Deployment:** Render.com (web service + PostgreSQL)
-**Repository:** Production-ready with clean separation of concerns
+### Stack
+- **Backend:** Flask (Python 3.11.9) with PostgreSQL database
+- **Frontend:** Server-rendered templates with vanilla JavaScript
+- **Hosting:** Render.com (web service + PostgreSQL)
+- **Repository:** GitHub (private repository)
 
-## 📁 File Structure
+### Security Features
+- Ministry data stored server-side (not exposed in client code)
+- HTTP Basic Auth for admin dashboard
+- Rate limiting for form submissions
+- Input validation and sanitization
+- Anonymous data collection (no PII required)
+
+## 📁 Project Structure
 
 ```
 st-edward-ministry-finder/
-├── app.py                    # Flask backend with template rendering
+├── app/
+│   ├── __init__.py          # App initialization
+│   ├── ministries.py        # Ministry database (server-side)
+│   ├── models.py            # Database models and connections
+│   ├── routes.py            # Flask routes and API endpoints
+│   └── utils.py             # Helper functions (auth, rate limiting)
 ├── templates/
-│   └── index.html           # Clean HTML template (100 lines)
+│   └── index.html           # Main quiz template
 ├── static/
 │   ├── css/
-│   │   └── styles.css       # Organized styles (400+ lines)
+│   │   ├── styles.css       # Main CSS (imports other files)
+│   │   ├── variables.css    # CSS variables and theming
+│   │   ├── layout.css       # Page structure and header
+│   │   ├── components.css   # Reusable UI components
+│   │   ├── quiz.css         # Quiz-specific styles
+│   │   ├── results.css      # Results page styles
+│   │   └── animations.css   # Animations and transitions
 │   └── js/
-│       ├── confetti.js      # Celebration animation logic
-│       ├── ministries.js    # Complete ministry database
-│       └── quiz.js          # Quiz interaction logic
-├── requirements.txt          # Python dependencies
-├── .python-version          # Python 3.11.9
-└── README.md                # This file
+│       ├── quiz.js          # Quiz logic and flow
+│       ├── confetti.js      # Celebration animation
+│       └── ministries.js    # Empty (data moved server-side)
+├── requirements.txt         # Python dependencies
+├── .python-version         # Python 3.11.9
+└── README.md              # This file
 ```
-
-## 🚀 Live Demo
-
-**Production URL:** [https://involvement-quiz.onrender.com](https://involvement-quiz.onrender.com)
-
-## 🛠️ Local Development Setup
-
-### Prerequisites
-
-- Python 3.11.9
-- PostgreSQL (optional for local testing)
-- Git
-
-### Installation
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/eharnischStEdward/involvement-quiz.git
-cd involvement-quiz
-```
-
-2. **Create and activate virtual environment:**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Set environment variables:**
-```bash
-export DATABASE_URL="your-database-url-here"
-export ADMIN_USERNAME="your-admin-username"
-export ADMIN_PASSWORD="your-secure-password"
-```
-
-5. **Run the application:**
-```bash
-python app.py
-```
-
-The application will be available at `http://localhost:5000`
-
-## 📈 Deployment on Render.com
-
-### 1. Database Setup
-
-1. Create a new PostgreSQL database on Render.com
-2. Note the "External Database URL" from the database dashboard
-
-### 2. Web Service Deployment
-
-1. Connect your GitHub repository to Render
-2. Configure the web service:
-   - **Environment:** Python 3
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `gunicorn app:app`
-   - **Instance Type:** Free tier (or paid for production)
-
-### 3. Environment Variables
-
-Set these in your Render web service settings:
-
-- `DATABASE_URL`: Your PostgreSQL external database URL
-- `ADMIN_USERNAME`: Admin dashboard username
-- `ADMIN_PASSWORD`: Secure admin dashboard password
 
 ## 🎯 Quiz Flow
 
-1. **Age Group Selection** - Determines available ministries and skips irrelevant questions
-2. **Gender** (optional) - For gender-specific ministries
-3. **State in Life** (optional, auto-skipped for younger ages) - Single, married, parent
-4. **Situation** (multi-select) - New to parish, returning to church, etc.
-5. **Interests** (multi-select) - Fellowship, service, prayer, education, music, support
-6. **Results** - Personalized ministry recommendations with celebration animation
+The quiz adapts based on user responses:
+
+1. **Age Group** → Determines available ministries and question flow
+2. **Gender** (optional) → For gender-specific ministries
+3. **State in Life** (multi-select, skipped for youth) → Single, Married, Parent combinations
+4. **Situation** (multi-select) → New to parish, returning, etc.
+5. **Interests** (multi-select) → Fellowship, service, prayer, education, music, support
+6. **Results** → Personalized recommendations with celebration
+
+### Smart Features
+- Youth (infant through high school) skip the state-in-life question
+- Parents see separate sections for adult and children's ministries
+- "New to St. Edward" situation triggers welcome ministry display
+- Multi-select allows realistic combinations (e.g., "Married + Parent")
+
+## 🚀 Deployment Guide
+
+### Prerequisites
+- Python 3.11.9
+- PostgreSQL database
+- GitHub account
+- Render.com account
+
+### Environment Variables
+
+Set these in your Render web service:
+
+```bash
+DATABASE_URL=postgresql://...  # Render provides this
+ADMIN_USERNAME=your_admin_user
+ADMIN_PASSWORD=secure_password_here
+SECRET_KEY=your-secret-key-here
+```
+
+### Deploy to Render
+
+1. **Database Setup**
+   - Create a PostgreSQL database on Render
+   - Note the connection string
+
+2. **Web Service Setup**
+   - Connect your GitHub repository
+   - Choose Python 3 environment
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn app:app`
+
+3. **Configure Environment**
+   - Add all environment variables
+   - Set instance type (free tier works)
+
+4. **Deploy**
+   - Render will auto-deploy on GitHub pushes
+   - Monitor logs for any issues
 
 ## 📊 Admin Dashboard
 
-Access the secure admin dashboard at `/admin` to view:
+Access the admin dashboard at `/admin` with HTTP Basic Auth credentials.
 
-- **Usage Analytics** - Completion rates, popular ministries, peak times
-- **Submission Data** - Anonymous quiz completions with demographics
-- **CSV Export** - Download data for analysis
-- **Real-time Stats** - Total submissions, unique users, recent activity
+### Features
+- **Real-time Statistics**: Total submissions, last 24h/7d activity
+- **Visual Analytics**: Charts for ministries, demographics, interests
+- **Data Export**: Download CSV for further analysis
+- **Data Management**: Clear all data with safety confirmation
 
-**Authentication Required:** Uses HTTP Basic Auth with environment variables
+### Analytics Tracked
+- Age group distribution
+- Gender breakdown (with "show all" option)
+- State in life combinations
+- User situations
+- Interest categories
+- Most popular ministries
+- Submission timestamps
 
-## 🗄️ Database Schema
+## 🛠️ Local Development
 
-**Table: ministry_submissions**
-- `id` - Primary key
-- `email` - Empty string (anonymous)
-- `age_group`, `gender`, `state_in_life` - User demographics
-- `situation` - JSONB array of selected situations
-- `recommended_ministries` - JSON of matched ministries
-- `submitted_at` - Timestamp
-- `ip_address` - For rate limiting (anonymized after 30 days)
+### Setup
 
-## 🔒 Security Features
+```bash
+# Clone repository
+git clone https://github.com/eharnischStEdward/involvement-quiz.git
+cd involvement-quiz
 
-- **Rate Limiting:** 5 submissions per hour per IP address
-- **Admin Authentication:** HTTP Basic Auth for dashboard access
-- **Anonymous Analytics:** No personal data collection
-- **CORS Protection:** Configured for secure cross-origin requests
-- **Input Validation:** Sanitized user inputs and responses
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-## 📱 Mobile Optimization
+# Install dependencies
+pip install -r requirements.txt
 
-- **Touch-Friendly Targets:** 44px minimum touch areas
-- **Progressive Enhancement:** Works without JavaScript
-- **Responsive Design:** Optimized for screens 320px and up
-- **Fast Loading:** Separated static assets for better caching
-- **Offline Graceful:** Clear error messages when connectivity issues occur
+# Set environment variables
+export DATABASE_URL="your-postgres-url"
+export ADMIN_USERNAME="admin"
+export ADMIN_PASSWORD="password"
 
-## 🎨 Ministry Management
+# Run application
+python app.py
+```
 
-**Current Implementation:**
-- Ministry data stored in `static/js/ministries.js`
-- 40+ ministries with complete contact information
-- Age-specific categorization (infant through adult)
-- Multi-category interest matching
+The app will be available at `http://localhost:5000`
 
-**Easy to Extend:**
-- Add new ministries by editing the JavaScript file
-- Update contact information and meeting details
-- Seasonal ministry enable/disable capabilities
+## 🔧 Configuration
 
-## 🔧 Customization
+### Adding/Updating Ministries
 
-### Adding New Ministries
+Edit `app/ministries.py`:
 
-Edit `static/js/ministries.js`:
-
-```javascript
-'new-ministry-key': {
-    name: 'Ministry Name',
-    description: 'Brief description',
-    details: 'Contact info and meeting times with HTML links',
-    age: ['age-groups-that-can-participate'],
-    gender: ['male', 'female'], // optional
-    state: ['single', 'married', 'parent'], // optional
-    interest: ['relevant-interests'],
-    situation: ['specific-situations'] // optional
+```python
+'ministry-key': {
+    'name': 'Ministry Name',
+    'description': 'Brief description',
+    'details': 'Contact info with <a href="...">links</a>',
+    'age': ['age-groups'],        # Required
+    'gender': ['male', 'female'],  # Optional
+    'state': ['single', 'married', 'parent'],  # Optional
+    'interest': ['fellowship', 'service', etc],  # Required
+    'situation': ['new-to-stedward']  # Optional
 }
 ```
 
-### Styling Updates
+### Customizing Styles
 
-Modify `static/css/styles.css` for:
-- Parish color scheme adjustments
-- Typography and spacing changes
-- Mobile responsiveness tweaks
-- Animation and interaction enhancements
+The CSS is modular - edit individual files in `static/css/`:
+- `variables.css` - Colors, spacing, typography
+- `components.css` - Buttons, cards, forms
+- `quiz.css` - Quiz-specific elements
+- `results.css` - Results page styling
 
-## 📞 Integration Points
+## 🐛 Recent Fixes & Updates
 
-- **Parish Registration:** [Flocknote](https://stedwardnash.flocknote.com/register)
-- **Social Media:** Instagram (@stedwardcommunity), Facebook
-- **Photo Galleries:** [SmugMug](https://stedward.smugmug.com/)
-- **Ministry Contacts:** Direct email, GroupMe, and form links
-- **Parish Website:** [stedward.org](https://stedward.org)
+### July 2025 Updates
+- ✅ **Multi-select state logic**: Proper "married + parent" combinations
+- ✅ **Gender icons**: Font Awesome restroom icons (fa-male/fa-female)
+- ✅ **CSS gradients**: Clean single-color gradients (green-to-green)
+- ✅ **Welcome ministry**: Shows only when "New to St. Edward" selected
+- ✅ **Code protection**: Ministry data moved server-side
+- ✅ **Parent/children separation**: Clear ministry categorization
 
-## 🚀 Performance
+## 📈 Performance
 
-- **Lighthouse Score:** 95+ on mobile and desktop
-- **Load Time:** <2 seconds on 3G connections
-- **Database Queries:** Optimized with indexes and connection pooling
-- **Static Assets:** Cached separately for improved performance
-- **Keep-Alive Service:** Prevents cold starts during business hours
+- **Lighthouse Score**: 95+ mobile/desktop
+- **Load Time**: <2 seconds on 3G
+- **Database**: Optimized queries with indexes
+- **Caching**: Static assets cached separately
+- **Keep-Alive**: Prevents cold starts during business hours
 
-## 📈 Analytics Insights
+## 🤝 Contributing
 
-Track anonymous usage patterns including:
-- Quiz completion rates by question
-- Most popular ministry categories
-- Peak usage times and days
-- Age group participation trends
-- Geographic usage (city-level only)
+Since this is a private repository for St. Edward Church:
 
-## 🛣️ Future Enhancement Options
-
-- **Content Management System** for ministry updates
-- **Progressive Web App** conversion for mobile installation
-- **Multi-language Support** (Spanish translation ready)
-- **Email Automation** integration with parish systems
-- **Advanced Matching** algorithms based on usage patterns
-
-## 🏆 Production Status
-
-✅ **Live and serving parishioners**
-✅ **Zero downtime deployment pipeline**
-✅ **Scalable architecture ready for growth**
-✅ **Analytics-driven insights for parish leadership**
-✅ **Mobile-optimized user experience**
-✅ **Secure and privacy-compliant**
+1. Contact the parish office for access
+2. Create feature branches for new work
+3. Test thoroughly before merging
+4. Update documentation as needed
 
 ## 📞 Support
 
-**Parish Office:** (615) 833-5520
-**Email:** support@stedward.org
-**Website:** [stedward.org](https://stedward.org)
+**Parish Office**: (615) 833-5520  
+**Email**: support@stedward.org  
+**Website**: [stedward.org](https://stedward.org)
 
 ---
 
 **Built with ❤️ for the St. Edward Church community**
 
-*This application helps connect parishioners with meaningful opportunities to live out our mission: "Through Love, Serve One Another" - Galatians 5:13*
+*"Through Love, Serve One Another" - Galatians 5:13*
