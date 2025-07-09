@@ -725,7 +725,7 @@ function submitAnalytics(recommendations) {
     });
 }
 
-// ENHANCED MINISTRY MATCHING FUNCTION - Fixed parent/children logic
+// ENHANCED MINISTRY MATCHING FUNCTION - Fixed parent/children logic + MASS FIRST
 function findMinistries() {
     const matches = [];
     const userAge = answers.age;
@@ -807,6 +807,13 @@ function findMinistries() {
         }
     }
     
+    // **CRITICAL FIX: ENSURE MASS IS ALWAYS FIRST**
+    const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
+    if (massIndex > 0) {
+        const massMinistry = matches.splice(massIndex, 1)[0];
+        matches.unshift(massMinistry);
+    }
+    
     // Enhanced fallback logic for parents
     if (matches.length === 0 && (isParent || hasKidsInterest)) {
         // Add key family-friendly ministries
@@ -845,6 +852,13 @@ function findMinistries() {
             if (!matches.some(m => m.name === ministries['cub-scouts'].name)) {
                 matches.push(ministries['cub-scouts']);
             }
+        }
+        
+        // Ensure Mass is still first after adding core ministries
+        const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
+        if (massIndex > 0) {
+            const massMinistry = matches.splice(massIndex, 1)[0];
+            matches.unshift(massMinistry);
         }
     }
     
