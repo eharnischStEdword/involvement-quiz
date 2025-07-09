@@ -10,6 +10,7 @@ admin_bp = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
 
 @admin_bp.route('/admin')
+@admin_bp.route('/admin/')
 @require_admin_auth
 def admin_dashboard():
     """Admin dashboard"""
