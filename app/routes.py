@@ -185,7 +185,7 @@ def register_routes(app):
             logger.error(f"Error getting submissions: {e}")
             return jsonify({'error': str(e)}), 500
 
-@app.route('/admin')
+    @app.route('/admin')
     @require_admin_auth
     def admin_dashboard():
         """Modern Admin dashboard with St. Edward branding - FIXED Chart.js loading"""
