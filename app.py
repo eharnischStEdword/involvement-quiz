@@ -240,26 +240,58 @@ except Exception as e:
 def auto_migrate_ministries():
     """Auto-populate ministries table on startup"""
     try:
-        from migrations.add_ministries_table import create_ministries_table, migrate_ministry_data
-        create_ministries_table()
-        migrate_ministry_data()
-        logger.info("Ministry migration completed automatically")
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Create ministries table
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS ministries (
+                id SERIAL PRIMARY KEY,
+                ministry_key VARCHAR(100) UNIQUE NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                description TEXT,
+                details TEXT,
+                age_groups JSONB DEFAULT '[]',
+                genders JSONB DEFAULT '[]',
+                states JSONB DEFAULT '[]',
+                interests JSONB DEFAULT '[]',
+                situations JSONB DEFAULT '[]',
+                active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Check if table is empty
+        cur.execute("SELECT COUNT(*) FROM ministries")
+        count = cur.fetchone()[0]
+        
+        if count == 0:
+            # Insert ministries from MINISTRY_DATA
+            for key, ministry in MINISTRY_DATA.items():
+                cur.execute('''
+                    INSERT INTO ministries 
+                    (ministry_key, name, description, details, age_groups, genders, states, interests, situations)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (
+                    key,
+                    ministry['name'],
+                    ministry.get('description', ''),
+                    ministry.get('details', ''),
+                    json.dumps(ministry.get('age', [])),
+                    json.dumps(ministry.get('gender', [])),
+                    json.dumps(ministry.get('state', [])),
+                    json.dumps(ministry.get('interest', [])),
+                    json.dumps(ministry.get('situation', []))
+                ))
+            
+        conn.commit()
+        cur.close()
+        conn.close()
+        logger.info(f"Ministry migration completed - {count} existing, {len(MINISTRY_DATA) if count == 0 else 0} added")
+        
     except Exception as e:
         logger.error(f"Auto-migration failed: {e}")
-
-# Add this after init_db() runs (around line 245)
-auto_migrate_ministries()
-
-# Start keep-alive service (only in production)
-if os.environ.get('DATABASE_URL'):  # Only run keep-alive in production
-    if not os.environ.get('WERKZEUG_RUN_MAIN'):  # Prevent duplicate threads in debug mode
-        try:
-            threading.Thread(target=keep_alive, daemon=True).start()
-            logger.info("Keep-alive service started for production")
-        except Exception as e:
-            logger.error(f"Failed to start keep-alive service: {e}")
-else:
-    logger.info("Local development mode - keep-alive service disabled")
 
 @app.route('/')
 def index():
