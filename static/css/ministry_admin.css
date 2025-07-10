@@ -176,6 +176,18 @@ tr:hover {
     color: #005921;
 }
 
+/* Ministry key styling */
+.ministry-key {
+    color: #64748b;
+    display: block;
+}
+
+/* No categories text */
+.no-categories {
+    color: #999;
+    font-style: italic;
+}
+
 /* Badges */
 .badge {
     display: inline-block;
@@ -222,7 +234,6 @@ tr:hover {
     margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    display: none;
 }
 
 .bulk-actions-bar {
@@ -249,9 +260,13 @@ tr:hover {
     background: #e8f5e9 !important;
 }
 
+/* Utility class for hiding elements */
+.hidden {
+    display: none !important;
+}
+
 /* Modal Styles */
 .modal {
-    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -476,6 +491,43 @@ tr:hover {
     margin-top: 30px;
     padding-top: 30px;
     border-top: 1px solid #e5e7eb;
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    z-index: 2000;
+}
+
+.notification-show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-success {
+    background: #52c41a;
+    color: white;
+}
+
+.notification-error {
+    background: #ff4d4f;
+    color: white;
+}
+
+.notification i {
+    font-size: 1.2rem;
 }
 
 /* Responsive Design */
