@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministry Management - St. Edward Admin</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/ministry_admin.css') }}" rel="stylesheet">
 </head>
@@ -19,10 +20,10 @@
                     <i class="fas fa-search"></i>
                 </div>
                 <div>
-                    <button class="btn btn-secondary" onclick="showImportModal()">
+                    <button class="btn btn-secondary" id="importBtn">
                         <i class="fas fa-file-import"></i> Import
                     </button>
-                    <button class="btn btn-primary" onclick="showAddModal()">
+                    <button class="btn btn-primary" id="addBtn">
                         <i class="fas fa-plus"></i> Add Ministry
                     </button>
                     <a href="/admin" class="btn btn-secondary">
@@ -50,7 +51,7 @@
         <div class="filters">
             <div class="filter-group">
                 <label>Filter by:</label>
-                <select id="filterAge" onchange="applyFilters()">
+                <select id="filterAge">
                     <option value="">All Ages</option>
                     <option value="infant">Infant</option>
                     <option value="elementary">Elementary</option>
@@ -60,7 +61,7 @@
                     <option value="married-parents">Married/Parents</option>
                     <option value="journeying-adults">Journeying Adults</option>
                 </select>
-                <select id="filterInterest" onchange="applyFilters()">
+                <select id="filterInterest">
                     <option value="">All Interests</option>
                     <option value="fellowship">Fellowship</option>
                     <option value="service">Service</option>
@@ -70,7 +71,7 @@
                     <option value="support">Support</option>
                     <option value="kids">Kids</option>
                 </select>
-                <select id="filterStatus" onchange="applyFilters()">
+                <select id="filterStatus">
                     <option value="">All Status</option>
                     <option value="active">Active Only</option>
                     <option value="inactive">Inactive Only</option>
@@ -82,19 +83,19 @@
             <div class="bulk-actions-bar">
                 <span id="selectedCount">0 selected</span>
                 <div class="bulk-buttons">
-                    <button class="btn btn-secondary btn-sm" onclick="toggleBulkStatus('active')">
+                    <button class="btn btn-secondary btn-sm" id="bulkActivateBtn">
                         <i class="fas fa-check"></i> Activate
                     </button>
-                    <button class="btn btn-secondary btn-sm" onclick="toggleBulkStatus('inactive')">
+                    <button class="btn btn-secondary btn-sm" id="bulkDeactivateBtn">
                         <i class="fas fa-times"></i> Deactivate
                     </button>
-                    <button class="btn btn-primary btn-sm" onclick="showBulkEditModal()">
+                    <button class="btn btn-primary btn-sm" id="bulkEditBtn">
                         <i class="fas fa-edit"></i> Edit Categories
                     </button>
-                    <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
+                    <button class="btn btn-danger btn-sm" id="bulkDeleteBtn">
                         <i class="fas fa-trash"></i> Delete
                     </button>
-                    <button class="btn btn-sm" onclick="clearSelection()">
+                    <button class="btn btn-sm" id="clearSelectionBtn">
                         Cancel
                     </button>
                 </div>
@@ -106,7 +107,7 @@
                 <thead>
                     <tr>
                         <th>
-                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                            <input type="checkbox" id="selectAll">
                         </th>
                         <th>Name</th>
                         <th>Description</th>
@@ -132,7 +133,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Add Ministry</h2>
-                <span class="modal-close" onclick="closeModal()">&times;</span>
+                <span class="modal-close" id="modalClose">&times;</span>
             </div>
             <div class="modal-body">
                 <form id="ministryForm">
@@ -290,7 +291,7 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="button" class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Save Ministry
                         </button>
@@ -305,7 +306,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Bulk Edit Ministries</h2>
-                <span class="modal-close" onclick="closeBulkEditModal()">&times;</span>
+                <span class="modal-close" id="bulkModalClose">&times;</span>
             </div>
             <div class="modal-body">
                 <p>Editing <strong id="bulkEditCount">0</strong> ministries</p>
@@ -441,8 +442,8 @@
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeBulkEditModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="applyBulkEdit()">
+                    <button type="button" class="btn btn-secondary" id="bulkCancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="bulkApplyBtn">
                         <i class="fas fa-save"></i> Apply Changes
                     </button>
                 </div>
@@ -455,7 +456,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Import Ministries</h2>
-                <span class="modal-close" onclick="closeImportModal()">&times;</span>
+                <span class="modal-close" id="importModalClose">&times;</span>
             </div>
             <div class="modal-body">
                 <div class="import-section">
@@ -470,8 +471,8 @@
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="importMinistries()">
+                    <button type="button" class="btn btn-secondary" id="importCancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="importSubmitBtn">
                         <i class="fas fa-file-import"></i> Import
                     </button>
                 </div>
