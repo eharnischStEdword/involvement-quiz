@@ -6,12 +6,32 @@ let contactsData = [];
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
     loadContacts();
+    setupEventListeners();
+});
+
+// Setup all event listeners
+function setupEventListeners() {
+    // Button event listeners
+    document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+    document.getElementById('contactsBtn').addEventListener('click', showContacts);
+    document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
+    document.getElementById('clearBtn').addEventListener('click', showClearModal);
+    document.getElementById('closeContactsBtn').addEventListener('click', hideContacts);
+    document.getElementById('cancelClearBtn').addEventListener('click', hideClearModal);
+    document.getElementById('confirmBtn').addEventListener('click', clearAllData);
     
     // Enable/disable clear button based on checkbox
     document.getElementById('confirmClear').addEventListener('change', function() {
         document.getElementById('confirmBtn').disabled = !this.checked;
     });
-});
+    
+    // Modal close on outside click
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            hideClearModal();
+        }
+    };
+}
 
 // Load main dashboard data
 async function loadDashboardData() {
@@ -516,13 +536,20 @@ function displayContacts() {
             
             ${!contact.contacted ? `
                 <div class="contact-actions">
-                    <button class="btn btn-success btn-sm" onclick="markContacted(${contact.id})">
+                    <button class="btn btn-success btn-sm contact-btn" data-id="${contact.id}">
                         <i class="fas fa-check"></i> Mark as Contacted
                     </button>
                 </div>
             ` : ''}
         </div>
     `).join('');
+    
+    // Add event listeners to contact buttons
+    document.querySelectorAll('.contact-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            markContacted(parseInt(this.dataset.id));
+        });
+    });
 }
 
 // Mark contact as contacted
@@ -651,12 +678,5 @@ async function clearAllData() {
     } catch (error) {
         console.error('Error clearing data:', error);
         alert('Network error. Please try again.');
-    }
-}
-
-// Modal close on outside click
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) {
-        hideClearModal();
     }
 }
