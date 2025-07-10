@@ -23,15 +23,40 @@ app = Flask(__name__)
 CORS(app)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
 
-# Configure Talisman for HTTPS (disable in development)
+# Configure Talisman for HTTPS with proper CSP settings
 if os.environ.get('DATABASE_URL'):  # Production
     csp = {
         'default-src': "'self'",
-        'style-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
-        'script-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.googletagmanager.com",
-        'font-src': "'self' https://cdnjs.cloudflare.com data:",
-        'img-src': "'self' data: https: http:",
-        'connect-src': "'self'"
+        'script-src': [
+            "'self'",
+            "'unsafe-inline'",  # Allow inline scripts for event handlers
+            "'unsafe-eval'",    # Allow eval for Chart.js
+            'https://cdn.jsdelivr.net',
+            'https://cdnjs.cloudflare.com',
+            'https://www.googletagmanager.com',
+            'https://www.google-analytics.com'
+        ],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'",  # Allow inline styles if absolutely needed
+            'https://cdnjs.cloudflare.com',
+            'https://fonts.googleapis.com'
+        ],
+        'font-src': [
+            "'self'",
+            'https://cdnjs.cloudflare.com',
+            'https://fonts.gstatic.com'
+        ],
+        'img-src': [
+            "'self'",
+            'data:',
+            'https:',
+            'http:'
+        ],
+        'connect-src': [
+            "'self'",
+            'https://www.google-analytics.com'
+        ]
     }
     Talisman(app, 
              force_https=True, 
