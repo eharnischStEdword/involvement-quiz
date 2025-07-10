@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
 });
 
-// Setup event listeners
+// Setup all event listeners
 function setupEventListeners() {
     // Form submission
     document.getElementById('ministryForm').addEventListener('submit', handleFormSubmit);
@@ -18,12 +18,41 @@ function setupEventListeners() {
     // Search
     document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
     
+    // Filter dropdowns
+    document.getElementById('filterAge').addEventListener('change', applyFilters);
+    document.getElementById('filterInterest').addEventListener('change', applyFilters);
+    document.getElementById('filterStatus').addEventListener('change', applyFilters);
+    
+    // Header buttons
+    document.getElementById('importBtn').addEventListener('click', showImportModal);
+    document.getElementById('addBtn').addEventListener('click', showAddModal);
+    
+    // Select all checkbox
+    document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
+    
+    // Bulk action buttons
+    document.getElementById('bulkActivateBtn').addEventListener('click', () => toggleBulkStatus('active'));
+    document.getElementById('bulkDeactivateBtn').addEventListener('click', () => toggleBulkStatus('inactive'));
+    document.getElementById('bulkEditBtn').addEventListener('click', showBulkEditModal);
+    document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
+    document.getElementById('clearSelectionBtn').addEventListener('click', clearSelection);
+    
+    // Modal close buttons
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+    document.getElementById('bulkModalClose').addEventListener('click', closeBulkEditModal);
+    document.getElementById('bulkCancelBtn').addEventListener('click', closeBulkEditModal);
+    document.getElementById('bulkApplyBtn').addEventListener('click', applyBulkEdit);
+    document.getElementById('importModalClose').addEventListener('click', closeImportModal);
+    document.getElementById('importCancelBtn').addEventListener('click', closeImportModal);
+    document.getElementById('importSubmitBtn').addEventListener('click', importMinistries);
+    
     // Modal close on outside click
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
-            closeModal();
-            closeImportModal();
-            closeBulkEditModal();
+            if (event.target.id === 'ministryModal') closeModal();
+            else if (event.target.id === 'bulkEditModal') closeBulkEditModal();
+            else if (event.target.id === 'importModal') closeImportModal();
         }
     };
 }
@@ -109,12 +138,12 @@ function renderMinistryTable() {
     }
     
     tbody.innerHTML = filteredMinistries.map(ministry => `
-        <tr class="${selectedMinistries.has(ministry.id) ? 'selected-row' : ''}">
+        <tr class="${selectedMinistries.has(ministry.id) ? 'selected-row' : ''}" data-id="${ministry.id}">
             <td>
                 <input type="checkbox" 
+                       class="ministry-checkbox"
                        value="${ministry.id}" 
-                       ${selectedMinistries.has(ministry.id) ? 'checked' : ''}
-                       onchange="toggleRowSelection(${ministry.id})">
+                       ${selectedMinistries.has(ministry.id) ? 'checked' : ''}>
             </td>
             <td>
                 <div class="ministry-name">${ministry.name}</div>
@@ -131,19 +160,44 @@ function renderMinistryTable() {
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-primary btn-sm" onclick="editMinistry(${ministry.id})">
+                    <button class="btn btn-primary btn-sm edit-btn" data-id="${ministry.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-secondary btn-sm" onclick="toggleActive(${ministry.id})">
+                    <button class="btn btn-secondary btn-sm toggle-btn" data-id="${ministry.id}">
                         <i class="fas fa-${ministry.active ? 'pause' : 'play'}"></i>
                     </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteMinistry(${ministry.id})">
+                    <button class="btn btn-danger btn-sm delete-btn" data-id="${ministry.id}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </td>
         </tr>
     `).join('');
+    
+    // Add event listeners to newly created elements
+    document.querySelectorAll('.ministry-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            toggleRowSelection(parseInt(this.value));
+        });
+    });
+    
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            editMinistry(parseInt(this.dataset.id));
+        });
+    });
+    
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            toggleActive(parseInt(this.dataset.id));
+        });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            deleteMinistry(parseInt(this.dataset.id));
+        });
+    });
     
     updateBulkActions();
 }
@@ -191,7 +245,18 @@ function toggleSelectAll() {
         }
     });
     
-    renderMinistryTable();
+    // Update row highlighting
+    document.querySelectorAll('#ministryList tr').forEach(row => {
+        const id = parseInt(row.dataset.id);
+        if (id) {
+            if (selectedMinistries.has(id)) {
+                row.classList.add('selected-row');
+            } else {
+                row.classList.remove('selected-row');
+            }
+        }
+    });
+    
     updateBulkActions();
 }
 
@@ -202,14 +267,28 @@ function toggleRowSelection(ministryId) {
         selectedMinistries.add(ministryId);
     }
     
-    renderMinistryTable();
+    // Update row highlighting
+    const row = document.querySelector(`tr[data-id="${ministryId}"]`);
+    if (row) {
+        if (selectedMinistries.has(ministryId)) {
+            row.classList.add('selected-row');
+        } else {
+            row.classList.remove('selected-row');
+        }
+    }
+    
     updateBulkActions();
 }
 
 function clearSelection() {
     selectedMinistries.clear();
     document.getElementById('selectAll').checked = false;
-    renderMinistryTable();
+    document.querySelectorAll('#ministryList input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+    document.querySelectorAll('#ministryList tr').forEach(row => {
+        row.classList.remove('selected-row');
+    });
     updateBulkActions();
 }
 
