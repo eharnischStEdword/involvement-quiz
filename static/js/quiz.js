@@ -849,15 +849,14 @@ function findMinistries() {
         }
     }
     
-    // If no interests selected, show general options
+    // If no interests selected, show general options with navigation
     if (interests.length === 0) {
-        return [
-            {
-                name: 'Select Your Interests',
-                description: 'Please go back and select what interests you to see personalized recommendations.',
-                details: 'Use the back button to choose your areas of interest.'
-            }
-        ];
+        const noInterestsMessage = {
+            name: 'Select Your Interests',
+            description: 'Please go back and select what interests you to see personalized recommendations.',
+            details: '<button class="nav-btn" onclick="goBack(5)" style="margin-top: 10px;">← Go Back to Interests</button>'
+        };
+        return [noInterestsMessage];
     }
     
     // If we still have no matches for any age group, show general options
