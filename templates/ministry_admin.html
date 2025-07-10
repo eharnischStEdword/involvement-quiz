@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry Management - St. Edward Admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #2d3748;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #005921;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #005921;
+            margin-bottom: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .search-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #005921;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #DAAA00;
+            color: #2d3748;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .filters {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .ministry-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #2d3748;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .ministry-name {
+            font-weight: 600;
+            color: #005921;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+
+        .badge-age { background: #e6f7ff; color: #0050b3; }
+        .badge-gender { background: #f6ffed; color: #389e0d; }
+        .badge-interest { background: #fff7e6; color: #d46b08; }
+        .badge-state { background: #f9f0ff; color: #722ed1; }
+        .badge-situation { background: #ffe7e7; color: #cf1322; }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #52c41a;
+            color: white;
+        }
+
+        .status-inactive {
+            background: #ff4d4f;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: #005921;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            opacity: 0.8;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #005921;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        .import-section {
+            background: #f8fafc;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #005921;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header-actions {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .ministry-table {
+                overflow-x: auto;
+            }
+            
+            table {
+                min-width: 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1><i class="fas fa-church"></i> Ministry Management</h1>
+            <p>Add, edit, and manage St. Edward ministries</p>
+            
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search ministries...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="showImportModal()">
+                        <i class="fas fa-file-import"></i> Import
+                    </button>
+                    <button class="btn btn-primary" onclick="showAddModal()">
+                        <i class="fas fa-plus"></i> Add Ministry
+                    </button>
+                    <a href="/admin" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Total Ministries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeCount">0</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="inactiveCount">0</div>
+                <div class="stat-label">Inactive</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Filter by:</label>
+                <select id="filterAge" onchange="applyFilters()">
+                    <option value="">All Ages</option>
+                    <option value="infant">Infant</option>
+                    <option value="elementary">Elementary</option>
+                    <option value="junior-high">Junior High</option>
+                    <option value="high-school">High School</option>
+                    <option value="college-young-adult">College/Young Adult</option>
+                    <option value="married-parents">Married/Parents</option>
+                    <option value="journeying-adults">Journeying Adults</option>
+                </select>
+                <select id="filterInterest" onchange="applyFilters()">
+                    <option value="">All Interests</option>
+                    <option value="fellowship">Fellowship</option>
+                    <option value="service">Service</option>
+                    <option value="prayer">Prayer</option>
+                    <option value="education">Education</option>
+                    <option value="music">Music</option>
+                    <option value="support">Support</option>
+                    <option value="kids">Kids</option>
+                </select>
+                <select id="filterStatus" onchange="applyFilters()">
+                    <option value="">All Status</option>
+                    <option value="active">Active Only</option>
+                    <option value="inactive">Inactive Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="ministry-table">
+            <table id="ministryTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Categories</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ministryList">
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div class="spinner"></div>
+                            <p>Loading ministries...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Ministry Modal -->
+    <div id="ministryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Ministry</h2>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="ministryForm">
+                    <input type="hidden" id="ministryId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ministryKey">Ministry Key *</label>
+                            <input type="text" id="ministryKey" required placeholder="e.g., knights-of-columbus">
+                            <small style="color: #64748b;">Unique identifier (lowercase, hyphens)</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="ministryName">Ministry Name *</label>
+                            <input type="text" id="ministryName" required placeholder="e.g., Knights of Columbus">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ministryDescription">Description</label>
+                        <textarea id="ministryDescription" placeholder="Brief description of the ministry"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ministryDetails">Details (HTML allowed)</label>
+                        <textarea id="ministryDetails" placeholder="Contact info, meeting times, links, etc."></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age Groups</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-infant" value="infant">
+                                    <label for="age-infant">Infant</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-elementary" value="elementary">
+                                    <label for="age-elementary">Elementary</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-junior-high" value="junior-high">
+                                    <label for="age-junior-high">Junior High</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-high-school" value="high-school">
+                                    <label for="age-high-school">High School</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-college-young-adult" value="college-young-adult">
+                                    <label for="age-college-young-adult">College/Young Adult</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-married-parents" value="married-parents">
+                                    <label for="age-married-parents">Married/Parents</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="age-journeying-adults" value="journeying-adults">
+                                    <label for="age-journeying-adults">Journeying Adults</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Genders</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="gender-male" value="male">
+                                    <label for="gender-male">Male</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="gender-female" value="female">
+                                    <label for="gender-female">Female</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>States</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="state-single" value="single">
+                                    <label for="state-single">Single</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="state-married" value="married">
+                                    <label for="state-married">Married</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="state-parent" value="parent">
+                                    <label for="state-parent">Parent</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Interests</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-fellowship" value="fellowship">
+                                    <label for="interest-fellowship">Fellowship</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-service" value="service">
+                                    <label for="interest-service">Service</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-prayer" value="prayer">
+                                    <label for="interest-prayer">Prayer</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-education" value="education">
+                                    <label for="interest-education">Education</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-music" value="music">
+                                    <label for="interest-music">Music</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-support" value="support">
+                                    <label for="interest-support">Support</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-kids" value="kids">
+                                    <label for="interest-kids">Kids</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="interest-all" value="all">
+                                    <label for="interest-all">All</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Situations</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="situation-new-to-stedward" value="new-to-stedward">
+                                <label for="situation-new-to-stedward">New to St. Edward</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="situation-returning-to-church" value="returning-to-church">
+                                <label for="situation-returning-to-church">Returning to Church</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ministryActive" checked>
+                            <label for="ministryActive">Active</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Ministry
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Import Ministries</h2>
+                <span class="modal-close" onclick="closeImportModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="import-section">
+                    <i class="fas fa-file-upload" style="font-size: 3rem; color: #005921; margin-bottom: 20px;"></i>
+                    <p>Paste ministry data in JSON format to import multiple ministries at once.</p>
+                    <p style="font-size: 0.9rem; color: #64748b;">Format: Array of ministry objects with keys matching the form fields</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="importData">JSON Data</label>
+                    <textarea id="importData" rows="10" placeholder='[{"ministry_key": "example", "name": "Example Ministry", ...}]'></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="importMinistries()">
+                        <i class="fas fa-file-import"></i> Import
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/ministry_admin.js') }}"></script>
+</body>
+</html>
