@@ -29,8 +29,8 @@ if os.environ.get('DATABASE_URL'):  # Production
         'default-src': "'self'",
         'script-src': [
             "'self'",
-            "'unsafe-inline'",  # Allow inline scripts for event handlers
-            "'unsafe-eval'",    # Allow eval for Chart.js
+            "'unsafe-inline'",  # Required for event handlers
+            "'unsafe-eval'",    # Required for Chart.js
             'https://cdn.jsdelivr.net',
             'https://cdnjs.cloudflare.com',
             'https://www.googletagmanager.com',
@@ -38,7 +38,7 @@ if os.environ.get('DATABASE_URL'):  # Production
         ],
         'style-src': [
             "'self'",
-            "'unsafe-inline'",  # Allow inline styles if absolutely needed
+            "'unsafe-inline'",  # Required for style attributes
             'https://cdnjs.cloudflare.com',
             'https://fonts.googleapis.com'
         ],
@@ -61,8 +61,7 @@ if os.environ.get('DATABASE_URL'):  # Production
     Talisman(app, 
              force_https=True, 
              strict_transport_security=True,
-             content_security_policy=csp,
-             content_security_policy_nonce_in=['script-src'])  # CHANGED: Only nonce for scripts
+             content_security_policy=csp)  # Removed nonce configuration
 
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
