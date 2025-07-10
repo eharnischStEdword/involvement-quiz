@@ -238,27 +238,54 @@ except Exception as e:
 
 def auto_migrate_ministries():
     """Auto-populate ministries table if empty"""
+    conn = None
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Create ministries table with ALL columns including situations
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS ministries (
-                id SERIAL PRIMARY KEY,
-                ministry_key VARCHAR(100) UNIQUE,
-                name VARCHAR(255),
-                description TEXT,
-                details TEXT,
-                age_groups JSONB,
-                genders JSONB,
-                states JSONB,
-                interests JSONB,
-                situations JSONB,  -- Add this column
-                active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
+        # Check if table exists and get column types
+        cur.execute("""
+            SELECT column_name, data_type 
+            FROM information_schema.columns 
+            WHERE table_name = 'ministries'
+            ORDER BY ordinal_position
+        """)
+        existing_columns = {row[0]: row[1] for row in cur.fetchall()}
+        
+        if existing_columns:
+            # Table exists - check if we need to alter column types
+            columns_to_alter = []
+            for col in ['age_groups', 'genders', 'states', 'interests']:
+                if col in existing_columns and existing_columns[col] != 'jsonb':
+                    columns_to_alter.append(col)
+            
+            # Alter columns to JSONB if needed
+            for col in columns_to_alter:
+                logger.info(f"Converting {col} column to JSONB...")
+                cur.execute(f"ALTER TABLE ministries ALTER COLUMN {col} TYPE JSONB USING {col}::jsonb")
+            
+            # Add situations column if it doesn't exist
+            if 'situations' not in existing_columns:
+                logger.info("Adding situations column to ministries table...")
+                cur.execute("ALTER TABLE ministries ADD COLUMN situations JSONB")
+        else:
+            # Create table with correct schema
+            cur.execute('''
+                CREATE TABLE ministries (
+                    id SERIAL PRIMARY KEY,
+                    ministry_key VARCHAR(100) UNIQUE,
+                    name VARCHAR(255),
+                    description TEXT,
+                    details TEXT,
+                    age_groups JSONB,
+                    genders JSONB,
+                    states JSONB,
+                    interests JSONB,
+                    situations JSONB,
+                    active BOOLEAN DEFAULT TRUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
         
         # Check if table is empty
         cur.execute("SELECT COUNT(*) FROM ministries")
@@ -267,6 +294,7 @@ def auto_migrate_ministries():
         if count == 0:
             logger.info("Ministries table is empty, populating from MINISTRY_DATA...")
             added = 0
+            failed = 0
             
             for key, ministry in MINISTRY_DATA.items():
                 try:
@@ -284,24 +312,30 @@ def auto_migrate_ministries():
                         json.dumps(ministry.get('gender', [])),
                         json.dumps(ministry.get('state', [])),
                         json.dumps(ministry.get('interest', [])),
-                        json.dumps(ministry.get('situation', []))  # Add this
+                        json.dumps(ministry.get('situation', []))
                     ))
-                    added += 1
+                    if cur.rowcount > 0:
+                        added += 1
                 except Exception as e:
                     logger.error(f"Failed to insert ministry {key}: {e}")
+                    failed += 1
+                    # Don't let one failure stop the whole migration
+                    conn.rollback()
+                    continue
             
             conn.commit()
-            logger.info(f"Ministry migration completed - {count} existing, {added} added")
+            logger.info(f"Ministry migration completed - {count} existing, {added} added, {failed} failed")
         else:
             logger.info(f"Ministries table already has {count} entries, skipping migration")
         
         cur.close()
-        conn.close()
         
     except Exception as e:
         logger.error(f"Auto-migration failed: {e}")
         if conn:
             conn.rollback()
+    finally:
+        if conn:
             conn.close()
 
 @app.route('/')
