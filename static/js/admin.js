@@ -177,16 +177,27 @@ function displayContacts() {
 }
 
 function markContacted(contactId) {
-    // For now, just update the UI since we don't have an endpoint to update the database
-    const contact = contactsData.find(c => c.id === contactId);
-    if (contact) {
-        contact.contacted = true;
-        displayContacts();
-        updateContactBadge(contactsData);
-        
-        // TODO: Add API endpoint to update contacted status in database
-        console.log('Note: Contacted status is only updated in UI. Add backend endpoint to persist.');
-    }
+    fetch(`/api/contacts/${contactId}/mark-contacted`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const contact = contactsData.find(c => c.id === contactId);
+            if (contact) {
+                contact.contacted = true;
+                displayContacts();
+                updateContactBadge(contactsData);
+            }
+        } else {
+            alert('Error marking contact as contacted');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error');
+    });
 }
 
 function exportContact(contactId) {
