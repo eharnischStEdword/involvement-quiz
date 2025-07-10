@@ -65,7 +65,6 @@ def get_submissions():
 
 @admin_bp.route('/api/clear-all-data', methods=['POST'])
 @require_admin_auth
-@require_csrf_token
 def clear_all_data():
     """Clear all submission data"""
     try:
