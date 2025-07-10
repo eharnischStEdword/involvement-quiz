@@ -2,6 +2,25 @@
 let submissionsData = [];
 let contactsData = [];
 
+// Helper functions for show/hide without inline styles
+function show(element) {
+    if (typeof element === 'string') {
+        element = document.getElementById(element);
+    }
+    if (element) {
+        element.classList.remove('hidden');
+    }
+}
+
+function hide(element) {
+    if (typeof element === 'string') {
+        element = document.getElementById(element);
+    }
+    if (element) {
+        element.classList.add('hidden');
+    }
+}
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
@@ -36,7 +55,7 @@ function setupEventListeners() {
 // Load main dashboard data
 async function loadDashboardData() {
     try {
-        document.getElementById('loading').style.display = 'block';
+        show('loading');
         
         const response = await fetch('/api/submissions');
         if (!response.ok) {
@@ -54,11 +73,11 @@ async function loadDashboardData() {
         // Initialize charts
         initializeCharts(submissionsData);
         
-        document.getElementById('loading').style.display = 'none';
+        hide('loading');
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        document.getElementById('loading').style.display = 'none';
+        hide('loading');
         document.getElementById('submissions').innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-triangle"></i>
@@ -83,7 +102,7 @@ async function loadContacts() {
     } catch (error) {
         console.error('Error loading contacts:', error);
         // Hide contact button if endpoint not available
-        document.getElementById('contactsBtn').style.display = 'none';
+        hide('contactsBtn');
     }
 }
 
@@ -94,9 +113,9 @@ function updateContactBadge(contacts) {
     
     if (uncontacted > 0) {
         badge.textContent = uncontacted;
-        badge.style.display = 'inline-block';
+        badge.classList.remove('hidden');
     } else {
-        badge.style.display = 'none';
+        badge.classList.add('hidden');
     }
 }
 
@@ -244,9 +263,9 @@ function initializeCharts(data) {
     
     try {
         // Hide loading, show content
-        chartLoading.style.display = 'none';
-        chartError.style.display = 'none';
-        chartsContent.style.display = 'block';
+        hide(chartLoading);
+        hide(chartError);
+        show(chartsContent);
         
         // Create charts
         createMinistriesChart(data);
@@ -257,9 +276,9 @@ function initializeCharts(data) {
         
     } catch (error) {
         console.error('Error creating charts:', error);
-        chartLoading.style.display = 'none';
-        chartError.style.display = 'block';
-        chartsContent.style.display = 'none';
+        hide(chartLoading);
+        show(chartError);
+        hide(chartsContent);
     }
 }
 
@@ -478,12 +497,12 @@ function formatLabel(text) {
 
 // Show/hide contacts
 function showContacts() {
-    document.getElementById('contactsSection').style.display = 'block';
+    show('contactsSection');
     displayContacts();
 }
 
 function hideContacts() {
-    document.getElementById('contactsSection').style.display = 'none';
+    hide('contactsSection');
 }
 
 function displayContacts() {
@@ -506,7 +525,7 @@ function displayContacts() {
                 </div>
                 <div>
                     ${contact.contacted ? 
-                        '<span class="badge" style="background: #52c41a;">Contacted</span>' : 
+                        '<span class="badge contact-badge-contacted">Contacted</span>' : 
                         ''
                     }
                 </div>
@@ -544,7 +563,7 @@ function displayContacts() {
         </div>
     `).join('');
     
-    // Add event listeners to contact buttons
+    // Add event listeners to newly created elements
     document.querySelectorAll('.contact-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             markContacted(parseInt(this.dataset.id));
@@ -647,11 +666,11 @@ function convertToCSV(data) {
 
 // Clear all data modal
 function showClearModal() {
-    document.getElementById('clearModal').style.display = 'block';
+    show('clearModal');
 }
 
 function hideClearModal() {
-    document.getElementById('clearModal').style.display = 'none';
+    hide('clearModal');
     document.getElementById('confirmClear').checked = false;
     document.getElementById('confirmBtn').disabled = true;
 }
