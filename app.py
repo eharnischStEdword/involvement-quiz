@@ -234,11 +234,11 @@ try:
     logger.info("Database initialized on startup")
 except Exception as e:
     logger.error(f"Database initialization failed: {e}")
-
 #app.register_blueprint(ministry_admin_bp) 
 
 def auto_migrate_ministries():
     """Auto-populate ministries table on startup"""
+    logger.info("Starting ministry migration...")
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -292,6 +292,8 @@ def auto_migrate_ministries():
         
     except Exception as e:
         logger.error(f"Auto-migration failed: {e}")
+
+auto_migrate_ministries()
 
 @app.route('/')
 def index():
