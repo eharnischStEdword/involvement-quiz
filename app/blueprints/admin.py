@@ -116,3 +116,24 @@ def admin_contacts():
     except Exception as e:
         logger.error(f"Error getting contact submissions: {e}")
         return jsonify({'error': str(e)}), 500
+
+@admin_bp.route('/api/contacts/<int:contact_id>/mark-contacted', methods=['POST'])
+@require_admin_auth
+def mark_contact_contacted(contact_id):
+    """Mark a contact as contacted"""
+    try:
+        with get_db_connection() as (conn, cur):
+            cur.execute(
+                "UPDATE contact_submissions SET contacted = TRUE WHERE id = %s",
+                (contact_id,)
+            )
+            
+            if cur.rowcount == 0:
+                return jsonify({'success': False, 'error': 'Contact not found'}), 404
+        
+        logger.info(f"Contact {contact_id} marked as contacted")
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error marking contact as contacted: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
