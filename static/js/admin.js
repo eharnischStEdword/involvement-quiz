@@ -1,10 +1,12 @@
 let submissionsData = [];
+let contactsData = [];
 let charts = {};
 let chartJsLoaded = false;
 
 function initializeDashboard() {
     document.getElementById('loading').style.display = 'block';
     
+    // Fetch submissions
     fetch('/api/submissions')
         .then(response => response.json())
         .then(data => {
@@ -73,6 +75,155 @@ function initializeDashboard() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('submissions').innerHTML = `<div class="error-message">Error loading data: ${error.message}</div>`;
         });
+    
+    // Fetch contacts
+    fetch('/contacts')
+        .then(response => response.json())
+        .then(data => {
+            contactsData = data;
+            updateContactBadge(data);
+        })
+        .catch(error => console.error('Error loading contacts:', error));
+}
+
+function updateContactBadge(contacts) {
+    const uncontacted = contacts.filter(c => !c.contacted).length;
+    const badge = document.getElementById('contactBadge');
+    
+    if (uncontacted > 0) {
+        badge.textContent = uncontacted;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function showContacts() {
+    document.getElementById('contactsSection').style.display = 'block';
+    document.querySelector('.data-section').style.display = 'none';
+    document.querySelector('.charts-section').style.display = 'none';
+    
+    displayContacts();
+}
+
+function hideContacts() {
+    document.getElementById('contactsSection').style.display = 'none';
+    document.querySelector('.data-section').style.display = 'block';
+    document.querySelector('.charts-section').style.display = 'block';
+}
+
+function displayContacts() {
+    const container = document.getElementById('contactsList');
+    
+    if (contactsData.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #64748b;">No contact requests yet.</p>';
+        return;
+    }
+    
+    let html = '';
+    contactsData.forEach(contact => {
+        const quizResults = contact.quiz_results || {};
+        const answers = quizResults.answers || {};
+        const ministries = quizResults.recommended_ministries || [];
+        
+        html += `
+            <div class="contact-card ${contact.contacted ? 'contacted' : ''}" id="contact-${contact.id}">
+                <div class="contact-header">
+                    <div class="contact-info">
+                        <h4>${contact.name}</h4>
+                        <div class="contact-details">
+                            <div><i class="fas fa-envelope"></i> ${contact.email}</div>
+                            ${contact.phone ? `<div><i class="fas fa-phone"></i> ${contact.phone}</div>` : ''}
+                            <div><i class="fas fa-clock"></i> ${new Date(contact.submitted_at).toLocaleString()}</div>
+                        </div>
+                    </div>
+                    ${contact.contacted ? '<span style="color: #52c41a;"><i class="fas fa-check-circle"></i> Contacted</span>' : ''}
+                </div>
+                
+                ${contact.message ? `<div style="margin: 15px 0; padding: 15px; background: white; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <strong>Message:</strong> ${contact.message}
+                </div>` : ''}
+                
+                <div class="quiz-results">
+                    <h5>Quiz Results</h5>
+                    <div style="margin-bottom: 10px;">
+                        <strong>Profile:</strong> ${answers.age || 'Unknown'} • ${answers.gender || 'Unknown'} • 
+                        ${quizResults.states ? quizResults.states.join(', ') : 'Unknown'} • 
+                        ${quizResults.interests ? quizResults.interests.join(', ') : 'Unknown'}
+                    </div>
+                    <div>
+                        <strong>Recommended Ministries:</strong>
+                        <div class="ministries-list">
+                            ${ministries.map(m => `<span class="ministry-tag">${m}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-actions">
+                    ${!contact.contacted ? `
+                        <button class="btn btn-success btn-sm" onclick="markContacted(${contact.id})">
+                            <i class="fas fa-check"></i> Mark as Contacted
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-secondary btn-sm" onclick="exportContact(${contact.id})">
+                        <i class="fas fa-download"></i> Export Details
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function markContacted(contactId) {
+    // For now, just update the UI since we don't have an endpoint to update the database
+    const contact = contactsData.find(c => c.id === contactId);
+    if (contact) {
+        contact.contacted = true;
+        displayContacts();
+        updateContactBadge(contactsData);
+        
+        // TODO: Add API endpoint to update contacted status in database
+        console.log('Note: Contacted status is only updated in UI. Add backend endpoint to persist.');
+    }
+}
+
+function exportContact(contactId) {
+    const contact = contactsData.find(c => c.id === contactId);
+    if (!contact) return;
+    
+    const quizResults = contact.quiz_results || {};
+    const text = `Contact Request Details
+========================
+Name: ${contact.name}
+Email: ${contact.email}
+Phone: ${contact.phone || 'Not provided'}
+Date: ${new Date(contact.submitted_at).toLocaleString()}
+Contacted: ${contact.contacted ? 'Yes' : 'No'}
+
+Message: ${contact.message || 'No message'}
+
+Quiz Results:
+- Age: ${quizResults.answers?.age || 'Unknown'}
+- Gender: ${quizResults.answers?.gender || 'Unknown'}
+- State: ${quizResults.states?.join(', ') || 'Unknown'}
+- Interests: ${quizResults.interests?.join(', ') || 'Unknown'}
+- Situation: ${quizResults.situation?.join(', ') || 'Unknown'}
+
+Recommended Ministries:
+${(quizResults.recommended_ministries || []).map(m => '- ' + m).join('\n')}
+`;
+    
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contact_${contact.name.replace(/\s+/g, '_')}_${contact.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
 
 function loadChartJS() {
