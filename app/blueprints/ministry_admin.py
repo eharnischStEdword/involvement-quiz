@@ -263,6 +263,84 @@ def toggle_ministry_active(ministry_id):
 
 @ministry_admin_bp.route('/api/ministries/bulk-import', methods=['POST'])
 @require_admin_auth
+
+@ministry_admin_bp.route('/api/ministries/bulk-update', methods=['POST'])
+@require_admin_auth
+def bulk_update_ministries():
+    """Update multiple ministries at once"""
+    try:
+        data = request.json
+        ministry_ids = data.get('ministry_ids', [])
+        updates = data.get('updates', {})
+        
+        if not ministry_ids:
+            return jsonify({'success': False, 'error': 'No ministries selected'}), 400
+        
+        updated_count = 0
+        errors = []
+        
+        with get_db_connection() as (conn, cur):
+            for ministry_id in ministry_ids:
+                try:
+                    # Get current ministry data
+                    cur.execute('SELECT * FROM ministries WHERE id = %s', (ministry_id,))
+                    ministry = cur.fetchone()
+                    
+                    if not ministry:
+                        errors.append(f"Ministry {ministry_id} not found")
+                        continue
+                    
+                    # Apply updates
+                    updated_data = {}
+                    
+                    # Handle adding categories
+                    if 'add' in updates:
+                        for field, values in updates['add'].items():
+                            current = ministry.get(field, [])
+                            updated_data[field] = list(set(current + values))
+                    
+                    # Handle removing categories
+                    if 'remove' in updates:
+                        for field, values in updates['remove'].items():
+                            current = ministry.get(field, [])
+                            updated_data[field] = [item for item in current if item not in values]
+                    
+                    # Handle direct updates
+                    if 'set' in updates:
+                        updated_data.update(updates['set'])
+                    
+                    # Update the ministry
+                    if updated_data:
+                        set_clause = ', '.join([f"{k} = %s" for k in updated_data.keys()])
+                        values = [json.dumps(v) if isinstance(v, list) else v for v in updated_data.values()]
+                        values.append(ministry_id)
+                        
+                        cur.execute(f'''
+                            UPDATE ministries 
+                            SET {set_clause}, updated_at = CURRENT_TIMESTAMP
+                            WHERE id = %s
+                        ''', values)
+                        
+                        updated_count += 1
+                        
+                except Exception as e:
+                    errors.append(f"Ministry {ministry_id}: {str(e)}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Updated {updated_count} ministries',
+            'updated': updated_count,
+            'errors': errors
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in bulk update: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@ministry_admin_bp.route('/api/ministries/bulk-import', methods=['POST'])
+@require_admin_auth
+def bulk_import_ministries():
+
 def bulk_import_ministries():
     """Import multiple ministries from JSON"""
     try:
