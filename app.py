@@ -12,6 +12,7 @@ import time
 import threading
 import requests
 import pytz
+from app.blueprints.ministry_admin import ministry_admin_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -233,6 +234,8 @@ try:
     logger.info("Database initialized on startup")
 except Exception as e:
     logger.error(f"Database initialization failed: {e}")
+
+app.register_blueprint(ministry_admin_bp) 
 
 # Start keep-alive service (only in production)
 if os.environ.get('DATABASE_URL'):  # Only run keep-alive in production
