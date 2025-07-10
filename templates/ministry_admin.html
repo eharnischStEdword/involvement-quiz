@@ -206,6 +206,39 @@
             gap: 8px;
         }
 
+        .bulk-actions {
+            background: #005921;
+            color: white;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .bulk-actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bulk-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .bulk-edit-section {
+            margin-bottom: 20px;
+        }
+
+        .bulk-edit-section h4 {
+            color: #005921;
+            margin-bottom: 10px;
+        }
+
+        .selected-row {
+            background: #e8f5e9 !important;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -479,10 +512,36 @@
             </div>
         </div>
 
+        <div class="bulk-actions" id="bulkActions" style="display: none;">
+            <div class="bulk-actions-bar">
+                <span id="selectedCount">0 selected</span>
+                <div class="bulk-buttons">
+                    <button class="btn btn-secondary btn-sm" onclick="toggleBulkStatus('active')">
+                        <i class="fas fa-check"></i> Activate
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="toggleBulkStatus('inactive')">
+                        <i class="fas fa-times"></i> Deactivate
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="showBulkEditModal()">
+                        <i class="fas fa-edit"></i> Edit Categories
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="bulkDelete()">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button class="btn btn-sm" onclick="clearSelection()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="ministry-table">
             <table id="ministryTable">
                 <thead>
                     <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
                         <th>Name</th>
                         <th>Description</th>
                         <th>Categories</th>
@@ -492,7 +551,7 @@
                 </thead>
                 <tbody id="ministryList">
                     <tr>
-                        <td colspan="5" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <div class="spinner"></div>
                             <p>Loading ministries...</p>
                         </td>
@@ -671,6 +730,160 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Modal -->
+    <div id="bulkEditModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Bulk Edit Ministries</h2>
+                <span class="modal-close" onclick="closeBulkEditModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px;">Editing <strong id="bulkEditCount">0</strong> ministries</p>
+                
+                <div class="bulk-edit-section">
+                    <h4>Add Categories</h4>
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
+                        Select categories to ADD to all selected ministries
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Age Groups</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-infant" value="infant">
+                                <label for="bulk-add-age-infant">Infant</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-elementary" value="elementary">
+                                <label for="bulk-add-age-elementary">Elementary</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-junior-high" value="junior-high">
+                                <label for="bulk-add-age-junior-high">Junior High</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-high-school" value="high-school">
+                                <label for="bulk-add-age-high-school">High School</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-college-young-adult" value="college-young-adult">
+                                <label for="bulk-add-age-college-young-adult">College/Young Adult</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-married-parents" value="married-parents">
+                                <label for="bulk-add-age-married-parents">Married/Parents</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-age-journeying-adults" value="journeying-adults">
+                                <label for="bulk-add-age-journeying-adults">Journeying Adults</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Interests</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-interest-fellowship" value="fellowship">
+                                <label for="bulk-add-interest-fellowship">Fellowship</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-interest-service" value="service">
+                                <label for="bulk-add-interest-service">Service</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-interest-prayer" value="prayer">
+                                <label for="bulk-add-interest-prayer">Prayer</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-interest-education" value="education">
+                                <label for="bulk-add-interest-education">Education</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-add-interest-music" value="music">
+                                <label for="bulk-add-interest-music">Music</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bulk-edit-section" style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+                    <h4>Remove Categories</h4>
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 15px;">
+                        Select categories to REMOVE from all selected ministries
+                    </p>
+                    
+                    <div class="form-group">
+                        <label>Age Groups</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-infant" value="infant">
+                                <label for="bulk-remove-age-infant">Infant</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-elementary" value="elementary">
+                                <label for="bulk-remove-age-elementary">Elementary</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-junior-high" value="junior-high">
+                                <label for="bulk-remove-age-junior-high">Junior High</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-high-school" value="high-school">
+                                <label for="bulk-remove-age-high-school">High School</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-college-young-adult" value="college-young-adult">
+                                <label for="bulk-remove-age-college-young-adult">College/Young Adult</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-married-parents" value="married-parents">
+                                <label for="bulk-remove-age-married-parents">Married/Parents</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-age-journeying-adults" value="journeying-adults">
+                                <label for="bulk-remove-age-journeying-adults">Journeying Adults</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Interests</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-interest-fellowship" value="fellowship">
+                                <label for="bulk-remove-interest-fellowship">Fellowship</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-interest-service" value="service">
+                                <label for="bulk-remove-interest-service">Service</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-interest-prayer" value="prayer">
+                                <label for="bulk-remove-interest-prayer">Prayer</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-interest-education" value="education">
+                                <label for="bulk-remove-interest-education">Education</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="bulk-remove-interest-music" value="music">
+                                <label for="bulk-remove-interest-music">Music</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeBulkEditModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="applyBulkEdit()">
+                        <i class="fas fa-save"></i> Apply Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>
