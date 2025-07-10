@@ -18,9 +18,7 @@ def get_ministries():
         with get_db_connection() as (conn, cur):
             cur.execute('''
                 SELECT ministry_key, name, description, details,
-                       age_groups as age, genders as gender, 
-                       states as state, interests as interest,
-                       situations as situation
+                       age_groups, genders, states, interests, situations
                 FROM ministries
                 WHERE active = true
             ''')
@@ -32,11 +30,11 @@ def get_ministries():
                     'name': row[1],
                     'description': row[2],
                     'details': row[3],
-                    'age': json.loads(row[4]) if row[4] else [],
-                    'gender': json.loads(row[5]) if row[5] else [],
-                    'state': json.loads(row[6]) if row[6] else [],
-                    'interest': json.loads(row[7]) if row[7] else [],
-                    'situation': json.loads(row[8]) if row[8] else []
+                    'age': row[4] if row[4] else [],
+                    'gender': row[5] if row[5] else [],
+                    'state': row[6] if row[6] else [],
+                    'interest': row[7] if row[7] else [],
+                    'situation': row[8] if row[8] else []
                 }
         
         return jsonify(ministries)
