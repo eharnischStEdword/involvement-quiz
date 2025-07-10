@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>St. Edward Ministry Finder - Admin Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -20,17 +21,17 @@
         </div>
 
         <div class="actions">
-            <button class="btn btn-primary" onclick="exportToCSV()">
+            <button class="btn btn-primary" id="exportBtn">
                 <i class="fas fa-download"></i> Export Data
             </button>
-            <button class="btn btn-primary" id="contactsBtn" onclick="showContacts()">
+            <button class="btn btn-primary" id="contactsBtn">
                 <i class="fas fa-envelope"></i> Contact Requests
                 <span class="badge" id="contactBadge">0</span>
             </button>
-            <button class="btn btn-secondary" onclick="location.reload()">
+            <button class="btn btn-secondary" id="refreshBtn">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
-            <button class="btn btn-danger" onclick="showClearModal()">
+            <button class="btn btn-danger" id="clearBtn">
                 <i class="fas fa-trash-alt"></i> Clear All Data
             </button>
             <a href="/admin/ministries" class="btn btn-primary">
@@ -99,7 +100,7 @@
         <div class="contacts-section" id="contactsSection">
             <div class="section-title">
                 <i class="fas fa-envelope"></i> Contact Requests
-                <button class="btn btn-secondary btn-sm" onclick="hideContacts()">
+                <button class="btn btn-secondary btn-sm" id="closeContactsBtn">
                     <i class="fas fa-times"></i> Close
                 </button>
             </div>
@@ -122,8 +123,8 @@
             </div>
             
             <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="hideClearModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="clearAllData()" id="confirmBtn" disabled>
+                <button class="btn btn-secondary" id="cancelClearBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmBtn" disabled>
                     <i class="fas fa-trash"></i> Delete All Data
                 </button>
             </div>
