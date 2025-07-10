@@ -237,6 +237,19 @@ except Exception as e:
 
 app.register_blueprint(ministry_admin_bp) 
 
+def auto_migrate_ministries():
+    """Auto-populate ministries table on startup"""
+    try:
+        from app.migrations.add_ministries_table import create_ministries_table, migrate_ministry_data
+        create_ministries_table()
+        migrate_ministry_data()
+        logger.info("Ministry migration completed automatically")
+    except Exception as e:
+        logger.error(f"Auto-migration failed: {e}")
+
+# Add this after init_db() runs (around line 245)
+auto_migrate_ministries()
+
 # Start keep-alive service (only in production)
 if os.environ.get('DATABASE_URL'):  # Only run keep-alive in production
     if not os.environ.get('WERKZEUG_RUN_MAIN'):  # Prevent duplicate threads in debug mode
