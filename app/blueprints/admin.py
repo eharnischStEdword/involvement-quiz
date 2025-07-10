@@ -191,6 +191,3 @@ def export_submissions():
     except Exception as e:
         logger.error(f"Error exporting submissions: {e}")
         return jsonify({'error': str(e)}), 500
-
-@admin_bp.route('/api/contacts/<int:contact_id>/mark-contacted', methods=['POST'])
-@require_admin_auth
