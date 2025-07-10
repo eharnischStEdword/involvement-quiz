@@ -237,28 +237,26 @@ except Exception as e:
 #app.register_blueprint(ministry_admin_bp) 
 
 def auto_migrate_ministries():
-    """Auto-populate ministries table on startup"""
-    logger.info("Starting ministry migration...")
+    """Auto-populate ministries table if empty"""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Create ministries table
+        # Create ministries table with ALL columns including situations
         cur.execute('''
             CREATE TABLE IF NOT EXISTS ministries (
                 id SERIAL PRIMARY KEY,
-                ministry_key VARCHAR(100) UNIQUE NOT NULL,
-                name VARCHAR(255) NOT NULL,
+                ministry_key VARCHAR(100) UNIQUE,
+                name VARCHAR(255),
                 description TEXT,
                 details TEXT,
-                age_groups JSONB DEFAULT '[]',
-                genders JSONB DEFAULT '[]',
-                states JSONB DEFAULT '[]',
-                interests JSONB DEFAULT '[]',
-                situations JSONB DEFAULT '[]',
+                age_groups JSONB,
+                genders JSONB,
+                states JSONB,
+                interests JSONB,
+                situations JSONB,  -- Add this column
                 active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
@@ -267,31 +265,44 @@ def auto_migrate_ministries():
         count = cur.fetchone()[0]
         
         if count == 0:
-            # Insert ministries from MINISTRY_DATA
-            for key, ministry in MINISTRY_DATA.items():
-                cur.execute('''
-                    INSERT INTO ministries 
-                    (ministry_key, name, description, details, age_groups, genders, states, interests, situations)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ''', (
-                    key,
-                    ministry['name'],
-                    ministry.get('description', ''),
-                    ministry.get('details', ''),
-                    json.dumps(ministry.get('age', [])),
-                    json.dumps(ministry.get('gender', [])),
-                    json.dumps(ministry.get('state', [])),
-                    json.dumps(ministry.get('interest', [])),
-                    json.dumps(ministry.get('situation', []))
-                ))
+            logger.info("Ministries table is empty, populating from MINISTRY_DATA...")
+            added = 0
             
-        conn.commit()
+            for key, ministry in MINISTRY_DATA.items():
+                try:
+                    cur.execute('''
+                        INSERT INTO ministries 
+                        (ministry_key, name, description, details, age_groups, genders, states, interests, situations)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (ministry_key) DO NOTHING
+                    ''', (
+                        key,
+                        ministry.get('name', ''),
+                        ministry.get('description', ''),
+                        ministry.get('details', ''),
+                        json.dumps(ministry.get('age', [])),
+                        json.dumps(ministry.get('gender', [])),
+                        json.dumps(ministry.get('state', [])),
+                        json.dumps(ministry.get('interest', [])),
+                        json.dumps(ministry.get('situation', []))  -- Add this
+                    ))
+                    added += 1
+                except Exception as e:
+                    logger.error(f"Failed to insert ministry {key}: {e}")
+            
+            conn.commit()
+            logger.info(f"Ministry migration completed - {count} existing, {added} added")
+        else:
+            logger.info(f"Ministries table already has {count} entries, skipping migration")
+        
         cur.close()
         conn.close()
-        logger.info(f"Ministry migration completed - {count} existing, {len(MINISTRY_DATA) if count == 0 else 0} added")
         
     except Exception as e:
         logger.error(f"Auto-migration failed: {e}")
+        if conn:
+            conn.rollback()
+            conn.close()
 
 @app.route('/')
 def index():
