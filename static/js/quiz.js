@@ -84,7 +84,7 @@ function showLoadingError() {
                     We're having trouble connecting to our server. This could be temporary.
                 </div>
                 <div style="margin-bottom: 20px;">
-                    <button onclick="location.reload()" style="padding: 10px 20px; background: #005921; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    <button id="retryButton" style="padding: 10px 20px; background: #005921; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
                         🔄 Try Again
                     </button>
                 </div>
@@ -95,6 +95,11 @@ function showLoadingError() {
                 </div>
             </div>
         `;
+        
+        // Add event listener to retry button
+        document.getElementById('retryButton').addEventListener('click', function() {
+            location.reload();
+        });
     }
 }
 
@@ -629,6 +634,14 @@ function showResults() {
     
     resultsDiv.innerHTML = html;
     
+    // Add event handler for dynamically created "Go Back to Interests" button if it exists
+    const backToInterestsBtn = document.querySelector('.nav-back-to-interests');
+    if (backToInterestsBtn) {
+        backToInterestsBtn.addEventListener('click', function() {
+            goBack(5);
+        });
+    }
+    
     // Update progress bar to 100%
     const progressBar = document.getElementById('progress-bar');
     if (progressBar) {
@@ -854,7 +867,7 @@ function findMinistries() {
         const noInterestsMessage = {
             name: 'Select Your Interests',
             description: 'Please go back and select what interests you to see personalized recommendations.',
-            details: '<button class="nav-btn" onclick="goBack(5)" style="margin-top: 10px;">← Go Back to Interests</button>'
+            details: '<button class="nav-btn nav-back-to-interests" style="margin-top: 10px;">← Go Back to Interests</button>'
         };
         return [noInterestsMessage];
     }
