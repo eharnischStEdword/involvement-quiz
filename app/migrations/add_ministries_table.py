@@ -6,8 +6,9 @@ import psycopg2
 import json
 import logging
 from datetime import datetime
-from app.database import get_db_connection
-from app.ministries import MINISTRY_DATA
+import sys
+sys.path.append('/workspaces/involvement-quiz')
+from app import get_db_connection, MINISTRY_DATA
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
