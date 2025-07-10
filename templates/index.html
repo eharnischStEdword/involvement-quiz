@@ -25,7 +25,7 @@
     </div>
     
  <header class="header">
-    <div class="header-content" onclick="restart()" style="cursor: pointer;">
+    <div class="header-content" style="cursor: pointer;">
         <img src="https://static.wixstatic.com/media/a33a4b_ed0efbf5e52d458ab137fc4f85e55260~mv2.png" alt="St. Edward Church Logo" class="header-logo" />
         <div class="logo-text">St. Edward Church & School</div>
     </div>
@@ -54,25 +54,25 @@
                     <h2>First, tell us about yourself:</h2>
                     <p class="question-helper">Select the option that best describes you or your child</p>
                     <div class="button-group">
-                        <button class="option-btn" onclick="answerQuestion('age', 'infant')">
+                        <button class="option-btn" data-age="infant">
                             <span class="btn-emoji">👶</span> Infant (0-3)
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'elementary')">
+                        <button class="option-btn" data-age="elementary">
                             <span class="btn-emoji">🎒</span> Elementary School (PreK-Grade 5)
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'junior-high')">
+                        <button class="option-btn" data-age="junior-high">
                             <span class="btn-emoji">📚</span> Junior High (Grades 6-8)
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'high-school')">
+                        <button class="option-btn" data-age="high-school">
                             <span class="btn-emoji">🎓</span> High School (Grades 9-12)
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'college-young-adult')">
+                        <button class="option-btn" data-age="college-young-adult">
                             <span class="btn-emoji">🎯</span> College & Young Adult (18-35)
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'married-parents')">
+                        <button class="option-btn" data-age="married-parents">
                             <span class="btn-emoji">💚</span> Married Couples & Parents
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('age', 'journeying-adults')">
+                        <button class="option-btn" data-age="journeying-adults">
                             <span class="btn-emoji">🌟</span> Journeying Adults (30+)
                         </button>
                     </div>
@@ -84,18 +84,18 @@
                     <h2>Some ministries are specific to men or women</h2>
                     <p class="question-helper">This helps us show you all relevant opportunities</p>
                     <div class="button-group">
-                        <button class="option-btn" onclick="answerQuestion('gender', 'male')">
+                        <button class="option-btn" data-gender="male">
                             <i class="fas fa-male" style="font-size: 1.5rem;"></i> Male
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('gender', 'female')">
+                        <button class="option-btn" data-gender="female">
                             <i class="fas fa-female" style="font-size: 1.5rem;"></i> Female
                         </button>
-                        <button class="option-btn" onclick="answerQuestion('gender', 'skip')">
+                        <button class="option-btn" data-gender="skip">
                             <span class="btn-emoji">➡️</span> Show me everything
                         </button>
                     </div>
                     <div class="navigation">
-                        <button class="nav-btn" onclick="goBack(2)">← Back</button>
+                        <button class="nav-btn" data-back="2">← Back</button>
                         <div></div>
                     </div>
                 </div>
@@ -106,34 +106,34 @@
                     <h2>What describes your state in life?</h2>
                     <p class="question-helper">Select all that apply to you:</p>
                     <div class="checkbox-group modern" id="state-checkboxes">
-                        <div class="checkbox-item" onclick="toggleStateCheckbox('single')">
-                            <input type="checkbox" id="state-single" value="single" onchange="handleStateCheckboxChange('single')">
+                        <div class="checkbox-item" data-checkbox="state-single">
+                            <input type="checkbox" id="state-single" value="single">
                             <label for="state-single">
                                 <span class="checkbox-emoji">🌱</span> Single
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleStateCheckbox('married')">
-                            <input type="checkbox" id="state-married" value="married" onchange="handleStateCheckboxChange('married')">
+                        <div class="checkbox-item" data-checkbox="state-married">
+                            <input type="checkbox" id="state-married" value="married">
                             <label for="state-married">
                                 <span class="checkbox-emoji">💍</span> Married
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleStateCheckbox('parent')">
-                            <input type="checkbox" id="state-parent" value="parent" onchange="handleStateCheckboxChange('parent')">
+                        <div class="checkbox-item" data-checkbox="state-parent">
+                            <input type="checkbox" id="state-parent" value="parent">
                             <label for="state-parent">
                                 <span class="checkbox-emoji">🧑‍🧒‍🧒</span> Parent
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleStateCheckbox('none-of-above')">
-                            <input type="checkbox" id="state-none-of-above" value="none-of-above" onchange="handleStateCheckboxChange('none-of-above')">
+                        <div class="checkbox-item" data-checkbox="state-none-of-above">
+                            <input type="checkbox" id="state-none-of-above" value="none-of-above">
                             <label for="state-none-of-above">
                                 <span class="checkbox-emoji">✨</span> None of the above
                             </label>
                         </div>
                     </div>
                     <div class="navigation">
-                        <button class="nav-btn" onclick="goBack(3)">← Back</button>
-                        <button class="nav-btn primary" onclick="nextFromState()">Continue →</button>
+                        <button class="nav-btn" data-back="3">← Back</button>
+                        <button class="nav-btn primary" data-next-state>Continue →</button>
                     </div>
                 </div>
 
@@ -143,46 +143,46 @@
                     <h2>What brings you here today?</h2>
                     <p class="question-helper">Select all that apply:</p>
                     <div class="checkbox-group modern" id="situation-checkboxes">
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-stedward')">
-                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward" onchange="handleSituationCheckboxChange('new-to-stedward')">
+                        <div class="checkbox-item" data-checkbox="new-to-stedward">
+                            <input type="checkbox" id="new-to-stedward" value="new-to-stedward">
                             <label for="new-to-stedward">
                                 <span class="checkbox-emoji">🌟</span> New to St. Edward
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('returning-to-church')">
-                            <input type="checkbox" id="returning-to-church" value="returning-to-church" onchange="handleSituationCheckboxChange('returning-to-church')">
+                        <div class="checkbox-item" data-checkbox="returning-to-church">
+                            <input type="checkbox" id="returning-to-church" value="returning-to-church">
                             <label for="returning-to-church">
                                 <span class="checkbox-emoji">🙏</span> Returning to Church
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('new-to-nashville')">
-                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville" onchange="handleSituationCheckboxChange('new-to-nashville')">
+                        <div class="checkbox-item" data-checkbox="new-to-nashville">
+                            <input type="checkbox" id="new-to-nashville" value="new-to-nashville">
                             <label for="new-to-nashville">
                                 <span class="checkbox-emoji">📍</span> New to Nashville
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('current-parishioner')">
-                            <input type="checkbox" id="current-parishioner" value="current-parishioner" onchange="handleSituationCheckboxChange('current-parishioner')">
+                        <div class="checkbox-item" data-checkbox="current-parishioner">
+                            <input type="checkbox" id="current-parishioner" value="current-parishioner">
                             <label for="current-parishioner">
                                 <span class="checkbox-emoji">💚</span> Current Parishioner
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('just-curious')">
-                            <input type="checkbox" id="just-curious" value="just-curious" onchange="handleSituationCheckboxChange('just-curious')">
+                        <div class="checkbox-item" data-checkbox="just-curious">
+                            <input type="checkbox" id="just-curious" value="just-curious">
                             <label for="just-curious">
                                 <span class="checkbox-emoji">🔍</span> Just Exploring
                             </label>
                         </div>
-                        <div class="checkbox-item" onclick="toggleSituationCheckbox('situation-none-of-above')">
-                            <input type="checkbox" id="situation-none-of-above" value="situation-none-of-above" onchange="handleSituationCheckboxChange('situation-none-of-above')">
+                        <div class="checkbox-item" data-checkbox="situation-none-of-above">
+                            <input type="checkbox" id="situation-none-of-above" value="situation-none-of-above">
                             <label for="situation-none-of-above">
                                 <span class="checkbox-emoji">✨</span> None of the above
                             </label>
                         </div>
                     </div>
                     <div class="navigation">
-                        <button class="nav-btn" onclick="goBack(4)">← Back</button>
-                        <button class="nav-btn primary" onclick="nextFromSituation()">Continue →</button>
+                        <button class="nav-btn" data-back="4">← Back</button>
+                        <button class="nav-btn primary" data-next-situation>Continue →</button>
                     </div>
                 </div>
 
@@ -195,8 +195,8 @@
                         <!-- Filled dynamically based on age -->
                     </div>
                     <div class="navigation">
-                        <button class="nav-btn" onclick="goBack(5)">← Back</button>
-                        <button class="nav-btn primary celebrate" onclick="showResults()">
+                        <button class="nav-btn" data-back="5">← Back</button>
+                        <button class="nav-btn primary celebrate" data-show-results>
                             <span>See My Recommendations</span> 🎉
                         </button>
                     </div>
@@ -232,10 +232,10 @@
                         <p>Would you like someone from St. Edward to follow up with you about these ministries?</p>
                         
                         <div class="contact-form-toggle">
-                            <button class="contact-toggle-btn" onclick="showContactForm()">
+                            <button class="contact-toggle-btn" data-show-contact>
                                 <span class="btn-icon"></span> Yes, I'd like to be contacted
                             </button>
-                            <button class="contact-toggle-btn secondary" onclick="skipContact()">
+                            <button class="contact-toggle-btn secondary" data-skip-contact>
                                 <span class="btn-icon"></span> No thanks, I'll reach out myself
                             </button>
                         </div>
@@ -246,7 +246,7 @@
                                 <p>A ministry coordinator will reach out within 2-3 days.</p>
                             </div>
                             
-                            <form id="userContactForm" onsubmit="submitContact(event)">
+                            <form id="userContactForm">
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="contactName">First Name *</label>
@@ -269,7 +269,7 @@
                                 </div>
                                 
                                 <div class="form-actions">
-                                    <button type="button" class="form-btn secondary" onclick="hideContactForm()">
+                                    <button type="button" class="form-btn secondary" data-hide-contact>
                                         ← Go Back
                                     </button>
                                     <button type="submit" class="form-btn primary" id="submitContactBtn">
@@ -283,7 +283,7 @@
                                     <h4>✅ Thank you!</h4>
                                     <p>We've received your information and someone will reach out to you soon.</p>
                                     <p><strong>Next step:</strong> Check out the parish registration below to get connected immediately!</p>
-                                    <button class="form-btn primary" onclick="hideContactForm()">Continue to Registration →</button>
+                                    <button class="form-btn primary" data-hide-contact>Continue to Registration →</button>
                                 </div>
                             </div>
                         </div>
@@ -298,7 +298,7 @@
                     </div>
                     
                     <div style="text-align: center; margin-top: 2rem;">
-                        <button class="restart-btn" onclick="restart()">
+                        <button class="restart-btn" data-restart>
                             <span class="btn-icon">🔄</span> Start Over
                         </button>
                     </div>
