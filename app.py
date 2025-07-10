@@ -12,7 +12,7 @@ import time
 import threading
 import requests
 import pytz
-from app.blueprints.ministry_admin import ministry_admin_bp
+#from app.blueprints.ministry_admin import ministry_admin_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -235,7 +235,7 @@ try:
 except Exception as e:
     logger.error(f"Database initialization failed: {e}")
 
-app.register_blueprint(ministry_admin_bp) 
+#app.register_blueprint(ministry_admin_bp) 
 
 def auto_migrate_ministries():
     """Auto-populate ministries table on startup"""
