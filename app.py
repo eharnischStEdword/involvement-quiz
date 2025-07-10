@@ -284,7 +284,7 @@ def auto_migrate_ministries():
                         json.dumps(ministry.get('gender', [])),
                         json.dumps(ministry.get('state', [])),
                         json.dumps(ministry.get('interest', [])),
-                        json.dumps(ministry.get('situation', []))  -- Add this
+                        json.dumps(ministry.get('situation', []))  # Add this
                     ))
                     added += 1
                 except Exception as e:
