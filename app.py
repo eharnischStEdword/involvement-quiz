@@ -1077,13 +1077,40 @@ auto_migrate_ministries()
 
 @app.route('/api/get-ministries', methods=['POST'])
 def get_ministries():
-    """Protected endpoint to get ministry data"""
+    """Protected endpoint to get ministry data from database"""
     try:
-        # Simple protection - could enhance later
-        return jsonify(MINISTRY_DATA)
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        cur.execute('''
+            SELECT ministry_key, name, description, details, 
+                   age_groups, genders, states, interests, situations
+            FROM ministries
+            WHERE active = TRUE
+        ''')
+        
+        ministries = {}
+        for row in cur.fetchall():
+            key = row[0]
+            ministries[key] = {
+                'name': row[1],
+                'description': row[2],
+                'details': row[3],
+                'age': row[4] if row[4] else [],
+                'gender': row[5] if row[5] else [],
+                'state': row[6] if row[6] else [],
+                'interest': row[7] if row[7] else [],
+                'situation': row[8] if row[8] else []
+            }
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify(ministries)
     except Exception as e:
-        logger.error(f"Error getting ministries: {e}")
-        return jsonify({}), 500
+        logger.error(f"Error getting ministries from database: {e}")
+        # Fallback to MINISTRY_DATA if database fails
+        return jsonify(MINISTRY_DATA)
         
 @app.route('/health')
 def health_check():
