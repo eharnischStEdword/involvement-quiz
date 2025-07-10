@@ -293,8 +293,6 @@ def auto_migrate_ministries():
     except Exception as e:
         logger.error(f"Auto-migration failed: {e}")
 
-auto_migrate_ministries()
-
 @app.route('/')
 def index():
     # Serve the template with proper Flask template rendering
@@ -1029,6 +1027,8 @@ MINISTRY_DATA = {
         'interest': ['fellowship', 'education']
     }
 }
+
+auto_migrate_ministries()
 
 @app.route('/api/get-ministries', methods=['POST'])
 def get_ministries():
