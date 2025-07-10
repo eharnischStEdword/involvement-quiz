@@ -4,6 +4,25 @@ let filteredMinistries = [];
 let editingMinistryId = null;
 let selectedMinistries = new Set();
 
+// Helper functions for show/hide without inline styles
+function show(element) {
+    if (typeof element === 'string') {
+        element = document.getElementById(element);
+    }
+    if (element) {
+        element.classList.remove('hidden');
+    }
+}
+
+function hide(element) {
+    if (typeof element === 'string') {
+        element = document.getElementById(element);
+    }
+    if (element) {
+        element.classList.add('hidden');
+    }
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadMinistries();
@@ -147,7 +166,7 @@ function renderMinistryTable() {
             </td>
             <td>
                 <div class="ministry-name">${ministry.name}</div>
-                <small style="color: #64748b;">${ministry.ministry_key}</small>
+                <small class="ministry-key">${ministry.ministry_key}</small>
             </td>
             <td>${truncate(ministry.description, 100)}</td>
             <td>
@@ -227,7 +246,7 @@ function renderBadges(ministry) {
         ).join('');
     }
     
-    return badges || '<span style="color: #999;">No categories</span>';
+    return badges || '<span class="no-categories">No categories</span>';
 }
 
 // Selection management
@@ -297,10 +316,10 @@ function updateBulkActions() {
     const selectedCount = document.getElementById('selectedCount');
     
     if (selectedMinistries.size > 0) {
-        bulkActions.style.display = 'block';
+        show(bulkActions);
         selectedCount.textContent = `${selectedMinistries.size} selected`;
     } else {
-        bulkActions.style.display = 'none';
+        hide(bulkActions);
     }
 }
 
@@ -356,11 +375,11 @@ async function bulkDelete() {
 
 function showBulkEditModal() {
     document.getElementById('bulkEditCount').textContent = selectedMinistries.size;
-    document.getElementById('bulkEditModal').style.display = 'block';
+    show('bulkEditModal');
 }
 
 function closeBulkEditModal() {
-    document.getElementById('bulkEditModal').style.display = 'none';
+    hide('bulkEditModal');
     // Clear all bulk edit checkboxes
     document.querySelectorAll('#bulkEditModal input[type="checkbox"]').forEach(cb => {
         cb.checked = false;
@@ -417,7 +436,7 @@ function showAddModal() {
     document.getElementById('modalTitle').textContent = 'Add Ministry';
     document.getElementById('ministryForm').reset();
     document.getElementById('ministryActive').checked = true;
-    document.getElementById('ministryModal').style.display = 'block';
+    show('ministryModal');
 }
 
 // Edit ministry
@@ -430,7 +449,7 @@ async function editMinistry(id) {
             editingMinistryId = id;
             document.getElementById('modalTitle').textContent = 'Edit Ministry';
             populateForm(data.ministry);
-            document.getElementById('ministryModal').style.display = 'block';
+            show('ministryModal');
         } else {
             showError('Failed to load ministry details');
         }
@@ -638,17 +657,17 @@ async function importMinistries() {
 
 // Modal functions
 function closeModal() {
-    document.getElementById('ministryModal').style.display = 'none';
+    hide('ministryModal');
     document.getElementById('ministryForm').reset();
     editingMinistryId = null;
 }
 
 function showImportModal() {
-    document.getElementById('importModal').style.display = 'block';
+    show('importModal');
 }
 
 function closeImportModal() {
-    document.getElementById('importModal').style.display = 'none';
+    hide('importModal');
     document.getElementById('importData').value = '';
 }
 
@@ -676,13 +695,37 @@ function debounce(func, wait) {
     };
 }
 
+// Notification functions with styled elements instead of alerts
 function showSuccess(message) {
-    // Simple alert for now - could be replaced with toast notification
-    alert('✅ ' + message);
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-success';
+    notification.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('notification-show');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('notification-show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 function showError(message) {
-    alert('❌ ' + message);
+    const notification = document.createElement('div');
+    notification.className = 'notification notification-error';
+    notification.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('notification-show');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.classList.remove('notification-show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // Export utility for debugging/backup
