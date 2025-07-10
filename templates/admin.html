@@ -26,7 +26,7 @@
             </button>
             <button class="btn btn-primary" id="contactsBtn">
                 <i class="fas fa-envelope"></i> Contact Requests
-                <span class="badge" id="contactBadge">0</span>
+                <span class="badge hidden" id="contactBadge">0</span>
             </button>
             <button class="btn btn-secondary" id="refreshBtn">
                 <i class="fas fa-sync-alt"></i> Refresh
@@ -49,12 +49,12 @@
                 <div>Loading charts...</div>
             </div>
             
-            <div id="chart-error" class="chart-error">
+            <div id="chart-error" class="chart-error hidden">
                 <div><i class="fas fa-info-circle"></i> Charts temporarily unavailable</div>
                 <div>Data tables and export functions are working normally</div>
             </div>
             
-            <div id="charts-content">
+            <div id="charts-content" class="hidden">
                 <div class="charts-grid">
                     <div class="chart-container">
                         <div class="chart-title">Most Popular Ministries</div>
@@ -87,7 +87,7 @@
             <div class="data-header">
                 <i class="fas fa-table"></i> Recent Submissions
             </div>
-            <div class="loading" id="loading">
+            <div class="loading hidden" id="loading">
                 <div class="spinner"></div>
                 <div>Loading dashboard data...</div>
             </div>
@@ -97,7 +97,7 @@
         </div>
 
         <!-- Contacts Section -->
-        <div class="contacts-section" id="contactsSection">
+        <div class="contacts-section hidden" id="contactsSection">
             <div class="section-title">
                 <i class="fas fa-envelope"></i> Contact Requests
                 <button class="btn btn-secondary btn-sm" id="closeContactsBtn">
@@ -111,7 +111,7 @@
     </div>
 
     <!-- Clear Data Modal -->
-    <div id="clearModal" class="modal">
+    <div id="clearModal" class="modal hidden">
         <div class="modal-content">
             <h3><i class="fas fa-exclamation-triangle"></i> Confirm Data Deletion</h3>
             <p>This will permanently delete ALL ministry submissions and analytics data.</p>
