@@ -560,10 +560,6 @@ def test_database():
             'error_type': type(e).__name__
         }), 500
 
-# ===== ADD EVERYTHING BELOW THIS LINE TO YOUR APP.PY =====
-
-# Ministry data (moved from JavaScript for protection)
-# Ministry data (moved from JavaScript for protection)
 MINISTRY_DATA = {
     # Sacraments
     'mass': {
