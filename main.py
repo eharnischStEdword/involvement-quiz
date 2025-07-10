@@ -13,6 +13,7 @@ from app.database import init_connection_pool, close_connection_pool
 from app.blueprints.public import public_bp
 from app.blueprints.api import api_bp
 from app.blueprints.admin import admin_bp
+from app.blueprints.ministry_admin import ministry_admin_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -53,6 +54,7 @@ except Exception as e:
 app.register_blueprint(public_bp)
 app.register_blueprint(api_bp)
 app.register_blueprint(admin_bp)
+app.register_blueprint(ministry_admin_bp)
 
 # Start keep-alive service (only in production)
 if os.environ.get('DATABASE_URL'):
