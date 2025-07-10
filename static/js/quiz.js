@@ -343,16 +343,28 @@ function populateInterestOptions() {
     options.forEach(option => {
         const checkboxDiv = document.createElement('div');
         checkboxDiv.className = 'checkbox-item';
-        checkboxDiv.onclick = () => toggleInterestCheckbox(option.value);
+        checkboxDiv.setAttribute('data-interest', option.value);
         
         checkboxDiv.innerHTML = `
-            <input type="checkbox" id="interest-${option.value}" value="${option.value}" onchange="handleInterestCheckboxChange('${option.value}')">
+            <input type="checkbox" id="interest-${option.value}" value="${option.value}">
             <label for="interest-${option.value}">
                 <span class="checkbox-emoji">${option.label.split(' ')[0]}</span> ${option.label.substring(option.label.indexOf(' ') + 1)}
             </label>
         `;
         
         interestContainer.appendChild(checkboxDiv);
+        
+        // Add event listeners
+        const checkbox = checkboxDiv.querySelector('input[type="checkbox"]');
+        
+        checkboxDiv.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                checkbox.checked = !checkbox.checked;
+                handleInterestCheckboxChange(option.value);
+            }
+        });
+        
+        checkbox.addEventListener('change', () => handleInterestCheckboxChange(option.value));
     });
 }
 
@@ -904,7 +916,125 @@ function initializeQuiz() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initializeQuiz();
+    setupQuizEventListeners();
 });
+
+// Setup all event listeners for quiz buttons
+function setupQuizEventListeners() {
+    // Age question buttons
+    const ageButtons = document.querySelectorAll('#q1 .option-btn');
+    ageButtons.forEach(btn => {
+        const ageValue = btn.getAttribute('data-age');
+        if (ageValue) {
+            btn.addEventListener('click', () => answerQuestion('age', ageValue));
+        }
+    });
+
+    // Gender question buttons
+    const genderButtons = document.querySelectorAll('#q2 .option-btn');
+    genderButtons.forEach(btn => {
+        const genderValue = btn.getAttribute('data-gender');
+        if (genderValue) {
+            btn.addEventListener('click', () => answerQuestion('gender', genderValue));
+        }
+    });
+
+    // Navigation buttons
+    document.querySelectorAll('[data-back]').forEach(btn => {
+        const questionNum = parseInt(btn.getAttribute('data-back'));
+        btn.addEventListener('click', () => goBack(questionNum));
+    });
+
+    // Next buttons
+    const nextStateBtn = document.querySelector('[data-next-state]');
+    if (nextStateBtn) {
+        nextStateBtn.addEventListener('click', nextFromState);
+    }
+
+    const nextSituationBtn = document.querySelector('[data-next-situation]');
+    if (nextSituationBtn) {
+        nextSituationBtn.addEventListener('click', nextFromSituation);
+    }
+
+    // Show results button
+    const showResultsBtn = document.querySelector('[data-show-results]');
+    if (showResultsBtn) {
+        showResultsBtn.addEventListener('click', showResults);
+    }
+
+    // Restart button
+    const restartBtn = document.querySelector('[data-restart]');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', restart);
+    }
+
+    // Contact form buttons
+    const showContactBtn = document.querySelector('[data-show-contact]');
+    if (showContactBtn) {
+        showContactBtn.addEventListener('click', showContactForm);
+    }
+
+    const skipContactBtn = document.querySelector('[data-skip-contact]');
+    if (skipContactBtn) {
+        skipContactBtn.addEventListener('click', skipContact);
+    }
+
+    const hideContactBtn = document.querySelector('[data-hide-contact]');
+    if (hideContactBtn) {
+        hideContactBtn.addEventListener('click', hideContactForm);
+    }
+
+    // Contact form submission
+    const contactForm = document.getElementById('userContactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', submitContact);
+    }
+
+    // Header click for restart
+    const headerContent = document.querySelector('.header-content');
+    if (headerContent) {
+        headerContent.addEventListener('click', restart);
+    }
+
+    // Setup checkbox click handlers
+    setupCheckboxHandlers();
+}
+
+function setupCheckboxHandlers() {
+    // State checkboxes
+    document.querySelectorAll('#state-checkboxes .checkbox-item').forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const value = checkbox.value;
+        
+        // Click on container
+        item.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                checkbox.checked = !checkbox.checked;
+                handleStateCheckboxChange(value);
+            }
+        });
+        
+        // Change on checkbox
+        checkbox.addEventListener('change', () => handleStateCheckboxChange(value));
+    });
+
+    // Situation checkboxes
+    document.querySelectorAll('#situation-checkboxes .checkbox-item').forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const value = checkbox.id;
+        
+        // Click on container
+        item.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                checkbox.checked = !checkbox.checked;
+                handleSituationCheckboxChange(value);
+            }
+        });
+        
+        // Change on checkbox
+        checkbox.addEventListener('change', () => handleSituationCheckboxChange(value));
+    });
+}
 
 // Also initialize immediately in case DOMContentLoaded already fired
 if (document.readyState === 'loading') {
