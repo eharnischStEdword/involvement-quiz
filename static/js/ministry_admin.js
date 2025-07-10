@@ -470,3 +470,47 @@ window.ministryAdmin = {
     exportAllMinistries,
     allMinistries: () => allMinistries
 };
+
+async function applyBulkEdit() {
+    const getCheckedValues = (prefix) => {
+        return Array.from(document.querySelectorAll(`input[id^="${prefix}"]:checked`))
+            .map(cb => cb.value);
+    };
+    
+    const toAdd = {
+        age_groups: getCheckedValues('bulk-add-age-'),
+        interests: getCheckedValues('bulk-add-interest-')
+    };
+    
+    const toRemove = {
+        age_groups: getCheckedValues('bulk-remove-age-'),
+        interests: getCheckedValues('bulk-remove-interest-')
+    };
+    
+    try {
+        const response = await fetch('/api/ministries/bulk-update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ministry_ids: Array.from(selectedMinistries),
+                updates: {
+                    add: toAdd,
+                    remove: toRemove
+                }
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(data.message);
+            closeBulkEditModal();
+            clearSelection();
+            loadMinistries();
+        } else {
+            showError(data.error || 'Failed to update ministries');
+        }
+    } catch (error) {
+        showError('Network error');
+    }
+}
