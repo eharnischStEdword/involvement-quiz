@@ -571,7 +571,7 @@ MINISTRY_DATA = {
         'details': 'Daily & Weekend Mass times are available at <a href="https://stedward.org" target="_blank">stedward.org</a>',
         'age': ['infant', 'kid', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'],
         'interest': ['prayer', 'all']
-    }
+    },
     'confession': {
         'name': 'Sacrament of Confession',
         'description': 'Reconciliation and spiritual healing',
