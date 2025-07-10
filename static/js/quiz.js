@@ -574,17 +574,6 @@ function createSelectionsummary() {
         triggerConfetti();
     }
     
-    resultsDiv.innerHTML = html;
-    
-    // Update progress bar to 100%
-    document.getElementById('progress-bar').style.width = '100%';
-    
-    // Submit anonymous analytics data
-    submitAnalytics([...adultMinistries, ...childrenMinistries]);
-    
-    // Trigger confetti celebration!
-    triggerConfetti();
-}
 
 // NEW FUNCTION - Separate adult and children's ministries with Mass prioritization
 function separateMinistries(allMinistries) {
