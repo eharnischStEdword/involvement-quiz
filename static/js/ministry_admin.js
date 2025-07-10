@@ -138,6 +138,17 @@ function renderMinistryTable() {
         </tr>
     `).join('');
 }
+// Ministry Management JavaScript
+let allMinistries = [];
+let filteredMinistries = [];
+let editingMinistryId = null;
+let selectedMinistries = new Set();
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadMinistries();
+    setupEventListeners();
+});
 
 // Render category badges
 function renderBadges(ministry) {
