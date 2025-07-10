@@ -116,6 +116,82 @@ def admin_contacts():
         logger.error(f"Error getting contact submissions: {e}")
         return jsonify({'error': str(e)}), 500
 
+# Add this route to app/blueprints/admin.py after the admin_contacts function
+
+@admin_bp.route('/api/contacts/<int:contact_id>/mark-contacted', methods=['POST'])
+@require_admin_auth
+def mark_contact_contacted(contact_id):
+    """Mark a contact as contacted"""
+    try:
+        with get_db_connection() as (conn, cur):
+            cur.execute(
+                "UPDATE contact_submissions SET contacted = TRUE WHERE id = %s",
+                (contact_id,)
+            )
+            
+            if cur.rowcount == 0:
+                return jsonify({'success': False, 'error': 'Contact not found'}), 404
+        
+        logger.info(f"Contact {contact_id} marked as contacted")
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        logger.error(f"Error marking contact as contacted: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Add this route for date-filtered CSV export
+
+@admin_bp.route('/api/submissions/export')
+@require_admin_auth
+def export_submissions():
+    """Export submissions with optional date filtering"""
+    try:
+        date_from = request.args.get('from')
+        date_to = request.args.get('to')
+        
+        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+            query = '''
+                SELECT * FROM ministry_submissions
+                WHERE 1=1
+            '''
+            params = []
+            
+            if date_from:
+                query += ' AND submitted_at >= %s'
+                params.append(date_from)
+            
+            if date_to:
+                query += ' AND submitted_at <= %s'
+                params.append(f"{date_to} 23:59:59")
+            
+            query += ' ORDER BY submitted_at DESC'
+            
+            cur.execute(query, params)
+            submissions = cur.fetchall()
+        
+        # Convert to CSV
+        import io
+        import csv
+        
+        output = io.StringIO()
+        if submissions:
+            writer = csv.DictWriter(output, fieldnames=submissions[0].keys())
+            writer.writeheader()
+            writer.writerows(submissions)
+        
+        output.seek(0)
+        
+        from flask import Response
+        return Response(
+            output.read(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=ministry_submissions.csv'}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting submissions: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @admin_bp.route('/api/contacts/<int:contact_id>/mark-contacted', methods=['POST'])
 @require_admin_auth
 def mark_contact_contacted(contact_id):
