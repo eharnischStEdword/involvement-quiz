@@ -69,6 +69,7 @@ def get_all_ministries():
     except Exception as e:
         logger.error(f"Error getting ministries: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
 @ministry_admin_bp.route('/api/ministries/<int:ministry_id>')
 @require_admin_auth
 def get_ministry(ministry_id):
@@ -85,7 +86,7 @@ def get_ministry(ministry_id):
             
             ministry = dict(ministry)
             for field in ['created_at', 'updated_at']:
-                if ministry[field]:
+                if ministry.get(field):
                     ministry[field] = ministry[field].isoformat()
         
         return jsonify({
@@ -159,26 +160,54 @@ def update_ministry(ministry_id):
             if not cur.fetchone():
                 return jsonify({'success': False, 'error': 'Ministry not found'}), 404
             
+            # Check if updated_at column exists
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
             # Update ministry
-            cur.execute('''
-                UPDATE ministries 
-                SET ministry_key = %s, name = %s, description = %s, details = %s,
-                    age_groups = %s, genders = %s, states = %s, interests = %s,
-                    situations = %s, active = %s, updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-            ''', (
-                data.get('ministry_key'),
-                data.get('name'),
-                data.get('description', ''),
-                data.get('details', ''),
-                json.dumps(data.get('age_groups', [])),
-                json.dumps(data.get('genders', [])),
-                json.dumps(data.get('states', [])),
-                json.dumps(data.get('interests', [])),
-                json.dumps(data.get('situations', [])),
-                data.get('active', True),
-                ministry_id
-            ))
+            if has_updated_at:
+                cur.execute('''
+                    UPDATE ministries 
+                    SET ministry_key = %s, name = %s, description = %s, details = %s,
+                        age_groups = %s, genders = %s, states = %s, interests = %s,
+                        situations = %s, active = %s, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                ''', (
+                    data.get('ministry_key'),
+                    data.get('name'),
+                    data.get('description', ''),
+                    data.get('details', ''),
+                    json.dumps(data.get('age_groups', [])),
+                    json.dumps(data.get('genders', [])),
+                    json.dumps(data.get('states', [])),
+                    json.dumps(data.get('interests', [])),
+                    json.dumps(data.get('situations', [])),
+                    data.get('active', True),
+                    ministry_id
+                ))
+            else:
+                cur.execute('''
+                    UPDATE ministries 
+                    SET ministry_key = %s, name = %s, description = %s, details = %s,
+                        age_groups = %s, genders = %s, states = %s, interests = %s,
+                        situations = %s, active = %s
+                    WHERE id = %s
+                ''', (
+                    data.get('ministry_key'),
+                    data.get('name'),
+                    data.get('description', ''),
+                    data.get('details', ''),
+                    json.dumps(data.get('age_groups', [])),
+                    json.dumps(data.get('genders', [])),
+                    json.dumps(data.get('states', [])),
+                    json.dumps(data.get('interests', [])),
+                    json.dumps(data.get('situations', [])),
+                    data.get('active', True),
+                    ministry_id
+                ))
         
         logger.info(f"Updated ministry {ministry_id}: {data.get('name')}")
         
@@ -205,13 +234,28 @@ def delete_ministry(ministry_id):
     """Delete ministry (soft delete by setting active=false)"""
     try:
         with get_db_connection() as (conn, cur):
+            # Check if updated_at exists
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
             # Soft delete by setting active to false
-            cur.execute('''
-                UPDATE ministries 
-                SET active = false, updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-                RETURNING name
-            ''', (ministry_id,))
+            if has_updated_at:
+                cur.execute('''
+                    UPDATE ministries 
+                    SET active = false, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    RETURNING name
+                ''', (ministry_id,))
+            else:
+                cur.execute('''
+                    UPDATE ministries 
+                    SET active = false
+                    WHERE id = %s
+                    RETURNING name
+                ''', (ministry_id,))
             
             result = cur.fetchone()
             if not result:
@@ -236,12 +280,27 @@ def toggle_ministry_active(ministry_id):
     """Toggle ministry active status"""
     try:
         with get_db_connection() as (conn, cur):
-            cur.execute('''
-                UPDATE ministries 
-                SET active = NOT active, updated_at = CURRENT_TIMESTAMP
-                WHERE id = %s
-                RETURNING name, active
-            ''', (ministry_id,))
+            # Check if updated_at exists
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
+            if has_updated_at:
+                cur.execute('''
+                    UPDATE ministries 
+                    SET active = NOT active, updated_at = CURRENT_TIMESTAMP
+                    WHERE id = %s
+                    RETURNING name, active
+                ''', (ministry_id,))
+            else:
+                cur.execute('''
+                    UPDATE ministries 
+                    SET active = NOT active
+                    WHERE id = %s
+                    RETURNING name, active
+                ''', (ministry_id,))
             
             result = cur.fetchone()
             if not result:
@@ -261,9 +320,6 @@ def toggle_ministry_active(ministry_id):
         logger.error(f"Error toggling ministry {ministry_id}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@ministry_admin_bp.route('/api/ministries/bulk-import', methods=['POST'])
-@require_admin_auth
-
 @ministry_admin_bp.route('/api/ministries/bulk-update', methods=['POST'])
 @require_admin_auth
 def bulk_update_ministries():
@@ -279,7 +335,14 @@ def bulk_update_ministries():
         updated_count = 0
         errors = []
         
-        with get_db_connection() as (conn, cur):
+        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+            # Check if updated_at exists
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
             for ministry_id in ministry_ids:
                 try:
                     # Get current ministry data
@@ -312,12 +375,15 @@ def bulk_update_ministries():
                     # Update the ministry
                     if updated_data:
                         set_clause = ', '.join([f"{k} = %s" for k in updated_data.keys()])
+                        if has_updated_at:
+                            set_clause += ', updated_at = CURRENT_TIMESTAMP'
+                        
                         values = [json.dumps(v) if isinstance(v, list) else v for v in updated_data.values()]
                         values.append(ministry_id)
                         
                         cur.execute(f'''
                             UPDATE ministries 
-                            SET {set_clause}, updated_at = CURRENT_TIMESTAMP
+                            SET {set_clause}
                             WHERE id = %s
                         ''', values)
                         
@@ -340,8 +406,6 @@ def bulk_update_ministries():
 @ministry_admin_bp.route('/api/ministries/bulk-import', methods=['POST'])
 @require_admin_auth
 def bulk_import_ministries():
-
-def bulk_import_ministries():
     """Import multiple ministries from JSON"""
     try:
         data = request.json
@@ -354,36 +418,72 @@ def bulk_import_ministries():
         errors = []
         
         with get_db_connection() as (conn, cur):
+            # Check if updated_at exists
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
             for ministry in ministries_data:
                 try:
-                    cur.execute('''
-                        INSERT INTO ministries 
-                        (ministry_key, name, description, details, age_groups, 
-                         genders, states, interests, situations, active)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (ministry_key) DO UPDATE SET
-                            name = EXCLUDED.name,
-                            description = EXCLUDED.description,
-                            details = EXCLUDED.details,
-                            age_groups = EXCLUDED.age_groups,
-                            genders = EXCLUDED.genders,
-                            states = EXCLUDED.states,
-                            interests = EXCLUDED.interests,
-                            situations = EXCLUDED.situations,
-                            active = EXCLUDED.active,
-                            updated_at = CURRENT_TIMESTAMP
-                    ''', (
-                        ministry.get('ministry_key'),
-                        ministry.get('name'),
-                        ministry.get('description', ''),
-                        ministry.get('details', ''),
-                        json.dumps(ministry.get('age_groups', ministry.get('age', []))),
-                        json.dumps(ministry.get('genders', ministry.get('gender', []))),
-                        json.dumps(ministry.get('states', ministry.get('state', []))),
-                        json.dumps(ministry.get('interests', ministry.get('interest', []))),
-                        json.dumps(ministry.get('situations', ministry.get('situation', []))),
-                        ministry.get('active', True)
-                    ))
+                    if has_updated_at:
+                        cur.execute('''
+                            INSERT INTO ministries 
+                            (ministry_key, name, description, details, age_groups, 
+                             genders, states, interests, situations, active)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (ministry_key) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                description = EXCLUDED.description,
+                                details = EXCLUDED.details,
+                                age_groups = EXCLUDED.age_groups,
+                                genders = EXCLUDED.genders,
+                                states = EXCLUDED.states,
+                                interests = EXCLUDED.interests,
+                                situations = EXCLUDED.situations,
+                                active = EXCLUDED.active,
+                                updated_at = CURRENT_TIMESTAMP
+                        ''', (
+                            ministry.get('ministry_key'),
+                            ministry.get('name'),
+                            ministry.get('description', ''),
+                            ministry.get('details', ''),
+                            json.dumps(ministry.get('age_groups', ministry.get('age', []))),
+                            json.dumps(ministry.get('genders', ministry.get('gender', []))),
+                            json.dumps(ministry.get('states', ministry.get('state', []))),
+                            json.dumps(ministry.get('interests', ministry.get('interest', []))),
+                            json.dumps(ministry.get('situations', ministry.get('situation', []))),
+                            ministry.get('active', True)
+                        ))
+                    else:
+                        cur.execute('''
+                            INSERT INTO ministries 
+                            (ministry_key, name, description, details, age_groups, 
+                             genders, states, interests, situations, active)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (ministry_key) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                description = EXCLUDED.description,
+                                details = EXCLUDED.details,
+                                age_groups = EXCLUDED.age_groups,
+                                genders = EXCLUDED.genders,
+                                states = EXCLUDED.states,
+                                interests = EXCLUDED.interests,
+                                situations = EXCLUDED.situations,
+                                active = EXCLUDED.active
+                        ''', (
+                            ministry.get('ministry_key'),
+                            ministry.get('name'),
+                            ministry.get('description', ''),
+                            ministry.get('details', ''),
+                            json.dumps(ministry.get('age_groups', ministry.get('age', []))),
+                            json.dumps(ministry.get('genders', ministry.get('gender', []))),
+                            json.dumps(ministry.get('states', ministry.get('state', []))),
+                            json.dumps(ministry.get('interests', ministry.get('interest', []))),
+                            json.dumps(ministry.get('situations', ministry.get('situation', []))),
+                            ministry.get('active', True)
+                        ))
                     imported_count += 1
                 except Exception as e:
                     errors.append(f"{ministry.get('name', 'Unknown')}: {str(e)}")
