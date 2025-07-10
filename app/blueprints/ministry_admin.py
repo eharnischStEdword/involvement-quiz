@@ -22,21 +22,42 @@ def get_all_ministries():
     """Get all ministries from database"""
     try:
         with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
-            cur.execute('''
-                SELECT id, ministry_key, name, description, details, 
-                       age_groups, genders, states, interests, situations,
-                       active, created_at, updated_at
-                FROM ministries
-                ORDER BY name
-            ''')
+            # Check if updated_at column exists
+            cur.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
+            # Build query based on available columns
+            if has_updated_at:
+                query = '''
+                    SELECT id, ministry_key, name, description, details, 
+                           age_groups, genders, states, interests, situations,
+                           active, created_at, updated_at
+                    FROM ministries
+                    ORDER BY name
+                '''
+            else:
+                query = '''
+                    SELECT id, ministry_key, name, description, details, 
+                           age_groups, genders, states, interests, situations,
+                           active, created_at
+                    FROM ministries
+                    ORDER BY name
+                '''
+            
+            cur.execute(query)
             
             ministries = []
             for row in cur.fetchall():
                 ministry = dict(row)
                 # Convert timestamps to ISO format
-                for field in ['created_at', 'updated_at']:
-                    if ministry[field]:
-                        ministry[field] = ministry[field].isoformat()
+                if ministry.get('created_at'):
+                    ministry['created_at'] = ministry['created_at'].isoformat()
+                if ministry.get('updated_at'):
+                    ministry['updated_at'] = ministry['updated_at'].isoformat()
                 ministries.append(ministry)
         
         return jsonify({
@@ -48,7 +69,6 @@ def get_all_ministries():
     except Exception as e:
         logger.error(f"Error getting ministries: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
-
 @ministry_admin_bp.route('/api/ministries/<int:ministry_id>')
 @require_admin_auth
 def get_ministry(ministry_id):
