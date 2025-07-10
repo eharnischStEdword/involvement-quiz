@@ -12,7 +12,6 @@
     align-items: center;
 }
 
-/* Update these sections in static/css/layout.css */
 
 .header-content {
     max-width: 800px;
@@ -28,6 +27,12 @@
     width: 21px; /* 60% of 35px = 21px */
     height: auto;
     flex-shrink: 0;
+}
+
+/* Fallback when image fails to load */
+.header-logo:not([src]), 
+.header-logo[src=""] {
+    display: none;
 }
 
 /* Mobile adjustments */
