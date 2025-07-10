@@ -25,7 +25,19 @@ app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-pr
 
 # Configure Talisman for HTTPS (disable in development)
 if os.environ.get('DATABASE_URL'):  # Production
-    Talisman(app, force_https=True, strict_transport_security=True)
+    csp = {
+        'default-src': "'self'",
+        'style-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+        'script-src': "'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.googletagmanager.com",
+        'font-src': "'self' https://cdnjs.cloudflare.com data:",
+        'img-src': "'self' data: https: http:",
+        'connect-src': "'self'"
+    }
+    Talisman(app, 
+             force_https=True, 
+             strict_transport_security=True,
+             content_security_policy=csp,
+             content_security_policy_nonce_in=['script-src', 'style-src'])
 
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
