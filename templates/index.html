@@ -24,8 +24,8 @@
         </div>
     </div>
     
-  <header class="header">
-    <div class="header-content">
+ <header class="header">
+    <div class="header-content" onclick="restart()" style="cursor: pointer;">
         <img src="https://static.wixstatic.com/media/a33a4b_ed0efbf5e52d458ab137fc4f85e55260~mv2.png" alt="St. Edward Church Logo" class="header-logo" />
         <div class="logo-text">St. Edward Church & School</div>
     </div>
@@ -205,23 +205,38 @@
                 <!-- Results -->
                 <div id="results">
                     <div class="results-header">
-                        <div class="success-icon">🎊</div>
                         <h2>Perfect! Here's your personalized path:</h2>
                     </div>
                     <div id="ministry-recommendations" class="ministry-list"></div>
 
                     <!-- Add this to templates/index.html in the results section, before parish-registration div -->
-
+                    <div class="parish-registration">
+                        <h3>Ready to Take the Next Step?</h3>
+                        <p>Join our parish family and stay connected with all these opportunities!</p>
+                        
+                        <div class="registration-buttons">
+                            <a href="https://stedwardnash.flocknote.com/register" target="_blank" class="registration-btn">
+                                <span class="btn-icon">🙌</span> Register at St. Edward
+                            </a>
+                        </div>
+                        
+                        <div class="social-links">
+                            <a href="https://stedward.smugmug.com/" target="_blank">📸 Parish Photos</a>
+                            <a href="https://www.instagram.com/stedwardcommunity/" target="_blank">📱 Instagram</a>
+                            <a href="https://www.facebook.com/stedwardschool" target="_blank">👥 Facebook</a>
+                        </div>
+                    </div>
+                    
                     <div class="contact-form-section" id="contactFormSection">
-                        <h3>📞 Stay Connected (Optional)</h3>
+                        <h3>Want to be contacted? (Optional)</h3>
                         <p>Would you like someone from St. Edward to follow up with you about these ministries?</p>
                         
                         <div class="contact-form-toggle">
                             <button class="contact-toggle-btn" onclick="showContactForm()">
-                                <span class="btn-icon">💌</span> Yes, I'd like to be contacted
+                                <span class="btn-icon"></span> Yes, I'd like to be contacted
                             </button>
                             <button class="contact-toggle-btn secondary" onclick="skipContact()">
-                                <span class="btn-icon">⏭️</span> No thanks, I'll reach out myself
+                                <span class="btn-icon"></span> No thanks, I'll reach out myself
                             </button>
                         </div>
                         
@@ -274,23 +289,7 @@
                         </div>
                     </div>
                     
-                    <div class="parish-registration">
-                        <h3>🎉 Ready to Take the Next Step?</h3>
-                        <p>Join our parish family and stay connected with all these opportunities!</p>
-                        
-                        <div class="registration-buttons">
-                            <a href="https://stedwardnash.flocknote.com/register" target="_blank" class="registration-btn">
-                                <span class="btn-icon">📧</span> Register with Our Parish
-                            </a>
-                        </div>
-                        
-                        <div class="social-links">
-                            <a href="https://stedward.smugmug.com/" target="_blank">📸 Parish Photos</a>
-                            <a href="https://www.instagram.com/stedwardcommunity/" target="_blank">📱 Instagram</a>
-                            <a href="https://www.facebook.com/stedwardschool" target="_blank">👥 Facebook</a>
-                        </div>
-                    </div>
-                    
+
                     <div class="contact-info">
                         <h4>Have Questions? We're Here to Help!</h4>
                         <p><strong>Call:</strong> (615) 833-5520</p>
