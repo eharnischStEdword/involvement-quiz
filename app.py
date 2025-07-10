@@ -1080,7 +1080,7 @@ def get_ministries():
     """Protected endpoint to get ministry data from database"""
     try:
         conn = get_db_connection()
-        cur = conn.cursor()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         cur.execute('''
             SELECT ministry_key, name, description, details, 
@@ -1091,16 +1091,15 @@ def get_ministries():
         
         ministries = {}
         for row in cur.fetchall():
-            key = row[0]
-            ministries[key] = {
-                'name': row[1],
-                'description': row[2],
-                'details': row[3],
-                'age': row[4] if row[4] else [],
-                'gender': row[5] if row[5] else [],
-                'state': row[6] if row[6] else [],
-                'interest': row[7] if row[7] else [],
-                'situation': row[8] if row[8] else []
+            ministries[row['ministry_key']] = {
+                'name': row['name'],
+                'description': row['description'],
+                'details': row['details'],
+                'age': row['age_groups'] if row['age_groups'] else [],
+                'gender': row['genders'] if row['genders'] else [],
+                'state': row['states'] if row['states'] else [],
+                'interest': row['interests'] if row['interests'] else [],
+                'situation': row['situations'] if row['situations'] else []
             }
         
         cur.close()
