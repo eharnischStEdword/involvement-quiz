@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Simple rate limiting storage (in production, use Redis)
 request_counts = {}
-RATE_LIMIT_REQUESTS = 5  # Max 5 submissions per hour per IP
+RATE_LIMIT_REQUESTS = 50  # Max 50 submissions per hour per IP
 RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
 
 # Admin credentials - SET THESE AS ENVIRONMENT VARIABLES
