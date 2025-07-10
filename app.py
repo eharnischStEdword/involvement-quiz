@@ -240,7 +240,7 @@ except Exception as e:
 def auto_migrate_ministries():
     """Auto-populate ministries table on startup"""
     try:
-        from app.migrations.add_ministries_table import create_ministries_table, migrate_ministry_data
+        from migrations.add_ministries_table import create_ministries_table, migrate_ministry_data
         create_ministries_table()
         migrate_ministry_data()
         logger.info("Ministry migration completed automatically")
