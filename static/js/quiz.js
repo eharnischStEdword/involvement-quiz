@@ -752,8 +752,26 @@ function findMinistries() {
     }
     
     console.log('Total ministries available:', Object.keys(ministries).length);
+    console.log('All ministry keys:', Object.keys(ministries));
+    
+    // Define age groups
+    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
+    const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
+    const isAdultUser = adultAges.includes(userAge);
     
     for (const [key, ministry] of Object.entries(ministries)) {
+        // Special debug for specific ministries
+        if (key.includes('coffee') || key.includes('catechist') || ministry.name?.toLowerCase().includes('coffee') || ministry.name?.toLowerCase().includes('catechist')) {
+            console.log(`🔍 DEBUGGING ${key}:`, {
+                name: ministry.name,
+                age: ministry.age,
+                interests: ministry.interest,
+                gender: ministry.gender,
+                state: ministry.state,
+                situation: ministry.situation
+            });
+        }
+        
         // Skip the welcome committee unless user specifically selected "new-to-stedward"
         if (key === 'welcome-committee' && !situation.includes('new-to-stedward')) {
             continue;
@@ -761,93 +779,76 @@ function findMinistries() {
         
         let isMatch = true;
         
-        // FIXED: When "Show me everything!" is selected, we should see all age-appropriate ministries
-        const effectiveAges = [userAge];
-        if ((hasKidsInterest || isParent) && !wantsEverything) {
-            // Only include children's ages if they're a parent or selected kids interest
-            // AND they didn't select "Show me everything!"
-            effectiveAges.push('infant', 'elementary', 'junior-high', 'high-school');
-        }
+        // Special flag for ministries with "all" interests - they're for everyone
+        const ministryHasAllInterests = ministry.interest && ministry.interest.includes('all');
         
-        // Special handling for ministries with "all" interests - they should match EVERYONE in their age range
-        const hasAllInterests = ministry.interest && ministry.interest.includes('all');
-        
-        // Check age - but be VERY lenient if "Show me everything!" is selected OR ministry has "all" interests
+        // SIMPLIFIED AGE CHECK
         if (ministry.age && ministry.age.length > 0) {
-            if (wantsEverything || hasAllInterests) {
-                // For "Show me everything!" OR ministries with "all" interests, show ALL ministries appropriate for adults/children
-                const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
-                const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
-                const isAdultMinistry = ministry.age.some(age => adultAges.includes(age));
-                const isChildMinistry = ministry.age.some(age => childAges.includes(age));
-                
-                // If user is an adult, show ALL adult ministries
-                if (adultAges.includes(userAge) && !isAdultMinistry && !isChildMinistry) {
-                    // Skip ministries that have NO age groups we recognize
+            const isAdultMinistry = ministry.age.some(age => adultAges.includes(age));
+            const isChildMinistry = ministry.age.some(age => childAges.includes(age));
+            
+            // If "Show me everything!" OR ministry has "all" interests
+            if (wantsEverything || ministryHasAllInterests) {
+                // Adults see all adult ministries, children see all children ministries
+                if (isAdultUser && !isAdultMinistry) {
                     isMatch = false;
-                }
-                // If user is a child, show ALL child ministries
-                else if (childAges.includes(userAge) && !isChildMinistry && !isAdultMinistry) {
-                    // Skip ministries that have NO age groups we recognize
+                } else if (!isAdultUser && !isChildMinistry) {
                     isMatch = false;
                 }
             } else {
-                // Normal age matching when NOT "Show me everything!"
+                // Normal matching - must include user's age or parent/kids logic
+                const effectiveAges = [userAge];
+                if (hasKidsInterest || isParent) {
+                    effectiveAges.push(...childAges);
+                }
                 if (!ministry.age.some(age => effectiveAges.includes(age))) {
                     isMatch = false;
                 }
             }
         }
         
-        // Check gender (if specified and not skipped)
-        if (ministry.gender && answers.gender !== 'skip' && !ministry.gender.includes(answers.gender)) {
+        // GENDER CHECK (always apply unless skipped)
+        if (isMatch && ministry.gender && answers.gender !== 'skip' && !ministry.gender.includes(answers.gender)) {
             isMatch = false;
         }
         
-        // Check state - but be lenient if "Show me everything!" OR ministry has "all" interests
-        if (ministry.state && ministry.state.length > 0 && states.length > 0 && !wantsEverything && !hasAllInterests) {
-            if (!states.includes('none-of-above')) {
-                const hasMatchingState = ministry.state.some(s => states.includes(s));
-                if (!hasMatchingState) {
+        // STATE CHECK - skip if "Show me everything!" OR ministry has "all" interests
+        if (isMatch && ministry.state && ministry.state.length > 0 && !wantsEverything && !ministryHasAllInterests) {
+            if (states.length > 0 && !states.includes('none-of-above')) {
+                if (!ministry.state.some(s => states.includes(s))) {
                     isMatch = false;
                 }
             }
         }
         
-        // Check situation (if ministry has situation requirements) - skip for "all" interests
-        if (ministry.situation && ministry.situation.length > 0 && !wantsEverything && !hasAllInterests) {
-            const hasMatchingSituation = ministry.situation.some(s => situation.includes(s));
-            if (!hasMatchingSituation) {
+        // SITUATION CHECK - skip if "Show me everything!" OR ministry has "all" interests
+        if (isMatch && ministry.situation && ministry.situation.length > 0 && !wantsEverything && !ministryHasAllInterests) {
+            if (!ministry.situation.some(s => situation.includes(s))) {
                 isMatch = false;
             }
         }
         
-        // FIXED: "Show me everything!" should bypass interest filtering
-        if (interests.length > 0 && !wantsEverything) {
-            // Only filter by interests if NOT "Show me everything!"
-            if (ministry.interest && ministry.interest.length > 0) {
-                let hasMatchingInterest = false;
+        // INTEREST CHECK - special handling
+        if (isMatch && interests.length > 0) {
+            // If user wants everything, skip interest filtering entirely
+            if (wantsEverything) {
+                // Don't filter by interests at all
+            }
+            // If ministry has "all" interests, it always matches
+            else if (ministryHasAllInterests) {
+                // Ministry is for everyone, keep it
+            }
+            // Otherwise check for matching interests
+            else if (ministry.interest && ministry.interest.length > 0) {
+                const hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
                 
-                // If ministry has "all" interests, it matches ANY user interest selection
-                if (ministry.interest.includes('all')) {
-                    hasMatchingInterest = true;
-                } else {
-                    // Standard interest matching
-                    hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
-                }
-                
-                // SPECIAL CASE: If user selected "kids" interest, match children's ministries
+                // Special case: kids interest matches children's ministries
                 if (!hasMatchingInterest && hasKidsInterest) {
-                    // Check if this is a children's ministry
-                    const isChildrensMinistry = ministry.age && ministry.age.some(age => 
-                        ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
-                    );
-                    if (isChildrensMinistry) {
-                        hasMatchingInterest = true;
+                    const isChildrensMinistry = ministry.age && ministry.age.some(age => childAges.includes(age));
+                    if (!isChildrensMinistry) {
+                        isMatch = false;
                     }
-                }
-                
-                if (!hasMatchingInterest) {
+                } else if (!hasMatchingInterest) {
                     isMatch = false;
                 }
             }
@@ -855,18 +856,24 @@ function findMinistries() {
         
         if (isMatch) {
             matches.push(ministry);
-            console.log('✓ Matched:', ministry.name);
+            console.log('✓ Matched:', ministry.name, ministry.interest ? `(interests: ${ministry.interest.join(',')})` : '');
         } else {
-            // Special debug for ministries with "all" interests
-            if (ministry.interest && ministry.interest.includes('all')) {
-                console.log('✗ FAILED "all" interest ministry:', ministry.name, {
+            // Enhanced debug logging for all failed matches when "Show me everything!"
+            if (wantsEverything || ministryHasAllInterests || key.includes('coffee') || key.includes('catechist')) {
+                console.log(`✗ FAILED ${ministry.name}:`, {
+                    key: key,
+                    failedAt: isMatch === false ? 'somewhere' : 'unknown',
                     age: ministry.age,
+                    interests: ministry.interest,
                     userAge: userAge,
+                    isAdultUser: isAdultUser,
                     wantsEverything: wantsEverything,
-                    interests: ministry.interest
+                    ministryHasAllInterests: ministryHasAllInterests,
+                    gender: ministry.gender,
+                    userGender: answers.gender,
+                    state: ministry.state,
+                    userStates: states
                 });
-            } else {
-                console.log('✗ Did not match:', ministry.name);
             }
         }
     }
