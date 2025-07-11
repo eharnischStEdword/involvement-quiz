@@ -828,18 +828,13 @@ function findMinistries() {
             }
         }
         
-        // INTEREST CHECK - special handling
-        if (isMatch && interests.length > 0) {
-            // If user wants everything, skip interest filtering entirely
-            if (wantsEverything) {
-                // Don't filter by interests at all
-            }
-            // If ministry has "all" interests, it always matches
-            else if (ministryHasAllInterests) {
-                // Ministry is for everyone, keep it
-            }
-            // Otherwise check for matching interests
-            else if (ministry.interest && ministry.interest.length > 0) {
+        // INTEREST CHECK - simplified and fixed
+        if (isMatch && interests.length > 0 && !wantsEverything && !ministryHasAllInterests) {
+            // Only check interests if:
+            // 1. User didn't select "Show me everything!"
+            // 2. Ministry doesn't have "all" in its interests
+            
+            if (ministry.interest && ministry.interest.length > 0) {
                 const hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
                 
                 // Special case: kids interest matches children's ministries
@@ -853,6 +848,7 @@ function findMinistries() {
                 }
             }
         }
+        // If wantsEverything OR ministryHasAllInterests, we skip interest filtering entirely
         
         if (isMatch) {
             matches.push(ministry);
