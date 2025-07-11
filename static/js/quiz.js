@@ -796,40 +796,37 @@ function findMinistries() {
         
         // ENHANCED INTEREST MATCHING
         if (interests.length > 0) {
-            // If user selected "all", skip interest filtering entirely
-            if (interests.includes('all')) {
-                // User wants everything - don't filter by interests at all
-                // isMatch stays true
-            } else if (ministry.interest && ministry.interest.length > 0) {
-                let hasMatchingInterest = false;
-                
-                // If ministry has "all" interests, it matches ANY user interest selection
-                if (ministry.interest.includes('all')) {
-                    hasMatchingInterest = true;
-                } else {
-                    // Standard interest matching
-                    hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
-                }
-                
-                // SPECIAL CASE: If user selected "kids" interest, match children's ministries
-                if (!hasMatchingInterest && hasKidsInterest) {
-                    // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
-                    const isChildrensMinistry = ministry.age && ministry.age.some(age => 
-                        ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
-                    );
-                    if (isChildrensMinistry) {
+            // If user selected "all", they want to see EVERYTHING - don't filter by interests
+            if (!interests.includes('all')) {
+                // User has specific interests, check if ministry matches
+                if (ministry.interest && ministry.interest.length > 0) {
+                    let hasMatchingInterest = false;
+                    
+                    // If ministry has "all" interests, it matches ANY user interest selection
+                    if (ministry.interest.includes('all')) {
                         hasMatchingInterest = true;
+                    } else {
+                        // Standard interest matching
+                        hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+                    }
+                    
+                    // SPECIAL CASE: If user selected "kids" interest, match children's ministries
+                    if (!hasMatchingInterest && hasKidsInterest) {
+                        // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
+                        const isChildrensMinistry = ministry.age && ministry.age.some(age => 
+                            ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
+                        );
+                        if (isChildrensMinistry) {
+                            hasMatchingInterest = true;
+                        }
+                    }
+                    
+                    if (!hasMatchingInterest) {
+                        isMatch = false;
                     }
                 }
-                
-                if (!hasMatchingInterest) {
-                    isMatch = false;
-                }
-            } else if (!interests.includes('all')) {
-                // Ministry has no interests defined and user didn't select "all"
-                // This ministry doesn't match
-                isMatch = false;
             }
+            // If user selected "all", isMatch remains whatever it was (true if age/gender/state matched)
         }
         
         if (isMatch) {
