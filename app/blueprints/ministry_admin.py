@@ -502,3 +502,55 @@ def bulk_import_ministries():
     except Exception as e:
         logger.error(f"Error in bulk import: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@ministry_admin_bp.route('/api/ministries/permanent-delete', methods=['POST'])
+@require_admin_auth
+def permanent_delete_ministries():
+    """Permanently delete ministries from database (DESTRUCTIVE)"""
+    try:
+        data = request.json
+        ministry_ids = data.get('ministry_ids', [])
+        
+        if not ministry_ids:
+            return jsonify({'success': False, 'error': 'No ministries selected'}), 400
+        
+        deleted_count = 0
+        errors = []
+        
+        with get_db_connection() as (conn, cur):
+            # First verify all selected ministries are inactive
+            cur.execute('''
+                SELECT id, name, active FROM ministries 
+                WHERE id = ANY(%s)
+            ''', (ministry_ids,))
+            
+            ministries_to_delete = cur.fetchall()
+            
+            # Check if any are still active
+            active_ministries = [m for m in ministries_to_delete if m[2]]
+            if active_ministries:
+                return jsonify({
+                    'success': False,
+                    'error': f'{len(active_ministries)} ministries are still active. Only inactive ministries can be permanently deleted.'
+                }), 400
+            
+            # Permanently delete the ministries
+            for ministry_id in ministry_ids:
+                try:
+                    cur.execute('DELETE FROM ministries WHERE id = %s', (ministry_id,))
+                    deleted_count += 1
+                except Exception as e:
+                    errors.append(f"Ministry {ministry_id}: {str(e)}")
+        
+        logger.warning(f"PERMANENTLY DELETED {deleted_count} ministries")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Permanently deleted {deleted_count} ministries',
+            'deleted': deleted_count,
+            'errors': errors
+        })
+        
+    except Exception as e:
+        logger.error(f"Error in permanent delete: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
