@@ -731,6 +731,15 @@ function findMinistries() {
     const hasKidsInterest = interests.includes('kids');
     const isParent = states.includes('parent');
     
+    // Debug logging
+    console.log('Finding ministries for:', {
+        age: userAge,
+        gender: answers.gender,
+        states: states,
+        interests: interests,
+        situation: situation
+    });
+    
     // Check if ministries loaded
     if (!ministries || Object.keys(ministries).length === 0) {
         return [{
@@ -739,6 +748,8 @@ function findMinistries() {
             details: 'Please contact the parish office at (615) 833-5520 or email <a href="mailto:support@stedward.org">support@stedward.org</a> for assistance.'
         }];
     }
+    
+    console.log('Total ministries available:', Object.keys(ministries).length);
     
     for (const [key, ministry] of Object.entries(ministries)) {
         // Skip the welcome committee unless user specifically selected "new-to-stedward"
@@ -784,11 +795,12 @@ function findMinistries() {
         }
         
         // ENHANCED INTEREST MATCHING
-        if (interests.length > 0 && ministry.interest) {
+        if (interests.length > 0) {
             // If user selected "all", skip interest filtering entirely
             if (interests.includes('all')) {
-                // User wants everything - don't filter by interests
-            } else {
+                // User wants everything - don't filter by interests at all
+                // isMatch stays true
+            } else if (ministry.interest && ministry.interest.length > 0) {
                 let hasMatchingInterest = false;
                 
                 // If ministry has "all" interests, it matches ANY user interest selection
@@ -813,11 +825,18 @@ function findMinistries() {
                 if (!hasMatchingInterest) {
                     isMatch = false;
                 }
+            } else if (!interests.includes('all')) {
+                // Ministry has no interests defined and user didn't select "all"
+                // This ministry doesn't match
+                isMatch = false;
             }
         }
         
         if (isMatch) {
             matches.push(ministry);
+            console.log('✓ Matched:', ministry.name);
+        } else {
+            console.log('✗ Did not match:', ministry.name);
         }
     } // FIX: Added missing closing brace for the for loop
     
