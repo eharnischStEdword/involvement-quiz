@@ -769,24 +769,27 @@ function findMinistries() {
             effectiveAges.push('infant', 'elementary', 'junior-high', 'high-school');
         }
         
-        // Check age - but be more lenient if "Show me everything!" is selected
+        // Special handling for ministries with "all" interests - they should match EVERYONE in their age range
+        const hasAllInterests = ministry.interest && ministry.interest.includes('all');
+        
+        // Check age - but be VERY lenient if "Show me everything!" is selected OR ministry has "all" interests
         if (ministry.age && ministry.age.length > 0) {
-            if (wantsEverything) {
-                // For "Show me everything!", include all ministries that match user's age OR have no age restriction
-                if (!ministry.age.includes(userAge)) {
-                    // Check if this is an adult ministry (has any adult age groups)
-                    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
-                    const isAdultMinistry = ministry.age.some(age => adultAges.includes(age));
-                    const isChildMinistry = ministry.age.some(age => ['infant', 'elementary', 'junior-high', 'high-school'].includes(age));
-                    
-                    // If user is an adult, include all adult ministries
-                    if (adultAges.includes(userAge) && !isAdultMinistry) {
-                        isMatch = false;
-                    }
-                    // If user is a child, include all child ministries
-                    else if (!adultAges.includes(userAge) && !isChildMinistry) {
-                        isMatch = false;
-                    }
+            if (wantsEverything || hasAllInterests) {
+                // For "Show me everything!" OR ministries with "all" interests, show ALL ministries appropriate for adults/children
+                const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
+                const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
+                const isAdultMinistry = ministry.age.some(age => adultAges.includes(age));
+                const isChildMinistry = ministry.age.some(age => childAges.includes(age));
+                
+                // If user is an adult, show ALL adult ministries
+                if (adultAges.includes(userAge) && !isAdultMinistry && !isChildMinistry) {
+                    // Skip ministries that have NO age groups we recognize
+                    isMatch = false;
+                }
+                // If user is a child, show ALL child ministries
+                else if (childAges.includes(userAge) && !isChildMinistry && !isAdultMinistry) {
+                    // Skip ministries that have NO age groups we recognize
+                    isMatch = false;
                 }
             } else {
                 // Normal age matching when NOT "Show me everything!"
@@ -801,8 +804,8 @@ function findMinistries() {
             isMatch = false;
         }
         
-        // Check state - but be lenient if "Show me everything!"
-        if (ministry.state && ministry.state.length > 0 && states.length > 0 && !wantsEverything) {
+        // Check state - but be lenient if "Show me everything!" OR ministry has "all" interests
+        if (ministry.state && ministry.state.length > 0 && states.length > 0 && !wantsEverything && !hasAllInterests) {
             if (!states.includes('none-of-above')) {
                 const hasMatchingState = ministry.state.some(s => states.includes(s));
                 if (!hasMatchingState) {
@@ -811,8 +814,8 @@ function findMinistries() {
             }
         }
         
-        // Check situation (if ministry has situation requirements)
-        if (ministry.situation && ministry.situation.length > 0 && !wantsEverything) {
+        // Check situation (if ministry has situation requirements) - skip for "all" interests
+        if (ministry.situation && ministry.situation.length > 0 && !wantsEverything && !hasAllInterests) {
             const hasMatchingSituation = ministry.situation.some(s => situation.includes(s));
             if (!hasMatchingSituation) {
                 isMatch = false;
@@ -854,7 +857,17 @@ function findMinistries() {
             matches.push(ministry);
             console.log('✓ Matched:', ministry.name);
         } else {
-            console.log('✗ Did not match:', ministry.name);
+            // Special debug for ministries with "all" interests
+            if (ministry.interest && ministry.interest.includes('all')) {
+                console.log('✗ FAILED "all" interest ministry:', ministry.name, {
+                    age: ministry.age,
+                    userAge: userAge,
+                    wantsEverything: wantsEverything,
+                    interests: ministry.interest
+                });
+            } else {
+                console.log('✗ Did not match:', ministry.name);
+            }
         }
     }
     
