@@ -130,8 +130,10 @@ function applyFilters() {
         }
         
         // Interest filter
-        if (interestFilter && (!ministry.interests || !ministry.interests.includes(interestFilter))) {
-            return false;
+        if (interestFilter && interestFilter !== 'all') {
+            if (!ministry.interests || !ministry.interests.includes(interestFilter)) {
+                return false;
+            }
         }
         
         // Status filter
