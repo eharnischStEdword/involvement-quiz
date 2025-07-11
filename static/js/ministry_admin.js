@@ -129,7 +129,7 @@ function applyFilters() {
             return false;
         }
         
-        // Interest filter
+        // Interest filter - FIXED to handle "all" specially
         if (interestFilter && interestFilter !== 'all') {
             if (!ministry.interests || !ministry.interests.includes(interestFilter)) {
                 return false;
@@ -544,6 +544,15 @@ function populateForm(ministry) {
             const checkbox = this.querySelector('input[type="checkbox"]');
             if (checkbox && e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
+            }
+            
+            // Handle "All" checkbox mutual exclusivity
+            if (checkbox && checkbox.id === 'interest-all' && checkbox.checked) {
+                document.querySelectorAll('input[id^="interest-"]:not(#interest-all)').forEach(cb => {
+                    cb.checked = false;
+                });
+            } else if (checkbox && checkbox.id.startsWith('interest-') && checkbox.id !== 'interest-all' && checkbox.checked) {
+                document.getElementById('interest-all').checked = false;
             }
         };
     });
