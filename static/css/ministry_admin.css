@@ -562,6 +562,40 @@ tr:hover {
     color: #64748b;
 }
 
+/* Delete Warning Section */
+.delete-warning {
+    background: #fee;
+    border: 2px solid #fcc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.delete-warning p {
+    margin-bottom: 10px;
+}
+
+.delete-warning ul {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.delete-warning li {
+    color: #dc3545;
+    margin-bottom: 5px;
+}
+
+#deleteConfirmInput {
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+#deleteConfirmBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Empty State */
 .empty-state {
     text-align: center;
