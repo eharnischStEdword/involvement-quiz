@@ -503,6 +503,35 @@ def bulk_import_ministries():
         logger.error(f"Error in bulk import: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Add this temporary route to app/blueprints/ministry_admin.py
+@ministry_admin_bp.route('/api/ministries/debug-db')
+@require_admin_auth
+def debug_database():
+    """Debug database connection"""
+    import os
+    try:
+        with get_db_connection() as (conn, cur):
+            cur.execute("SELECT current_database(), version()")
+            db_info = cur.fetchone()
+            
+            cur.execute("SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE active) as active FROM ministries")
+            counts = cur.fetchone()
+            
+            # Get first 5 ministries to verify data
+            cur.execute("SELECT id, name, active FROM ministries ORDER BY id LIMIT 5")
+            sample = cur.fetchall()
+        
+        return jsonify({
+            'database_url': os.environ.get('DATABASE_URL', 'Not set')[:50] + '...',
+            'current_db': db_info[0],
+            'postgres_version': db_info[1],
+            'total_ministries': counts[0],
+            'active_ministries': counts[1],
+            'sample_data': sample
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @ministry_admin_bp.route('/api/ministries/permanent-delete', methods=['POST'])
 @require_admin_auth
 def permanent_delete_ministries():
