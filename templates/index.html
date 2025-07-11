@@ -310,5 +310,29 @@
     <!-- Load JavaScript files -->
     <script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
     <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <h3>St. Edward Church & School</h3>
+                <p>188 Thompson Lane, Nashville, TN 37211</p>
+                <p>
+                    <a href="mailto:support@stedward.org">support@stedward.org</a> • 
+                    <a href="tel:6158335520">(615) 833-5520</a>
+                </p>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="copyright-year"></span> St. Edward Church & School. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load JavaScript files -->
+    <script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+    <script>
+        // Set copyright year
+        document.getElementById('copyright-year').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
