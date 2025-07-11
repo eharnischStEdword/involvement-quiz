@@ -58,6 +58,7 @@ function setupEventListeners() {
     document.getElementById('bulkDeactivateBtn').addEventListener('click', () => toggleBulkStatus('inactive'));
     document.getElementById('bulkEditBtn').addEventListener('click', showBulkEditModal);
     document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
+    document.getElementById('selectInactiveBtn').addEventListener('click', selectAllInactive);
     document.getElementById('clearSelectionBtn').addEventListener('click', clearSelection);
     
     // Modal close buttons
@@ -70,12 +71,24 @@ function setupEventListeners() {
     document.getElementById('importCancelBtn').addEventListener('click', closeImportModal);
     document.getElementById('importSubmitBtn').addEventListener('click', importMinistries);
     
+    // Delete modal buttons
+    document.getElementById('deleteModalClose').addEventListener('click', closeDeleteModal);
+    document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteModal);
+    document.getElementById('deleteConfirmBtn').addEventListener('click', confirmPermanentDelete);
+    
+    // Delete confirmation input
+    document.getElementById('deleteConfirmInput').addEventListener('input', function() {
+        const deleteBtn = document.getElementById('deleteConfirmBtn');
+        deleteBtn.disabled = this.value.toUpperCase() !== 'DELETE';
+    });
+    
     // Modal close on outside click
     window.onclick = function(event) {
         if (event.target.classList.contains('modal')) {
             if (event.target.id === 'ministryModal') closeModal();
             else if (event.target.id === 'bulkEditModal') closeBulkEditModal();
             else if (event.target.id === 'importModal') closeImportModal();
+            else if (event.target.id === 'deleteModal') closeDeleteModal();
         }
     };
 }
@@ -329,6 +342,35 @@ function updateBulkActions() {
     }
 }
 
+// Select all inactive ministries
+function selectAllInactive() {
+    clearSelection();
+    
+    const inactiveMinistries = allMinistries.filter(m => !m.active);
+    
+    inactiveMinistries.forEach(ministry => {
+        selectedMinistries.add(ministry.id);
+        
+        const checkbox = document.querySelector(`input[type="checkbox"][value="${ministry.id}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+        
+        const row = document.querySelector(`tr[data-id="${ministry.id}"]`);
+        if (row) {
+            row.classList.add('selected-row');
+        }
+    });
+    
+    updateBulkActions();
+    
+    if (selectedMinistries.size === 0) {
+        showError('No inactive ministries found');
+    } else {
+        showSuccess(`Selected ${selectedMinistries.size} inactive ministries`);
+    }
+}
+
 // Bulk actions
 async function toggleBulkStatus(status) {
     const action = status === 'active' ? 'activate' : 'deactivate';
@@ -362,20 +404,68 @@ async function toggleBulkStatus(status) {
 }
 
 async function bulkDelete() {
-    if (!confirm(`Deactivate ${selectedMinistries.size} ministries?\n\nThis will hide them from the quiz but preserve the data.`)) return;
+    // Check if all selected ministries are inactive
+    const selectedMinistriesArray = Array.from(selectedMinistries);
+    const selectedMinistryObjects = allMinistries.filter(m => selectedMinistriesArray.includes(m.id));
+    const allInactive = selectedMinistryObjects.every(m => !m.active);
     
-    const promises = Array.from(selectedMinistries).map(id => 
-        fetch(`/api/ministries/${id}`, { method: 'DELETE' })
-    );
+    if (allInactive && selectedMinistries.size > 0) {
+        // Show permanent delete modal for inactive ministries
+        document.getElementById('deleteCount').textContent = selectedMinistries.size;
+        document.getElementById('deleteConfirmInput').value = '';
+        document.getElementById('deleteConfirmBtn').disabled = true;
+        show('deleteModal');
+    } else if (selectedMinistries.size === 0) {
+        showError('No ministries selected');
+    } else {
+        // Original soft delete for active ministries
+        if (!confirm(`Deactivate ${selectedMinistries.size} ministries?\n\nThis will hide them from the quiz but preserve the data.`)) return;
+        
+        const promises = Array.from(selectedMinistries).map(id => 
+            fetch(`/api/ministries/${id}`, { method: 'DELETE' })
+        );
+        
+        try {
+            await Promise.all(promises);
+            showSuccess(`Deactivated ${selectedMinistries.size} ministries`);
+            clearSelection();
+            loadMinistries();
+        } catch (error) {
+            console.error('Error in bulk delete:', error);
+            showError('Failed to delete some ministries');
+        }
+    }
+}
+
+function closeDeleteModal() {
+    hide('deleteModal');
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('deleteConfirmBtn').disabled = true;
+}
+
+async function confirmPermanentDelete() {
+    const selectedIds = Array.from(selectedMinistries);
     
     try {
-        await Promise.all(promises);
-        showSuccess(`Deactivated ${selectedMinistries.size} ministries`);
-        clearSelection();
-        loadMinistries();
+        const response = await fetch('/api/ministries/permanent-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ministry_ids: selectedIds })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(`Permanently deleted ${data.deleted} ministries`);
+            closeDeleteModal();
+            clearSelection();
+            loadMinistries();
+        } else {
+            showError(data.error || 'Failed to delete ministries');
+        }
     } catch (error) {
-        console.error('Error in bulk delete:', error);
-        showError('Failed to delete some ministries');
+        console.error('Error in permanent delete:', error);
+        showError('Network error during deletion');
     }
 }
 
