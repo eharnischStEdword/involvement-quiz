@@ -17,7 +17,7 @@ const maxRetries = 3;
 // Progress messages for each step
 const progressMessages = {
     1: "Let's get started!",
-    2: "Great choice! Keep going...",
+    2: "Great! Keep going...",
     3: "You're doing great!",
     4: "Almost there!",
     5: "Last question!"
