@@ -451,6 +451,15 @@ function showAddModal() {
             if (checkbox && e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
             }
+            
+            // Handle "All" checkbox mutual exclusivity
+            if (checkbox && checkbox.id === 'interest-all' && checkbox.checked) {
+                document.querySelectorAll('input[id^="interest-"]:not(#interest-all)').forEach(cb => {
+                    cb.checked = false;
+                });
+            } else if (checkbox && checkbox.id.startsWith('interest-') && checkbox.id !== 'interest-all' && checkbox.checked) {
+                document.getElementById('interest-all').checked = false;
+            }
         };
     });
 }
