@@ -1,3 +1,7 @@
+# © 2024–2025 Harnisch LLC. All Rights Reserved.
+# Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
+# Unauthorized use, distribution, or modification is prohibited.
+
 from flask import request, jsonify, render_template
 from functools import wraps
 import json
