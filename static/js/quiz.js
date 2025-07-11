@@ -730,6 +730,7 @@ function findMinistries() {
     const userAge = answers.age;
     const hasKidsInterest = interests.includes('kids');
     const isParent = states.includes('parent');
+    const wantsEverything = interests.includes('all');
     
     // Debug logging
     console.log('Finding ministries for:', {
@@ -751,6 +752,10 @@ function findMinistries() {
     
     console.log('Total ministries available:', Object.keys(ministries).length);
     
+    // Define age groups
+    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
+    const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
+    
     for (const [key, ministry] of Object.entries(ministries)) {
         // Skip the welcome committee unless user specifically selected "new-to-stedward"
         if (key === 'welcome-committee' && !situation.includes('new-to-stedward')) {
@@ -759,14 +764,28 @@ function findMinistries() {
         
         let isMatch = true;
         
-        // ENHANCED LOGIC: If user selected "something for my children" or is a parent,
-        // include children's ministries regardless of user's age
-        const effectiveAges = [userAge];
-        if (hasKidsInterest || isParent) {
-            effectiveAges.push('infant', 'elementary', 'junior-high', 'high-school'); // UPDATED
+        // ENHANCED LOGIC: Build effective ages based on user selection
+        let effectiveAges;
+        if (wantsEverything) {
+            // "Show me everything!" means ALL age groups
+            effectiveAges = [...adultAges, ...childAges];
+        } else if (adultAges.includes(userAge)) {
+            // Adults see all adult ministries
+            effectiveAges = adultAges;
+            // Plus children's ministries if they're a parent or want kids content
+            if (hasKidsInterest || isParent) {
+                effectiveAges.push(...childAges);
+            }
+        } else {
+            // Children see their age group
+            effectiveAges = [userAge];
+            // Plus children's ministries if parent selected kids interest
+            if (hasKidsInterest || isParent) {
+                effectiveAges.push(...childAges);
+            }
         }
         
-        // Check age (enhanced to include children's ages for parents)
+        // Check age - now using effectiveAges
         if (ministry.age && !ministry.age.some(age => effectiveAges.includes(age))) {
             isMatch = false;
         }
@@ -797,7 +816,7 @@ function findMinistries() {
         // ENHANCED INTEREST MATCHING
         if (interests.length > 0) {
             // If user selected "all", they want to see EVERYTHING - don't filter by interests
-            if (!interests.includes('all')) {
+            if (!wantsEverything) {
                 // User has specific interests, check if ministry matches
                 if (ministry.interest && ministry.interest.length > 0) {
                     let hasMatchingInterest = false;
