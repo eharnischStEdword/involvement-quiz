@@ -787,8 +787,13 @@ function findMinistries() {
         if (interests.length > 0 && !interests.includes('all') && ministry.interest) {
             let hasMatchingInterest = false;
             
-            // Standard interest matching
-            hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+            // If ministry has "all" interests, it matches ANY user interest selection
+            if (ministry.interest.includes('all')) {
+                hasMatchingInterest = true;
+            } else {
+                // Standard interest matching
+                hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+            }
             
             // SPECIAL CASE: If user selected "kids" interest, match children's ministries
             if (!hasMatchingInterest && hasKidsInterest) {
