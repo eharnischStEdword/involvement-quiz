@@ -783,38 +783,43 @@ function findMinistries() {
             }
         }
         
-    // ENHANCED INTEREST MATCHING
-            if (interests.length > 0 && ministry.interest) {
-                // If user selected "all", skip interest filtering entirely
-                if (interests.includes('all')) {
-                    // User wants everything - don't filter by interests
+        // ENHANCED INTEREST MATCHING
+        if (interests.length > 0 && ministry.interest) {
+            // If user selected "all", skip interest filtering entirely
+            if (interests.includes('all')) {
+                // User wants everything - don't filter by interests
+            } else {
+                let hasMatchingInterest = false;
+                
+                // If ministry has "all" interests, it matches ANY user interest selection
+                if (ministry.interest.includes('all')) {
+                    hasMatchingInterest = true;
                 } else {
-                    let hasMatchingInterest = false;
-                    
-                    // If ministry has "all" interests, it matches ANY user interest selection
-                    if (ministry.interest.includes('all')) {
+                    // Standard interest matching
+                    hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+                }
+                
+                // SPECIAL CASE: If user selected "kids" interest, match children's ministries
+                if (!hasMatchingInterest && hasKidsInterest) {
+                    // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
+                    const isChildrensMinistry = ministry.age && ministry.age.some(age => 
+                        ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
+                    );
+                    if (isChildrensMinistry) {
                         hasMatchingInterest = true;
-                    } else {
-                        // Standard interest matching
-                        hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
-                    }
-                    
-                    // SPECIAL CASE: If user selected "kids" interest, match children's ministries
-                    if (!hasMatchingInterest && hasKidsInterest) {
-                        // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
-                        const isChildrensMinistry = ministry.age && ministry.age.some(age => 
-                            ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
-                        );
-                        if (isChildrensMinistry) {
-                            hasMatchingInterest = true;
-                        }
-                    }
-                    
-                    if (!hasMatchingInterest) {
-                        isMatch = false;
                     }
                 }
+                
+                if (!hasMatchingInterest) {
+                    isMatch = false;
+                }
             }
+        }
+        
+        if (isMatch) {
+            matches.push(ministry);
+        }
+    } // FIX: Added missing closing brace for the for loop
     
     // **CRITICAL FIX: ENSURE MASS IS ALWAYS FIRST**
     const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
