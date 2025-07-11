@@ -99,6 +99,12 @@ Ministries are stored in PostgreSQL and loaded dynamically, with automatic migra
 
 This is a parish-specific application. For similar implementations at other parishes, feel free to fork and adapt.
 
-## License
+## Ownership & Licensing
 
-Copyright © 2025 St. Edward Catholic Church. All rights reserved.
+This application was developed by **Harnisch LLC**.
+
+All source code and related assets are © 2024–2025 Harnisch LLC. All rights reserved.
+
+**Exclusive usage rights have been granted to St. Edward Church & School (Nashville, TN)**. No redistribution, resale, or deployment outside that context is permitted without written permission.
+
+If you are interested in licensing this tool for your parish or organization, contact: eric@ericharnisch.com
