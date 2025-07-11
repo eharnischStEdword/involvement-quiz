@@ -441,6 +441,16 @@ function showAddModal() {
     document.getElementById('ministryForm').reset();
     document.getElementById('ministryActive').checked = true;
     show('ministryModal');
+    
+    // Add click handlers to all checkbox items
+    document.querySelectorAll('#ministryForm .checkbox-item').forEach(item => {
+        item.onclick = function(e) {
+            const checkbox = this.querySelector('input[type="checkbox"]');
+            if (checkbox && e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+            }
+        };
+    });
 }
 
 // Edit ministry
@@ -516,6 +526,16 @@ function populateForm(ministry) {
             if (checkbox) checkbox.checked = true;
         });
     }
+    
+    // Add click handlers to all checkbox items after populating
+    document.querySelectorAll('#ministryForm .checkbox-item').forEach(item => {
+        item.onclick = function(e) {
+            const checkbox = this.querySelector('input[type="checkbox"]');
+            if (checkbox && e.target !== checkbox) {
+                checkbox.checked = !checkbox.checked;
+            }
+        };
+    });
 }
 
 // Handle form submission
