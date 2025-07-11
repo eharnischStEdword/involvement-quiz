@@ -1,3 +1,12 @@
+# © 2024–2025 Harnisch LLC. All Rights Reserved.
+# Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
+# Unauthorized use, distribution, or modification is prohibited.
+
+"""
+Add ministries table migration
+Run this script to create the ministries table and migrate existing data
+"""
+import psycopg2
 #!/usr/bin/env python3
 import sys
 import os
