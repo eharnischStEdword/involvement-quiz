@@ -611,8 +611,8 @@ function showResults() {
             });
         }
         
-        // Add children's ministry section for adults (parents)
-        if (childrenMinistries.length > 0) {
+        // FIXED: Only show children's section if user is a parent OR selected kids interest
+        if (childrenMinistries.length > 0 && (states.includes('parent') || interests.includes('kids'))) {
             html += `
                 <div class="children-section">
                     <h2 class="children-header">For your children 👧👦</h2>
@@ -724,7 +724,7 @@ function submitAnalytics(recommendations) {
     });
 }
 
-// ENHANCED MINISTRY MATCHING FUNCTION - Fixed parent/children logic + MASS FIRST
+// ENHANCED MINISTRY MATCHING FUNCTION - Fixed "Show me everything!" for adults
 function findMinistries() {
     const matches = [];
     const userAge = answers.age;
@@ -738,7 +738,8 @@ function findMinistries() {
         gender: answers.gender,
         states: states,
         interests: interests,
-        situation: situation
+        situation: situation,
+        wantsEverything: wantsEverything
     });
     
     // Check if ministries loaded
@@ -752,10 +753,6 @@ function findMinistries() {
     
     console.log('Total ministries available:', Object.keys(ministries).length);
     
-    // Define age groups
-    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
-    const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
-    
     for (const [key, ministry] of Object.entries(ministries)) {
         // Skip the welcome committee unless user specifically selected "new-to-stedward"
         if (key === 'welcome-committee' && !situation.includes('new-to-stedward')) {
@@ -764,30 +761,39 @@ function findMinistries() {
         
         let isMatch = true;
         
-        // ENHANCED LOGIC: Build effective ages based on user selection
-        let effectiveAges;
-        if (wantsEverything) {
-            // "Show me everything!" means ALL age groups
-            effectiveAges = [...adultAges, ...childAges];
-        } else if (adultAges.includes(userAge)) {
-            // Adults see all adult ministries
-            effectiveAges = adultAges;
-            // Plus children's ministries if they're a parent or want kids content
-            if (hasKidsInterest || isParent) {
-                effectiveAges.push(...childAges);
-            }
-        } else {
-            // Children see their age group
-            effectiveAges = [userAge];
-            // Plus children's ministries if parent selected kids interest
-            if (hasKidsInterest || isParent) {
-                effectiveAges.push(...childAges);
-            }
+        // FIXED: When "Show me everything!" is selected, we should see all age-appropriate ministries
+        const effectiveAges = [userAge];
+        if ((hasKidsInterest || isParent) && !wantsEverything) {
+            // Only include children's ages if they're a parent or selected kids interest
+            // AND they didn't select "Show me everything!"
+            effectiveAges.push('infant', 'elementary', 'junior-high', 'high-school');
         }
         
-        // Check age - now using effectiveAges
-        if (ministry.age && !ministry.age.some(age => effectiveAges.includes(age))) {
-            isMatch = false;
+        // Check age - but be more lenient if "Show me everything!" is selected
+        if (ministry.age && ministry.age.length > 0) {
+            if (wantsEverything) {
+                // For "Show me everything!", include all ministries that match user's age OR have no age restriction
+                if (!ministry.age.includes(userAge)) {
+                    // Check if this is an adult ministry (has any adult age groups)
+                    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
+                    const isAdultMinistry = ministry.age.some(age => adultAges.includes(age));
+                    const isChildMinistry = ministry.age.some(age => ['infant', 'elementary', 'junior-high', 'high-school'].includes(age));
+                    
+                    // If user is an adult, include all adult ministries
+                    if (adultAges.includes(userAge) && !isAdultMinistry) {
+                        isMatch = false;
+                    }
+                    // If user is a child, include all child ministries
+                    else if (!adultAges.includes(userAge) && !isChildMinistry) {
+                        isMatch = false;
+                    }
+                }
+            } else {
+                // Normal age matching when NOT "Show me everything!"
+                if (!ministry.age.some(age => effectiveAges.includes(age))) {
+                    isMatch = false;
+                }
+            }
         }
         
         // Check gender (if specified and not skipped)
@@ -795,8 +801,8 @@ function findMinistries() {
             isMatch = false;
         }
         
-        // Check state - if ministry has state requirements, check if ANY selected state matches
-        if (ministry.state && ministry.state.length > 0 && states.length > 0) {
+        // Check state - but be lenient if "Show me everything!"
+        if (ministry.state && ministry.state.length > 0 && states.length > 0 && !wantsEverything) {
             if (!states.includes('none-of-above')) {
                 const hasMatchingState = ministry.state.some(s => states.includes(s));
                 if (!hasMatchingState) {
@@ -806,46 +812,42 @@ function findMinistries() {
         }
         
         // Check situation (if ministry has situation requirements)
-        if (ministry.situation && ministry.situation.length > 0) {
+        if (ministry.situation && ministry.situation.length > 0 && !wantsEverything) {
             const hasMatchingSituation = ministry.situation.some(s => situation.includes(s));
             if (!hasMatchingSituation) {
                 isMatch = false;
             }
         }
         
-        // ENHANCED INTEREST MATCHING
-        if (interests.length > 0) {
-            // If user selected "all", they want to see EVERYTHING - don't filter by interests
-            if (!wantsEverything) {
-                // User has specific interests, check if ministry matches
-                if (ministry.interest && ministry.interest.length > 0) {
-                    let hasMatchingInterest = false;
-                    
-                    // If ministry has "all" interests, it matches ANY user interest selection
-                    if (ministry.interest.includes('all')) {
+        // FIXED: "Show me everything!" should bypass interest filtering
+        if (interests.length > 0 && !wantsEverything) {
+            // Only filter by interests if NOT "Show me everything!"
+            if (ministry.interest && ministry.interest.length > 0) {
+                let hasMatchingInterest = false;
+                
+                // If ministry has "all" interests, it matches ANY user interest selection
+                if (ministry.interest.includes('all')) {
+                    hasMatchingInterest = true;
+                } else {
+                    // Standard interest matching
+                    hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+                }
+                
+                // SPECIAL CASE: If user selected "kids" interest, match children's ministries
+                if (!hasMatchingInterest && hasKidsInterest) {
+                    // Check if this is a children's ministry
+                    const isChildrensMinistry = ministry.age && ministry.age.some(age => 
+                        ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
+                    );
+                    if (isChildrensMinistry) {
                         hasMatchingInterest = true;
-                    } else {
-                        // Standard interest matching
-                        hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
-                    }
-                    
-                    // SPECIAL CASE: If user selected "kids" interest, match children's ministries
-                    if (!hasMatchingInterest && hasKidsInterest) {
-                        // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
-                        const isChildrensMinistry = ministry.age && ministry.age.some(age => 
-                            ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
-                        );
-                        if (isChildrensMinistry) {
-                            hasMatchingInterest = true;
-                        }
-                    }
-                    
-                    if (!hasMatchingInterest) {
-                        isMatch = false;
                     }
                 }
+                
+                if (!hasMatchingInterest) {
+                    isMatch = false;
+                }
             }
-            // If user selected "all", isMatch remains whatever it was (true if age/gender/state matched)
         }
         
         if (isMatch) {
@@ -854,36 +856,20 @@ function findMinistries() {
         } else {
             console.log('✗ Did not match:', ministry.name);
         }
-    } // FIX: Added missing closing brace for the for loop
+    }
     
     // **CRITICAL FIX: ENSURE MASS IS ALWAYS FIRST**
     const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
     if (massIndex > 0) {
         const massMinistry = matches.splice(massIndex, 1)[0];
         matches.unshift(massMinistry);
+    } else if (massIndex === -1 && ministries['mass']) {
+        // If Mass wasn't included but should be, add it first
+        matches.unshift(ministries['mass']);
     }
     
-    // Enhanced fallback logic for parents
-    if (matches.length === 0 && (isParent || hasKidsInterest)) {
-        // Add key family-friendly ministries
-        const familyMinistries = [
-            ministries['st-edward-school'],
-            ministries['prep-kids'],
-            ministries['moms-group'],
-            ministries['meal-train-provide'],
-            ministries['totus-tuus-kids']
-        ].filter(m => m); // Remove undefined ministries
-        
-        familyMinistries.forEach(ministry => {
-            if (!matches.some(m => m.name === ministry.name)) {
-                matches.push(ministry);
-            }
-        });
-    }
-    
-    // Special handling for elementary - always show core options - UPDATED
-    if (answers.age === 'elementary' && matches.length < 2) {
-        // Always include these for elementary kids regardless of interest
+    // Special handling for young children - always show key options
+    if (answers.age === 'elementary' && matches.length < 3) {
         const coreKidsMinistries = [
             ministries['st-edward-school'],
             ministries['prep-kids'],
@@ -895,23 +881,9 @@ function findMinistries() {
                 matches.push(ministry);
             }
         });
-        
-        // Add Cub Scouts if they selected fellowship or all
-        if (interests.includes('fellowship') || interests.includes('all')) {
-            if (!matches.some(m => m.name === ministries['cub-scouts'].name)) {
-                matches.push(ministries['cub-scouts']);
-            }
-        }
-        
-        // Ensure Mass is still first after adding core ministries
-        const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
-        if (massIndex > 0) {
-            const massMinistry = matches.splice(massIndex, 1)[0];
-            matches.unshift(massMinistry);
-        }
     }
     
-    // If no interests selected, show general options with navigation
+    // If no interests selected, show message
     if (interests.length === 0) {
         const noInterestsMessage = {
             name: 'Select Your Interests',
@@ -921,7 +893,7 @@ function findMinistries() {
         return [noInterestsMessage];
     }
     
-    // If we still have no matches for any age group, show general options
+    // If we still have no matches, show general options
     if (matches.length === 0) {
         return [
             {
