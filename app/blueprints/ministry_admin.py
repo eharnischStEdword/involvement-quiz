@@ -2,11 +2,13 @@
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, Response
 import json
 import logging
 import psycopg2.extras
 from datetime import datetime
+import csv
+import io
 
 from app.database import get_db_connection
 from app.auth import require_admin_auth_enhanced as require_admin_auth
@@ -501,6 +503,182 @@ def bulk_import_ministries():
         
     except Exception as e:
         logger.error(f"Error in bulk import: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@ministry_admin_bp.route('/api/ministries/export-csv')
+@require_admin_auth
+def export_ministries_csv():
+    """Export all ministries as CSV"""
+    try:
+        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+            cur.execute('''
+                SELECT ministry_key, name, description, details, 
+                       age_groups, genders, states, interests, situations, active
+                FROM ministries
+                ORDER BY name
+            ''')
+            
+            ministries = cur.fetchall()
+        
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write headers
+        headers = ['ministry_key', 'name', 'description', 'details', 
+                  'age_groups', 'genders', 'states', 'interests', 'situations', 'active']
+        writer.writerow(headers)
+        
+        # Write data
+        for ministry in ministries:
+            row = [
+                ministry['ministry_key'],
+                ministry['name'],
+                ministry['description'] or '',
+                ministry['details'] or '',
+                '|'.join(ministry['age_groups'] or []),  # Pipe-separated for multi-values
+                '|'.join(ministry['genders'] or []),
+                '|'.join(ministry['states'] or []),
+                '|'.join(ministry['interests'] or []),
+                '|'.join(ministry['situations'] or []),
+                'true' if ministry['active'] else 'false'
+            ]
+            writer.writerow(row)
+        
+        output.seek(0)
+        
+        return Response(
+            output.read(),
+            mimetype='text/csv',
+            headers={
+                'Content-Disposition': f'attachment; filename=ministries_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting ministries: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@ministry_admin_bp.route('/api/ministries/import-csv', methods=['POST'])
+@require_admin_auth
+def import_ministries_csv():
+    """Import ministries from CSV"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file uploaded'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        if not file.filename.endswith('.csv'):
+            return jsonify({'success': False, 'error': 'File must be CSV format'}), 400
+        
+        # Read CSV
+        content = file.read().decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(content))
+        
+        imported_count = 0
+        updated_count = 0
+        errors = []
+        
+        with get_db_connection() as (conn, cur):
+            # Check if updated_at exists
+            cur.execute("""
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'ministries' AND column_name = 'updated_at'
+            """)
+            has_updated_at = cur.fetchone() is not None
+            
+            for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 to account for header
+                try:
+                    # Parse pipe-separated values
+                    age_groups = [x.strip() for x in row.get('age_groups', '').split('|') if x.strip()]
+                    genders = [x.strip() for x in row.get('genders', '').split('|') if x.strip()]
+                    states = [x.strip() for x in row.get('states', '').split('|') if x.strip()]
+                    interests = [x.strip() for x in row.get('interests', '').split('|') if x.strip()]
+                    situations = [x.strip() for x in row.get('situations', '').split('|') if x.strip()]
+                    
+                    # Check if ministry exists
+                    cur.execute('SELECT id FROM ministries WHERE ministry_key = %s', (row['ministry_key'],))
+                    exists = cur.fetchone()
+                    
+                    if has_updated_at:
+                        cur.execute('''
+                            INSERT INTO ministries 
+                            (ministry_key, name, description, details, age_groups, 
+                             genders, states, interests, situations, active)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (ministry_key) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                description = EXCLUDED.description,
+                                details = EXCLUDED.details,
+                                age_groups = EXCLUDED.age_groups,
+                                genders = EXCLUDED.genders,
+                                states = EXCLUDED.states,
+                                interests = EXCLUDED.interests,
+                                situations = EXCLUDED.situations,
+                                active = EXCLUDED.active,
+                                updated_at = CURRENT_TIMESTAMP
+                        ''', (
+                            row['ministry_key'],
+                            row['name'],
+                            row.get('description', ''),
+                            row.get('details', ''),
+                            json.dumps(age_groups),
+                            json.dumps(genders),
+                            json.dumps(states),
+                            json.dumps(interests),
+                            json.dumps(situations),
+                            row.get('active', 'true').lower() == 'true'
+                        ))
+                    else:
+                        cur.execute('''
+                            INSERT INTO ministries 
+                            (ministry_key, name, description, details, age_groups, 
+                             genders, states, interests, situations, active)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            ON CONFLICT (ministry_key) DO UPDATE SET
+                                name = EXCLUDED.name,
+                                description = EXCLUDED.description,
+                                details = EXCLUDED.details,
+                                age_groups = EXCLUDED.age_groups,
+                                genders = EXCLUDED.genders,
+                                states = EXCLUDED.states,
+                                interests = EXCLUDED.interests,
+                                situations = EXCLUDED.situations,
+                                active = EXCLUDED.active
+                        ''', (
+                            row['ministry_key'],
+                            row['name'],
+                            row.get('description', ''),
+                            row.get('details', ''),
+                            json.dumps(age_groups),
+                            json.dumps(genders),
+                            json.dumps(states),
+                            json.dumps(interests),
+                            json.dumps(situations),
+                            row.get('active', 'true').lower() == 'true'
+                        ))
+                    
+                    if exists:
+                        updated_count += 1
+                    else:
+                        imported_count += 1
+                    
+                except Exception as e:
+                    errors.append(f"Row {row_num}: {str(e)}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Imported {imported_count} new ministries, updated {updated_count} existing ministries',
+            'imported': imported_count,
+            'updated': updated_count,
+            'errors': errors
+        })
+        
+    except Exception as e:
+        logger.error(f"Error importing CSV: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # Add this temporary route to app/blueprints/ministry_admin.py
