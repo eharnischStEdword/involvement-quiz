@@ -559,6 +559,83 @@ def export_ministries_csv():
         logger.error(f"Error exporting ministries: {e}")
         return jsonify({'error': str(e)}), 500
 
+@ministry_admin_bp.route('/api/ministries/export-python')
+@require_admin_auth
+def export_ministries_python():
+    """Export active ministries as Python code for MINISTRY_DATA fallback"""
+    try:
+        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+            # Only export active ministries
+            cur.execute('''
+                SELECT ministry_key, name, description, details, 
+                       age_groups, genders, states, interests, situations
+                FROM ministries
+                WHERE active = true
+                ORDER BY ministry_key
+            ''')
+            
+            ministries = cur.fetchall()
+        
+        # Build Python code
+        output = io.StringIO()
+        output.write("# © 2024–2025 Harnisch LLC. All Rights Reserved.\n")
+        output.write("# Licensed exclusively for use by St. Edward Church & School (Nashville, TN).\n")
+        output.write("# Unauthorized use, distribution, or modification is prohibited.\n\n")
+        output.write("# Generated from database on " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
+        output.write("MINISTRY_DATA = {\n")
+        
+        for i, ministry in enumerate(ministries):
+            # Properly format the key
+            output.write(f"    '{ministry['ministry_key']}': {{\n")
+            output.write(f"        'name': {repr(ministry['name'])},\n")
+            
+            if ministry['description']:
+                output.write(f"        'description': {repr(ministry['description'])},\n")
+            
+            if ministry['details']:
+                output.write(f"        'details': {repr(ministry['details'])},\n")
+            
+            # Convert database arrays to Python lists with proper names
+            if ministry['age_groups']:
+                output.write(f"        'age': {ministry['age_groups']},\n")
+            
+            if ministry['genders']:
+                output.write(f"        'gender': {ministry['genders']},\n")
+            
+            if ministry['states']:
+                output.write(f"        'state': {ministry['states']},\n")
+            
+            if ministry['interests']:
+                output.write(f"        'interest': {ministry['interests']},\n")
+            
+            if ministry['situations']:
+                output.write(f"        'situation': {ministry['situations']},\n")
+            
+            # Close the ministry dict
+            output.write("    }")
+            
+            # Add comma if not last item
+            if i < len(ministries) - 1:
+                output.write(",")
+            
+            output.write("\n")
+        
+        output.write("}\n")
+        
+        output.seek(0)
+        
+        return Response(
+            output.read(),
+            mimetype='text/plain',
+            headers={
+                'Content-Disposition': f'attachment; filename=ministries_data_{datetime.now().strftime("%Y%m%d_%H%M%S")}.py'
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error exporting ministries as Python: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @ministry_admin_bp.route('/api/ministries/import-csv', methods=['POST'])
 @require_admin_auth
 def import_ministries_csv():
