@@ -562,136 +562,7 @@ function createSelectionsummary() {
     `;
 }
 
-// SIMPLIFIED MINISTRY MATCHING - REWRITTEN FROM SCRATCH
-function findMinistries() {
-    const matches = [];
-    const userAge = answers.age;
-    const userGender = answers.gender;
-    const showEverything = interests.includes('all');
-    
-    console.log('Finding ministries for:', {
-        age: userAge,
-        gender: userGender,
-        states: states,
-        interests: interests,
-        situation: situation,
-        showEverything: showEverything
-    });
-    
-    // Check if ministries loaded
-    if (!ministries || Object.keys(ministries).length === 0) {
-        return [{
-            name: 'Unable to Load Ministries',
-            description: 'We apologize, but we cannot load the ministry list at this time.',
-            details: 'Please contact the parish office at (615) 833-5520 or email <a href="mailto:support@stedward.org">support@stedward.org</a> for assistance.'
-        }];
-    }
-    
-    // Loop through all ministries
-    for (const [key, ministry] of Object.entries(ministries)) {
-        let shouldInclude = false;
-        
-        // STEP 1: Check if ministry is age-appropriate
-        const isAgeAppropriate = !ministry.age || ministry.age.length === 0 || ministry.age.includes(userAge);
-        
-        // STEP 2: Check gender if specified
-        const isGenderAppropriate = !ministry.gender || ministry.gender.length === 0 || 
-                                   userGender === 'skip' || ministry.gender.includes(userGender);
-        
-        // STEP 3: Check state requirements
-        const hasStateRequirement = ministry.state && ministry.state.length > 0;
-        const meetsStateRequirement = !hasStateRequirement || 
-                                    states.some(s => ministry.state.includes(s));
-        
-        // STEP 4: Check situation requirements
-        const hasSituationRequirement = ministry.situation && ministry.situation.length > 0;
-        const meetsSituationRequirement = !hasSituationRequirement || 
-                                         situation.some(s => ministry.situation.includes(s));
-        
-        // Basic eligibility check
-        if (isAgeAppropriate && isGenderAppropriate && meetsStateRequirement && meetsSituationRequirement) {
-            // Now check interests
-            if (showEverything) {
-                // User wants everything - include this ministry
-                shouldInclude = true;
-            } else if (interests.length === 0) {
-                // No interests selected - shouldn't happen but include if eligible
-                shouldInclude = true;
-            } else {
-                // Check if ministry matches any selected interests
-                if (!ministry.interest || ministry.interest.length === 0) {
-                    // Ministry has no interest requirements - include it
-                    shouldInclude = true;
-                } else if (ministry.interest.includes('all')) {
-                    // Ministry is for everyone - include it
-                    shouldInclude = true;
-                } else {
-                    // Check if any ministry interests match user interests
-                    shouldInclude = ministry.interest.some(i => interests.includes(i));
-                }
-                
-                // Special case: parent looking for kids programs
-                if (!shouldInclude && interests.includes('kids')) {
-                    const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
-                    if (ministry.age && ministry.age.some(a => childAges.includes(a))) {
-                        shouldInclude = true;
-                    }
-                }
-            }
-        }
-        
-        if (shouldInclude) {
-            matches.push(ministry);
-            console.log('✓ Matched:', ministry.name);
-        }
-    }
-    
-    // Ensure Mass is always first
-    const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
-    if (massIndex > 0) {
-        const massMinistry = matches.splice(massIndex, 1)[0];
-        matches.unshift(massMinistry);
-    }
-    
-    console.log(`Total ministries matched: ${matches.length}`);
-    
-    // Fallback if no matches
-    if (matches.length === 0) {
-        return [{
-            name: 'Let\'s Connect You!',
-            description: 'We have many opportunities that might interest you.',
-            details: 'Please contact the parish office at (615) 833-5520 for personalized recommendations, or visit <a href="https://stedward.org" target="_blank">stedward.org</a> to explore all our ministries.'
-        }];
-    }
-    
-    return matches;
-}
-
-// SIMPLIFIED MINISTRY SEPARATION
-function separateMinistries(allMinistries) {
-    const adultMinistries = [];
-    const childrenMinistries = [];
-    
-    const childAges = ['infant', 'elementary', 'junior-high', 'high-school'];
-    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
-    
-    allMinistries.forEach(ministry => {
-        // A ministry is "children's" if it ONLY serves children ages
-        const servesOnlyChildren = ministry.age && 
-                                 ministry.age.length > 0 &&
-                                 ministry.age.every(age => childAges.includes(age));
-        
-        if (servesOnlyChildren) {
-            childrenMinistries.push(ministry);
-        } else {
-            adultMinistries.push(ministry);
-        }
-    });
-    
-    return { adultMinistries, childrenMinistries };
-}
-
-// RESULTS DISPLAY
+// ENHANCED RESULTS DISPLAY - NOW WITH PARENT/CHILDREN SEPARATION ✨
 function showResults() {
     document.querySelector('.question.active').classList.remove('active');
     document.getElementById('results').style.display = 'block';
@@ -699,17 +570,23 @@ function showResults() {
     const allRecommendations = findMinistries();
     const resultsDiv = document.getElementById('ministry-recommendations');
     
-    // Create selections summary
+    // CREATE SELECTIONS SUMMARY
     const selectionsHtml = createSelectionsummary();
     
-    // Check if user is a child
+    // Check if user IS a child - UPDATED FOR ELEMENTARY
     const userIsChild = ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age);
     
-    let html = selectionsHtml;
+    // SEPARATE ADULT AND CHILDREN'S MINISTRIES
+    const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
     
+    let html = selectionsHtml; // Add selections summary at top
+    
+    // If user IS a child, merge all ministries together
     if (userIsChild) {
-        // Child user - show all ministries together
-        allRecommendations.forEach(ministry => {
+        // Show all ministries together without separation
+        const allMinistriesForChild = [...adultMinistries, ...childrenMinistries];
+        
+        allMinistriesForChild.forEach(ministry => {
             html += `
                 <div class="ministry-item">
                     <h3>${ministry.name}</h3>
@@ -719,10 +596,9 @@ function showResults() {
             `;
         });
     } else {
-        // Adult user - separate adult and children's ministries
-        const { adultMinistries, childrenMinistries } = separateMinistries(allRecommendations);
+        // User is an adult - show separated sections
         
-        // Show adult ministries first
+        // Add adult ministry recommendations
         if (adultMinistries.length > 0) {
             adultMinistries.forEach(ministry => {
                 html += `
@@ -735,7 +611,7 @@ function showResults() {
             });
         }
         
-        // Show children's ministries in separate section
+        // Add children's ministry section for adults (parents)
         if (childrenMinistries.length > 0) {
             html += `
                 <div class="children-section">
@@ -762,6 +638,14 @@ function showResults() {
     
     resultsDiv.innerHTML = html;
     
+    // Add event handler for dynamically created "Go Back to Interests" button if it exists
+    const backToInterestsBtn = document.querySelector('.nav-back-to-interests');
+    if (backToInterestsBtn) {
+        backToInterestsBtn.addEventListener('click', function() {
+            goBack(5);
+        });
+    }
+    
     // Update progress bar to 100%
     const progressBar = document.getElementById('progress-bar');
     if (progressBar) {
@@ -773,10 +657,42 @@ function showResults() {
     }
     
     // Submit anonymous analytics data
-    submitAnalytics(allRecommendations);
+    submitAnalytics([...adultMinistries, ...childrenMinistries]);
     
     // Trigger confetti celebration!
     triggerConfetti();
+}
+
+// NEW FUNCTION - Separate adult and children's ministries
+function separateMinistries(allMinistries) {
+    const adultMinistries = [];
+    const childrenMinistries = [];
+    
+    // Define children's age groups - UPDATED FOR ELEMENTARY
+    const childrenAges = ['infant', 'elementary', 'junior-high', 'high-school'];
+    const adultAges = ['college-young-adult', 'married-parents', 'journeying-adults'];
+    
+    allMinistries.forEach(ministry => {
+        // Check if ministry is primarily for children
+        const isChildrenMinistry = ministry.age && 
+            ministry.age.some(age => childrenAges.includes(age)) &&
+            !ministry.age.some(age => adultAges.includes(age));
+        
+        // Special cases for family ministries that serve adults but relate to children
+        const isFamilyMinistry = ministry.name && (
+            ministry.name.includes('Moms Group') ||
+            ministry.name.includes('Meal Train') ||
+            ministry.name.includes('Marriage Enrichment')
+        );
+        
+        if (isChildrenMinistry) {
+            childrenMinistries.push(ministry);
+        } else {
+            adultMinistries.push(ministry);
+        }
+    });
+    
+    return { adultMinistries, childrenMinistries };
 }
 
 function submitAnalytics(recommendations) {
@@ -806,6 +722,198 @@ function submitAnalytics(recommendations) {
         console.log('Analytics submission failed:', error);
         // Don't show error to user for analytics
     });
+}
+
+// ENHANCED MINISTRY MATCHING FUNCTION - Fixed parent/children logic + MASS FIRST
+function findMinistries() {
+    const matches = [];
+    const userAge = answers.age;
+    const hasKidsInterest = interests.includes('kids');
+    const isParent = states.includes('parent');
+    
+    // Debug logging
+    console.log('Finding ministries for:', {
+        age: userAge,
+        gender: answers.gender,
+        states: states,
+        interests: interests,
+        situation: situation
+    });
+    
+    // Check if ministries loaded
+    if (!ministries || Object.keys(ministries).length === 0) {
+        return [{
+            name: 'Unable to Load Ministries',
+            description: 'We apologize, but we cannot load the ministry list at this time.',
+            details: 'Please contact the parish office at (615) 833-5520 or email <a href="mailto:support@stedward.org">support@stedward.org</a> for assistance.'
+        }];
+    }
+    
+    console.log('Total ministries available:', Object.keys(ministries).length);
+    
+    for (const [key, ministry] of Object.entries(ministries)) {
+        // Skip the welcome committee unless user specifically selected "new-to-stedward"
+        if (key === 'welcome-committee' && !situation.includes('new-to-stedward')) {
+            continue;
+        }
+        
+        let isMatch = true;
+        
+        // ENHANCED LOGIC: If user selected "something for my children" or is a parent,
+        // include children's ministries regardless of user's age
+        const effectiveAges = [userAge];
+        if (hasKidsInterest || isParent) {
+            effectiveAges.push('infant', 'elementary', 'junior-high', 'high-school'); // UPDATED
+        }
+        
+        // Check age (enhanced to include children's ages for parents)
+        if (ministry.age && !ministry.age.some(age => effectiveAges.includes(age))) {
+            isMatch = false;
+        }
+        
+        // Check gender (if specified and not skipped)
+        if (ministry.gender && answers.gender !== 'skip' && !ministry.gender.includes(answers.gender)) {
+            isMatch = false;
+        }
+        
+        // Check state - if ministry has state requirements, check if ANY selected state matches
+        if (ministry.state && ministry.state.length > 0 && states.length > 0) {
+            if (!states.includes('none-of-above')) {
+                const hasMatchingState = ministry.state.some(s => states.includes(s));
+                if (!hasMatchingState) {
+                    isMatch = false;
+                }
+            }
+        }
+        
+        // Check situation (if ministry has situation requirements)
+        if (ministry.situation && ministry.situation.length > 0) {
+            const hasMatchingSituation = ministry.situation.some(s => situation.includes(s));
+            if (!hasMatchingSituation) {
+                isMatch = false;
+            }
+        }
+        
+        // ENHANCED INTEREST MATCHING
+        if (interests.length > 0) {
+            // If user selected "all", they want to see EVERYTHING - don't filter by interests
+            if (!interests.includes('all')) {
+                // User has specific interests, check if ministry matches
+                if (ministry.interest && ministry.interest.length > 0) {
+                    let hasMatchingInterest = false;
+                    
+                    // If ministry has "all" interests, it matches ANY user interest selection
+                    if (ministry.interest.includes('all')) {
+                        hasMatchingInterest = true;
+                    } else {
+                        // Standard interest matching
+                        hasMatchingInterest = ministry.interest.some(i => interests.includes(i));
+                    }
+                    
+                    // SPECIAL CASE: If user selected "kids" interest, match children's ministries
+                    if (!hasMatchingInterest && hasKidsInterest) {
+                        // Check if this is a children's ministry - UPDATED FOR ELEMENTARY
+                        const isChildrensMinistry = ministry.age && ministry.age.some(age => 
+                            ['infant', 'elementary', 'junior-high', 'high-school'].includes(age)
+                        );
+                        if (isChildrensMinistry) {
+                            hasMatchingInterest = true;
+                        }
+                    }
+                    
+                    if (!hasMatchingInterest) {
+                        isMatch = false;
+                    }
+                }
+            }
+            // If user selected "all", isMatch remains whatever it was (true if age/gender/state matched)
+        }
+        
+        if (isMatch) {
+            matches.push(ministry);
+            console.log('✓ Matched:', ministry.name);
+        } else {
+            console.log('✗ Did not match:', ministry.name);
+        }
+    } // FIX: Added missing closing brace for the for loop
+    
+    // **CRITICAL FIX: ENSURE MASS IS ALWAYS FIRST**
+    const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
+    if (massIndex > 0) {
+        const massMinistry = matches.splice(massIndex, 1)[0];
+        matches.unshift(massMinistry);
+    }
+    
+    // Enhanced fallback logic for parents
+    if (matches.length === 0 && (isParent || hasKidsInterest)) {
+        // Add key family-friendly ministries
+        const familyMinistries = [
+            ministries['st-edward-school'],
+            ministries['prep-kids'],
+            ministries['moms-group'],
+            ministries['meal-train-provide'],
+            ministries['totus-tuus-kids']
+        ].filter(m => m); // Remove undefined ministries
+        
+        familyMinistries.forEach(ministry => {
+            if (!matches.some(m => m.name === ministry.name)) {
+                matches.push(ministry);
+            }
+        });
+    }
+    
+    // Special handling for elementary - always show core options - UPDATED
+    if (answers.age === 'elementary' && matches.length < 2) {
+        // Always include these for elementary kids regardless of interest
+        const coreKidsMinistries = [
+            ministries['st-edward-school'],
+            ministries['prep-kids'],
+            ministries['mass']
+        ];
+        
+        coreKidsMinistries.forEach(ministry => {
+            if (ministry && !matches.some(m => m.name === ministry.name)) {
+                matches.push(ministry);
+            }
+        });
+        
+        // Add Cub Scouts if they selected fellowship or all
+        if (interests.includes('fellowship') || interests.includes('all')) {
+            if (!matches.some(m => m.name === ministries['cub-scouts'].name)) {
+                matches.push(ministries['cub-scouts']);
+            }
+        }
+        
+        // Ensure Mass is still first after adding core ministries
+        const massIndex = matches.findIndex(m => m.name === 'Come to Mass!');
+        if (massIndex > 0) {
+            const massMinistry = matches.splice(massIndex, 1)[0];
+            matches.unshift(massMinistry);
+        }
+    }
+    
+    // If no interests selected, show general options with navigation
+    if (interests.length === 0) {
+        const noInterestsMessage = {
+            name: 'Select Your Interests',
+            description: 'Please go back and select what interests you to see personalized recommendations.',
+            details: '<button class="nav-btn nav-back-to-interests" style="margin-top: 10px;">← Go Back to Interests</button>'
+        };
+        return [noInterestsMessage];
+    }
+    
+    // If we still have no matches for any age group, show general options
+    if (matches.length === 0) {
+        return [
+            {
+                name: 'Let\'s Connect You!',
+                description: 'We have many opportunities that might interest you.',
+                details: 'Please contact the parish office at (615) 833-5520 for personalized recommendations, or visit <a href="https://stedward.org" target="_blank">stedward.org</a> to explore all our ministries.'
+            }
+        ];
+    }
+    
+    return matches;
 }
 
 function restart() {
@@ -897,14 +1005,8 @@ function setupEventHandlers() {
         });
     });
     
-    // Contact form buttons
-    document.querySelector('.btn-show-contact').addEventListener('click', showContactForm);
-    document.querySelector('.btn-skip-contact').addEventListener('click', skipContact);
-    document.querySelector('.btn-hide-contact').addEventListener('click', hideContactForm);
-    document.querySelector('.btn-hide-contact-success').addEventListener('click', hideContactForm);
-    
-    // Contact form submission
-    document.getElementById('userContactForm').addEventListener('submit', submitContact);
+    // Contact form buttons - REMOVED PII COLLECTION
+    // Only the restart button remains
     
     // Restart button
     document.querySelector('.btn-restart').addEventListener('click', restart);
@@ -918,69 +1020,4 @@ if (document.readyState === 'loading') {
     setupEventHandlers();
 }
 
-function showContactForm() {
-    document.querySelector('.contact-form-toggle').style.display = 'none';
-    document.getElementById('contactForm').style.display = 'block';
-}
-
-function hideContactForm() {
-    document.querySelector('.contact-form-toggle').style.display = 'flex';
-    document.getElementById('contactForm').style.display = 'none';
-    document.getElementById('contactSuccess').style.display = 'none';
-    document.getElementById('userContactForm').style.display = 'block';
-    document.getElementById('userContactForm').reset();
-}
-
-function skipContact() {
-    document.getElementById('contactFormSection').style.display = 'none';
-}
-
-function submitContact(event) {
-    event.preventDefault();
-    
-    const form = document.getElementById('userContactForm');
-    const submitBtn = document.getElementById('submitContactBtn');
-    const formData = new FormData(form);
-    
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-    
-    const contactData = {
-        name: formData.get('name'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
-        message: formData.get('message'),
-        quiz_results: {
-            answers: answers,
-            states: states,
-            interests: interests,
-            situation: situation,
-            recommended_ministries: findMinistries().map(m => m.name)
-        }
-    };
-    
-    fetch('/api/submit-contact', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(contactData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('userContactForm').style.display = 'none';
-            document.getElementById('contactSuccess').style.display = 'block';
-        } else {
-            alert('There was an issue submitting your information. Please try again or call (615) 833-5520.');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="btn-icon">📧</span> Send My Information';
-        }
-    })
-    .catch(error => {
-        console.error('Contact form error:', error);
-        alert('There was a network error. Please try again or call (615) 833-5520.');
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span class="btn-icon">📧</span> Send My Information';
-    });
-}
+// REMOVED CONTACT FORM FUNCTIONS - NO PII COLLECTION
