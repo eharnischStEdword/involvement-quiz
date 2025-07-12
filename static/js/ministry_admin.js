@@ -50,6 +50,10 @@ function setupEventListeners() {
     document.getElementById('importBtn').addEventListener('click', showImportModal);
     document.getElementById('addBtn').addEventListener('click', showAddModal);
     
+    // CSV buttons
+    document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+    document.getElementById('importCsvBtn').addEventListener('click', showCsvImportModal);
+    
     // Select all checkbox
     document.getElementById('selectAll').addEventListener('change', toggleSelectAll);
     
@@ -71,6 +75,11 @@ function setupEventListeners() {
     document.getElementById('importCancelBtn').addEventListener('click', closeImportModal);
     document.getElementById('importSubmitBtn').addEventListener('click', importMinistries);
     
+    // CSV modal buttons
+    document.getElementById('csvModalClose').addEventListener('click', closeCsvModal);
+    document.getElementById('csvCancelBtn').addEventListener('click', closeCsvModal);
+    document.getElementById('csvImportBtn').addEventListener('click', importCsv);
+    
     // Delete modal buttons
     document.getElementById('deleteModalClose').addEventListener('click', closeDeleteModal);
     document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteModal);
@@ -88,6 +97,7 @@ function setupEventListeners() {
             if (event.target.id === 'ministryModal') closeModal();
             else if (event.target.id === 'bulkEditModal') closeBulkEditModal();
             else if (event.target.id === 'importModal') closeImportModal();
+            else if (event.target.id === 'csvImportModal') closeCsvModal();
             else if (event.target.id === 'deleteModal') closeDeleteModal();
         }
     };
@@ -786,6 +796,68 @@ async function importMinistries() {
     } catch (error) {
         console.error('Import error:', error);
         showError('Invalid JSON format or network error');
+    }
+}
+
+// CSV Export
+function exportCsv() {
+    window.location.href = '/api/ministries/export-csv';
+}
+
+// CSV Import
+function showCsvImportModal() {
+    show('csvImportModal');
+}
+
+function closeCsvModal() {
+    hide('csvImportModal');
+    document.getElementById('csvFile').value = '';
+}
+
+async function importCsv() {
+    const fileInput = document.getElementById('csvFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showError('Please select a CSV file');
+        return;
+    }
+    
+    // Show progress
+    const importBtn = document.getElementById('csvImportBtn');
+    const originalText = importBtn.innerHTML;
+    importBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+    importBtn.disabled = true;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch('/api/ministries/import-csv', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(data.message);
+            if (data.errors?.length) {
+                console.error('Import errors:', data.errors);
+                alert(`Import completed with ${data.errors.length} errors. Check console for details.`);
+            }
+            closeCsvModal();
+            loadMinistries();
+        } else {
+            showError(data.error || 'Import failed');
+        }
+    } catch (error) {
+        console.error('CSV import error:', error);
+        showError('Network error during import');
+    } finally {
+        // Reset button
+        importBtn.innerHTML = originalText;
+        importBtn.disabled = false;
     }
 }
 
