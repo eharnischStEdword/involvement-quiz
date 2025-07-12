@@ -211,6 +211,9 @@ function renderMinistryTable() {
                     <button class="btn btn-primary btn-sm edit-btn" data-id="${ministry.id}">
                         <i class="fas fa-edit"></i>
                     </button>
+                    <button class="btn btn-secondary btn-sm duplicate-btn" data-id="${ministry.id}">
+                        <i class="fas fa-copy"></i>
+                    </button>
                     <button class="btn btn-secondary btn-sm toggle-btn" data-id="${ministry.id}">
                         <i class="fas fa-${ministry.active ? 'pause' : 'play'}"></i>
                     </button>
@@ -235,6 +238,12 @@ function renderMinistryTable() {
         });
     });
     
+    document.querySelectorAll('.duplicate-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            duplicateMinistry(parseInt(this.dataset.id));
+        });
+    });
+    
     document.querySelectorAll('.toggle-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             toggleActive(parseInt(this.dataset.id));
@@ -248,6 +257,53 @@ function renderMinistryTable() {
     });
     
     updateBulkActions();
+}
+
+// Duplicate ministry function
+async function duplicateMinistry(id) {
+    if (!confirm('Create a duplicate of this ministry?')) return;
+    
+    try {
+        // Load the ministry data
+        const response = await fetch(`/api/ministries/${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            const ministry = data.ministry;
+            
+            // Clear the ID and modify the key
+            delete ministry.id;
+            ministry.ministry_key = ministry.ministry_key + '-copy';
+            ministry.name = ministry.name + ' (Copy)';
+            
+            // Open the form with pre-filled data
+            editingMinistryId = null; // This is a new ministry
+            document.getElementById('modalTitle').textContent = 'Duplicate Ministry';
+            populateForm(ministry);
+            
+            // Add warning about changing the key
+            const keyInput = document.getElementById('ministryKey');
+            keyInput.style.borderColor = '#dc3545';
+            keyInput.focus();
+            
+            // Remove any existing note
+            const existingNote = keyInput.parentElement.querySelector('.duplicate-note');
+            if (existingNote) {
+                existingNote.remove();
+            }
+            
+            // Add a note below the key field
+            const note = document.createElement('small');
+            note.className = 'duplicate-note';
+            note.style.color = '#dc3545';
+            note.textContent = 'You must change the Ministry Key to a unique value before saving';
+            keyInput.parentElement.appendChild(note);
+            
+            show('ministryModal');
+        }
+    } catch (error) {
+        showError('Failed to duplicate ministry');
+    }
 }
 
 // Render category badges
@@ -542,6 +598,15 @@ function showAddModal() {
     document.getElementById('modalTitle').textContent = 'Add Ministry';
     document.getElementById('ministryForm').reset();
     document.getElementById('ministryActive').checked = true;
+    
+    // Clean up any duplicate notes
+    const keyInput = document.getElementById('ministryKey');
+    keyInput.style.borderColor = '';
+    const existingNote = keyInput.parentElement.querySelector('.duplicate-note');
+    if (existingNote) {
+        existingNote.remove();
+    }
+    
     show('ministryModal');
     
     // Add click handlers to all checkbox items
@@ -573,6 +638,15 @@ async function editMinistry(id) {
         if (data.success) {
             editingMinistryId = id;
             document.getElementById('modalTitle').textContent = 'Edit Ministry';
+            
+            // Clean up any duplicate notes
+            const keyInput = document.getElementById('ministryKey');
+            keyInput.style.borderColor = '';
+            const existingNote = keyInput.parentElement.querySelector('.duplicate-note');
+            if (existingNote) {
+                existingNote.remove();
+            }
+            
             populateForm(data.ministry);
             show('ministryModal');
         } else {
@@ -586,12 +660,12 @@ async function editMinistry(id) {
 
 // Populate form with ministry data
 function populateForm(ministry) {
-    document.getElementById('ministryId').value = ministry.id;
+    document.getElementById('ministryId').value = ministry.id || '';
     document.getElementById('ministryKey').value = ministry.ministry_key;
     document.getElementById('ministryName').value = ministry.name;
     document.getElementById('ministryDescription').value = ministry.description || '';
     document.getElementById('ministryDetails').value = ministry.details || '';
-    document.getElementById('ministryActive').checked = ministry.active;
+    document.getElementById('ministryActive').checked = ministry.active !== false;
     
     // Clear all checkboxes first
     document.querySelectorAll('#ministryForm input[type="checkbox"]').forEach(cb => {
@@ -663,6 +737,14 @@ async function handleFormSubmit(e) {
     e.preventDefault();
     
     const formData = collectFormData();
+    
+    // Enhanced validation for duplicate scenarios
+    if (formData.ministry_key.endsWith('-copy')) {
+        showError('Please change the Ministry Key from the default copy value');
+        document.getElementById('ministryKey').focus();
+        return;
+    }
+    
     const url = editingMinistryId 
         ? `/api/ministries/${editingMinistryId}` 
         : '/api/ministries';
@@ -866,6 +948,14 @@ function closeModal() {
     hide('ministryModal');
     document.getElementById('ministryForm').reset();
     editingMinistryId = null;
+    
+    // Clean up any duplicate notes
+    const keyInput = document.getElementById('ministryKey');
+    keyInput.style.borderColor = '';
+    const existingNote = keyInput.parentElement.querySelector('.duplicate-note');
+    if (existingNote) {
+        existingNote.remove();
+    }
 }
 
 function showImportModal() {
