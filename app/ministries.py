@@ -90,7 +90,7 @@ MINISTRY_DATA = {
     'ladies-aux-ya': {
         'name': 'Ladies Auxiliary',
         'description': "Women's fellowship and service - Prayer, service, fellowship for women",
-        'details': 'Visit <a href="https://stedward.org/ladies-auxiliary" target="_blank">stedward.org/ladies-auxiliary</a> for information',
+        'details': 'Visit <a href="https://stedward.org/ladies-auxiliary" target="_blank">stedward.org/ladies-auxiliary</a> for information.',
         'age': ['college-young-adult'],
         'gender': ['female'],
         'interest': ['fellowship', 'service', 'prayer']
@@ -98,7 +98,7 @@ MINISTRY_DATA = {
     'ladies-aux-parents': {
         'name': 'Ladies Auxiliary',
         'description': "Women's fellowship and service - Service, crafts, Angel-Tree outreach",
-        'details': 'Visit <a href="https://stedward.org/ladies-auxiliary" target="_blank">stedward.org/ladies-auxiliary</a> for information',
+        'details': 'Visit <a href="https://stedward.org/ladies-auxiliary" target="_blank">stedward.org/ladies-auxiliary</a> for information.',
         'age': ['married-parents'],
         'gender': ['female'],
         'interest': ['fellowship', 'service']
@@ -106,7 +106,7 @@ MINISTRY_DATA = {
     'ladies-aux-adults': {
         'name': 'Ladies Auxiliary',
         'description': "Women's fellowship and service",
-        'details': 'Visit <a href="https://stedward.org/ladies-auxiliary" target="_blank">stedward.org/ladies-auxiliary</a> for information',
+        'details': 'Visit <a href="https://stedward.org/ladies-auxiliary" target="_blank">stedward.org/ladies-auxiliary</a> for information.',
         'age': ['journeying-adults'],
         'gender': ['female'],
         'interest': ['fellowship', 'service']
