@@ -50,6 +50,9 @@
 /* Ministry items */
 .ministry-list {
     margin-bottom: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg); /* Ensure consistent spacing */
 }
 
 .ministry-item {
@@ -60,6 +63,11 @@
     margin-bottom: var(--spacing-lg);
     transition: all var(--transition-fast);
     box-shadow: var(--shadow-sm);
+    overflow: hidden; /* Prevent content from breaking out */
+    word-wrap: break-word; /* Handle long text */
+    position: relative; /* Ensure proper stacking */
+    display: block; /* Ensure block-level display */
+    clear: both; /* Clear any floats */
 }
 
 .ministry-item:hover {
@@ -86,6 +94,8 @@
     font-size: var(--font-size-base); /* 18px - increased from sm */
     color: var(--color-text-secondary);
     line-height: 1.6;
+    display: block; /* Ensure block-level display */
+    margin-top: var(--spacing-sm); /* Add spacing */
 }
 
 /* ST. EDWARD BRANDED LINK STYLING */
@@ -97,6 +107,7 @@
     transition: all var(--transition-fast);
     padding: 2px 4px;
     border-radius: 4px;
+    display: inline; /* Ensure inline display */
 }
 
 .ministry-item .details a:hover,
