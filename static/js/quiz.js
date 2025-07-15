@@ -639,6 +639,9 @@ function showResults() {
     }
     
     resultsDiv.innerHTML = html;
+
+    // Automatically scroll to the top so users start reading results immediately
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     // Add event handler for dynamically created "Go Back to Interests" button if it exists
     const backToInterestsBtn = document.querySelector('.nav-back-to-interests');
