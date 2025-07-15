@@ -15,6 +15,7 @@ import pytz
 from datetime import datetime
 import json
 
+from app.config import Config
 from app.models import init_db
 from app.database import init_connection_pool, close_connection_pool, get_db_connection
 from app.ministries import MINISTRY_DATA
@@ -23,12 +24,15 @@ from app.blueprints.api import api_bp
 from app.blueprints.admin import admin_bp
 from app.blueprints.ministry_admin import ministry_admin_bp
 
+# Validate environment and get configuration
+config = Config.get_config()
+
 app = Flask(__name__)
 CORS(app)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-production')
+app.secret_key = config['SECRET_KEY']
 
 # Configure Talisman for HTTPS with proper CSP settings
-if os.environ.get('DATABASE_URL'):  # Production
+if config['IS_PRODUCTION']:  # Production
     csp = {
         'default-src': "'self'",
         'script-src': [
@@ -65,7 +69,7 @@ if os.environ.get('DATABASE_URL'):  # Production
     Talisman(app, 
              force_https=True, 
              strict_transport_security=True,
-             content_security_policy=csp)  # Removed nonce configuration
+             content_security_policy=csp)
 
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
@@ -163,7 +167,7 @@ def internal_error(error):
     return {'error': 'Internal server error'}, 500
 
 # Start keep-alive service (only in production)
-if os.environ.get('DATABASE_URL'):
+if config['IS_PRODUCTION']:
     if not os.environ.get('WERKZEUG_RUN_MAIN'):
         try:
             threading.Thread(target=keep_alive, daemon=True).start()
@@ -182,7 +186,11 @@ def shutdown_session(exception=None):
 if __name__ == '__main__':
     try:
         logger.info("Starting St. Edward Ministry Finder application")
-        app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+        app.run(
+            debug=config['DEBUG'],  # Use config for debug mode
+            host='0.0.0.0', 
+            port=int(os.environ.get('PORT', 5000))
+        )
     except Exception as e:
         logger.error(f"Failed to start application: {e}")
         raise
