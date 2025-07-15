@@ -326,13 +326,6 @@ function handleSituationCheckboxChange(value) {
     }
 }
 
-function nextFromSituation() {
-    currentQuestion++;
-    populateInterestOptions();
-    updateProgress();
-    showQuestion(currentQuestion);
-}
-
 function populateInterestOptions() {
     const interestContainer = document.getElementById('interest-checkboxes');
     const ageGroup = answers.age;
@@ -725,6 +718,20 @@ function submitAnalytics(recommendations) {
 
 // ENHANCED MINISTRY MATCHING FUNCTION - Fixed parent/children logic + MASS FIRST
 function findMinistries() {
+    // Normalize any array-like fields that may come as JSON strings
+    const normalizeArray = (v) => {
+        if (Array.isArray(v)) return v;
+        if (typeof v === 'string') {
+            try {
+                const parsed = JSON.parse(v);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    };
+
     const matches = [];
     const userAge = answers.age;
     const hasKidsInterest = interests.includes('kids');
@@ -766,8 +773,15 @@ function findMinistries() {
             isMatch = false;
         }
         
-        // Check gender (if specified and not skipped)
-        if (ministry.gender && answers.gender !== 'skip' && !ministry.gender.includes(answers.gender)) {
+        // Normalize arrays
+        ministry.age = normalizeArray(ministry.age);
+        ministry.gender = normalizeArray(ministry.gender);
+        ministry.state = normalizeArray(ministry.state);
+        ministry.interest = normalizeArray(ministry.interest);
+        ministry.situation = normalizeArray(ministry.situation);
+
+        // Check gender (only if ministry specifies genders)
+        if (ministry.gender && ministry.gender.length > 0 && answers.gender !== 'skip' && !ministry.gender.includes(answers.gender)) {
             isMatch = false;
         }
         
