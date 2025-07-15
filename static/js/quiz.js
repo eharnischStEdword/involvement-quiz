@@ -35,7 +35,7 @@ async function loadMinistries() {
         
         if (response.ok) {
             ministries = await response.json();
-            console.log('Ministries loaded successfully');
+            // Remove console.log
             
             // Hide loading screen on success
             const overlay = document.getElementById('loadingOverlay');
@@ -49,13 +49,13 @@ async function loadMinistries() {
             throw new Error(`Server error: ${response.status}`);
         }
     } catch (error) {
-        console.error('Error loading ministries:', error);
+        // Remove console.error - use internal error handling instead
         loadingRetries++;
         
         if (loadingRetries < maxRetries) {
             // Retry after a delay
             const retryDelay = loadingRetries * 2000; // 2s, 4s, 6s
-            console.log(`Retrying in ${retryDelay/1000} seconds...`);
+            // Remove console.log
             
             // Update loading message
             const loadingText = document.querySelector('.loading-text');
@@ -715,12 +715,11 @@ function submitAnalytics(recommendations) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log('Analytics submitted successfully');
+            // Remove console.log
         }
     })
     .catch(error => {
-        console.log('Analytics submission failed:', error);
-        // Don't show error to user for analytics
+        // Remove console.log - don't show error to user for analytics
     });
 }
 
@@ -731,14 +730,7 @@ function findMinistries() {
     const hasKidsInterest = interests.includes('kids');
     const isParent = states.includes('parent');
     
-    // Debug logging
-    console.log('Finding ministries for:', {
-        age: userAge,
-        gender: answers.gender,
-        states: states,
-        interests: interests,
-        situation: situation
-    });
+    // Remove debug logging
     
     // Check if ministries loaded
     if (!ministries || Object.keys(ministries).length === 0) {
@@ -749,7 +741,7 @@ function findMinistries() {
         }];
     }
     
-    console.log('Total ministries available:', Object.keys(ministries).length);
+    // Remove console.log
     
     for (const [key, ministry] of Object.entries(ministries)) {
         // Skip the welcome committee unless user specifically selected "new-to-stedward"
@@ -831,9 +823,9 @@ function findMinistries() {
         
         if (isMatch) {
             matches.push(ministry);
-            console.log('✓ Matched:', ministry.name);
+            // Remove console.log
         } else {
-            console.log('✗ Did not match:', ministry.name);
+            // Remove console.log
         }
     } // FIX: Added missing closing brace for the for loop
     
