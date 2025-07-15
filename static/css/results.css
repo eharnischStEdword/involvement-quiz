@@ -581,7 +581,7 @@
 }
 
 .new-ministry-list li:nth-child(3)::before {
-    content: '❤️';
+    content: '💚';
 }
 
 .new-ministry-btn {
