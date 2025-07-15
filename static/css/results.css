@@ -520,3 +520,125 @@
         justify-content: center;
     }
 }
+
+/* New Ministry Idea Section */
+.new-ministry-section {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 3px solid var(--color-accent);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(218, 170, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.new-ministry-section::before {
+    content: '✨';
+    position: absolute;
+    top: -20px;
+    right: 20px;
+    font-size: 60px;
+    opacity: 0.2;
+    transform: rotate(15deg);
+}
+
+.new-ministry-section h3 {
+    color: var(--color-primary);
+    margin-bottom: var(--spacing-lg);
+    font-size: var(--font-size-xxl);
+    font-weight: 700;
+}
+
+.new-ministry-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto var(--spacing-lg);
+    max-width: 600px;
+    text-align: left;
+}
+
+.new-ministry-list li {
+    font-size: var(--font-size-base);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+    padding-left: var(--spacing-xl);
+    position: relative;
+    line-height: 1.6;
+}
+
+.new-ministry-list li::before {
+    content: '💡';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 1.2rem;
+}
+
+.new-ministry-list li:nth-child(2)::before {
+    content: '🤝';
+}
+
+.new-ministry-list li:nth-child(3)::before {
+    content: '❤️';
+}
+
+.new-ministry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    background: linear-gradient(135deg, var(--color-accent) 0%, #B8860B 100%);
+    color: #ffffff !important;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    text-decoration: none !important;
+    transition: all var(--transition-fast);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    box-shadow: 0 4px 12px rgba(218, 170, 0, 0.4);
+    border: 2px solid transparent;
+}
+
+.new-ministry-btn:hover {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #B8860B 0%, var(--color-accent) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(218, 170, 0, 0.5);
+    border-color: var(--color-primary);
+}
+
+.new-ministry-btn:visited {
+    color: #ffffff !important;
+}
+
+.new-ministry-btn .btn-icon {
+    font-size: 1.4rem;
+}
+
+/* Mobile adjustments for new ministry section */
+@media (max-width: 768px) {
+    .new-ministry-section {
+        padding: var(--spacing-lg);
+    }
+    
+    .new-ministry-section h3 {
+        font-size: var(--font-size-xl);
+    }
+    
+    .new-ministry-list {
+        text-align: center;
+    }
+    
+    .new-ministry-list li {
+        padding-left: 0;
+        padding-top: var(--spacing-lg);
+    }
+    
+    .new-ministry-list li::before {
+        position: static;
+        display: block;
+        margin-bottom: var(--spacing-sm);
+        font-size: 1.5rem;
+    }
+}
