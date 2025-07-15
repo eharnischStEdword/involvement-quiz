@@ -1,110 +1,71 @@
-# St. Edward Ministry Finder
+# St. Edward Ministry Finder  
+© 2024-2025 Harnisch LLC  
 
-An interactive quiz application helping parishioners discover ministries that match their interests, age, and life situation at St. Edward Catholic Church.
+This repository is shared with St. Edward Catholic Church & School for their exclusive use.
 
-**Live Application:** https://involvement-quiz.onrender.com
+An interactive, mobile-first web app that helps parishioners quickly discover the best ways to get involved in the St. Edward Catholic community.
 
-## Features
+**Live site:** <https://involvement-quiz.onrender.com>
 
-- 🎯 **Smart Quiz Flow**: 5-question adaptive quiz that skips irrelevant questions based on age
-- 🎊 **Celebration UX**: Confetti animation upon quiz completion
-- 📊 **Anonymous Analytics**: Track ministry interest without collecting personal data
-- 📱 **Mobile Optimized**: Responsive design with 44px touch targets
-- 👨‍👩‍👧‍👦 **Family Focused**: Separate recommendations for adult and children's ministries
-- 🔒 **Privacy First**: Zero email collection, directs to existing parish systems
+---
 
-## Tech Stack
+## Highlights
 
-- **Backend**: Flask (Python 3.11.9)
-- **Database**: PostgreSQL with JSONB columns
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Hosting**: Render.com with auto-deployment
-- **Security**: Rate limiting (5 submissions/hour/IP), HTTP Basic Auth for admin
+• Five-question adaptive quiz (2-3 minutes)  
+• Personalised ministry recommendations for adults **and** children  
+• Admin dashboard with CSV export & basic contact management  
+• Privacy-first design – no mandatory log-ins, zero third-party trackers  
+• Built-in safeguards: rate-limiting, HTTPS enforcement, admin auth
 
-## Architecture
+---
 
-```
-├── app.py                  # Flask application core
-├── main.py                 # Production wrapper with keep-alive
-├── templates/
-│   ├── index.html         # Quiz interface
-│   └── admin.html         # Admin dashboard
-├── static/
-│   ├── css/               # Modular stylesheets
-│   ├── js/                # Quiz logic and confetti
-│   └── js/admin.js        # Dashboard functionality
-└── app/
-    ├── models.py          # Database models
-    ├── ministries.py      # Ministry data (52 ministries)
-    └── blueprints/        # Route organization
-```
-
-## Key Features
-
-### Quiz Logic
-- Progressive questions: Age → Gender → State → Situation → Interests
-- Multi-select for complex life situations (e.g., "Married + Parent")
-- Database-driven ministry matching with fallback to hardcoded data
-
-### Admin Dashboard
-- View all submissions and analytics
-- Export data to CSV
-- Contact request management
-- Real-time statistics and charts
-
-## Development
+## Quick Start (Local Dev)
 
 ```bash
-# Clone repository
-git clone https://github.com/eharnischStEdword/involvement-quiz.git
+# 1 – Clone (read-only)
+$ git clone <private-repo-URL> involvement-quiz && cd involvement-quiz
 
-# Install dependencies
-pip install -r requirements.txt
+# 2 – Python env / dependencies (Python 3.11+)
+$ python -m venv .venv && source .venv/bin/activate
+$ pip install -r requirements.txt
 
-# Set environment variables
-cp .env.example .env
-# Edit .env with your values
+# 3 – Environment
+$ cp .env.example .env   # then edit values (see below)
 
-# Run locally
-python app.py
+# 4 – Run
+$ python main.py
 ```
+Visit <http://localhost:5000> in your browser.
 
-## Environment Variables
+---
 
-```
-DATABASE_URL=postgresql://...
-ADMIN_USERNAME=your_admin_user
-ADMIN_PASSWORD=secure_password
-SECRET_KEY=your-secret-key
-```
+## Required Environment Variables
 
-## Ministry Database
+| Key | Purpose |
+|-----|---------|
+| `DATABASE_URL` | Postgres connection string (leave blank for local dev) |
+| `SECRET_KEY`   | Flask session secret |
+| `ADMIN_USERNAME` & `ADMIN_PASSWORD` | Basic-Auth credentials for `/admin` |
 
-The application includes 52+ ministries covering:
-- Sacraments and worship
-- Youth and education programs
-- Adult fellowship groups
-- Service opportunities
-- Family support ministries
+For production deploys **all** variables must be set; the app will refuse to start if defaults are detected.
 
-Ministries are stored in PostgreSQL and loaded dynamically, with automatic migration on startup.
+---
 
-## Parish Integration
+## Deployment Notes
 
-- **Registration**: stedwardnash.flocknote.com/register
-- **Website**: stedward.org
-- **Contact**: (615) 833-5520
+The project is container-ready and known to run on Render.com (free tier) and Fly.io.  A sample `Dockerfile` can be provided on request.
 
-## Contributing
+Key reminders:
+1.  Use a Postgres add-on or external cluster.  
+2.  Set the environment variables above plus any analytics endpoints you enable.  
+3.  Disable Flask debug mode (`DEBUG=false`, handled automatically when `DATABASE_URL` is present).
 
-This is a parish-specific application. For similar implementations at other parishes, feel free to fork and adapt.
+---
 
-## Ownership & Licensing
+## Support & Licensing
 
-This application was developed by **Harnisch LLC**.
+This codebase is made available for the ministry work of **St. Edward Church & School (Nashville, TN)**.  
+If you wish to adapt or reuse any part of it, please reach out so we can chat about licensing options.
 
-All source code and related assets are © 2024–2025 Harnisch LLC. All rights reserved.
-
-**Exclusive usage rights have been granted to St. Edward Church & School (Nashville, TN)**. No redistribution, resale, or deployment outside that context is permitted without written permission.
-
-If you are interested in licensing this tool for your parish or organization, contact: eric@ericharnisch.com
+For feature requests, onboarding help, or licensing inquiries, contact **Eric Harnisch**  
+<eric@ericharnisch.com>
