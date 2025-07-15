@@ -168,3 +168,23 @@ def health_check():
             'error': str(e),
             'timestamp': datetime.now().isoformat()
         }), 500
+# --- TEMPORARY DEBUG ENDPOINT ----------------------------------------------
+@api_bp.route('/debug/mass')
+def debug_mass():
+    """
+    Quick check that the Mass ministry row exists and is active.
+    Visit /api/debug/mass in the browser.
+    Remove this route once you’re satisfied.
+    """
+    try:
+        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+            cur.execute("SELECT * FROM ministries WHERE ministry_key = 'mass'")
+            row = cur.fetchone()
+        return jsonify({
+            'found': bool(row),
+            'active': row['active'] if row else None,
+            'row': row
+        })
+    except Exception as e:
+        logger.error(f'/debug/mass failed: {e}')
+        return jsonify({'error': str(e)}), 500
