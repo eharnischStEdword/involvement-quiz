@@ -274,6 +274,15 @@ function nextFromState() {
     showQuestion(currentQuestion);
 }
 
+// Continue from Situation question to Interest question
+function nextFromSituation() {
+    currentQuestion++;
+    // Before showing interest checkboxes, populate age-specific options
+    populateInterestOptions();
+    updateProgress();
+    showQuestion(currentQuestion);
+}
+
 // Situation checkbox handling
 function toggleSituationCheckbox(value) {
     const checkbox = document.getElementById(value);
