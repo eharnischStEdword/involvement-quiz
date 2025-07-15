@@ -15,9 +15,17 @@ request_counts = {}
 RATE_LIMIT_REQUESTS = 5  # Max 5 submissions per hour per IP
 RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
 
-# Admin credentials - SET THESE AS ENVIRONMENT VARIABLES
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'stedward_admin')
-ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'change_this_password_123!')
+# Admin credentials from environment - NO DEFAULTS IN PRODUCTION
+def get_admin_credentials():
+    """Get admin credentials from environment variables"""
+    username = os.environ.get('ADMIN_USERNAME')
+    password = os.environ.get('ADMIN_PASSWORD')
+    
+    if not username or not password:
+        logger.error("Admin credentials not properly configured")
+        raise ValueError("Admin credentials must be set via environment variables")
+    
+    return username, password
 
 def check_rate_limit(ip_address):
     """Simple rate limiting - max 5 submissions per hour per IP"""
@@ -45,7 +53,13 @@ def require_admin_auth(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         auth = request.authorization
-        if not auth or auth.username != ADMIN_USERNAME or auth.password != ADMIN_PASSWORD:
+        
+        try:
+            admin_username, admin_password = get_admin_credentials()
+        except ValueError:
+            return ('Configuration error', 500)
+        
+        if not auth or auth.username != admin_username or auth.password != admin_password:
             return ('Admin authentication required', 401, {
                 'WWW-Authenticate': 'Basic realm="St. Edward Admin"'
             })
