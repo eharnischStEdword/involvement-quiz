@@ -135,6 +135,29 @@ def auto_migrate_ministries():
             else:
                 logger.info(f"Ministries table already has {count} entries, skipping migration")
                 
+                # Ensure mass ministry is always active
+                mass_data = MINISTRY_DATA.get('mass')
+                if mass_data:
+                    cur.execute(
+                        '''
+                        INSERT INTO ministries (ministry_key, name, description, details, age_groups, genders, states, interests, situations, active)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, TRUE)
+                        ON CONFLICT (ministry_key)
+                        DO UPDATE SET active = TRUE
+                        ''',
+                        ( 'mass', 
+                          mass_data.get('name'),
+                          mass_data.get('description', ''),
+                          mass_data.get('details', ''),
+                          json.dumps(mass_data.get('age', [])),
+                          json.dumps(mass_data.get('gender', [])),
+                          json.dumps(mass_data.get('state', [])),
+                          json.dumps(mass_data.get('interest', [])),
+                          json.dumps(mass_data.get('situation', []))
+                        )
+                    )
+                    logger.info("Ensured 'Come to Mass' ministry is present and active")
+                
     except Exception as e:
         logger.error(f"Ministry migration failed: {e}")
 
