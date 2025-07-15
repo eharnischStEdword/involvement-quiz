@@ -759,7 +759,10 @@ function findMinistries() {
         }
         
         // Check age (enhanced to include children's ages for parents)
-        if (ministry.age && !ministry.age.some(age => effectiveAges.includes(age))) {
+        // Only apply age filtering if the ministry actually lists age groups.
+        // An empty array should be treated as "all ages" rather than excluding it.
+        if (ministry.age && ministry.age.length > 0 &&
+            !ministry.age.some(age => effectiveAges.includes(age))) {
             isMatch = false;
         }
         
