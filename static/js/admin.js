@@ -4,7 +4,6 @@
 
 // Admin Dashboard JavaScript
 let submissionsData = [];
-let contactsData = [];
 
 // Helper functions for show/hide without inline styles
 function show(element) {
@@ -28,7 +27,6 @@ function hide(element) {
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboardData();
-    loadContacts();
     setupEventListeners();
 });
 
@@ -36,10 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventListeners() {
     // Button event listeners
     document.getElementById('exportBtn').addEventListener('click', exportToCSV);
-    document.getElementById('contactsBtn').addEventListener('click', showContacts);
     document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
     document.getElementById('clearBtn').addEventListener('click', showClearModal);
-    document.getElementById('closeContactsBtn').addEventListener('click', hideContacts);
     document.getElementById('cancelClearBtn').addEventListener('click', hideClearModal);
     document.getElementById('confirmBtn').addEventListener('click', clearAllData);
     
@@ -91,37 +87,7 @@ async function loadDashboardData() {
     }
 }
 
-// Load contact requests
-async function loadContacts() {
-    try {
-        const response = await fetch('/contacts');
-        if (!response.ok) {
-            console.error('Contacts endpoint not available');
-            return;
-        }
-        
-        contactsData = await response.json();
-        updateContactBadge(contactsData);
-        
-    } catch (error) {
-        console.error('Error loading contacts:', error);
-        // Hide contact button if endpoint not available
-        hide('contactsBtn');
-    }
-}
 
-// Update contact badge
-function updateContactBadge(contacts) {
-    const badge = document.getElementById('contactBadge');
-    const uncontacted = contacts.filter(c => !c.contacted).length;
-    
-    if (uncontacted > 0) {
-        badge.textContent = uncontacted;
-        badge.classList.remove('hidden');
-    } else {
-        badge.classList.add('hidden');
-    }
-}
 
 // Update statistics cards
 function updateStats(data) {
@@ -500,106 +466,7 @@ function formatLabel(text) {
 }
 
 // Show/hide contacts
-function showContacts() {
-    show('contactsSection');
-    displayContacts();
-}
 
-function hideContacts() {
-    hide('contactsSection');
-}
-
-function displayContacts() {
-    const contactsList = document.getElementById('contactsList');
-    
-    if (contactsData.length === 0) {
-        contactsList.innerHTML = '<p>No contact requests yet.</p>';
-        return;
-    }
-    
-    contactsList.innerHTML = contactsData.map(contact => `
-        <div class="contact-card ${contact.contacted ? 'contacted' : ''}">
-            <div class="contact-header">
-                <div class="contact-info">
-                    <h4>${contact.name}</h4>
-                    <div class="contact-details">
-                        ${contact.email} ${contact.phone ? `• ${contact.phone}` : ''}
-                        <br>Submitted: ${formatDate(contact.submitted_at)}
-                    </div>
-                </div>
-                <div>
-                    ${contact.contacted ? 
-                        '<span class="badge contact-badge-contacted">Contacted</span>' : 
-                        ''
-                    }
-                </div>
-            </div>
-            
-            ${contact.message ? `
-                <div class="contact-message">
-                    <strong>Message:</strong> ${contact.message}
-                </div>
-            ` : ''}
-            
-            ${contact.quiz_results ? `
-                <div class="quiz-results">
-                    <h5>Quiz Results:</h5>
-                    <div>
-                        <strong>Age:</strong> ${formatAge(contact.quiz_results.answers?.age || '-')}<br>
-                        <strong>Interests:</strong> ${formatArray(contact.quiz_results.interests)}<br>
-                        <strong>Ministries:</strong>
-                        <div class="ministries-list">
-                            ${contact.quiz_results.recommended_ministries?.map(m => 
-                                `<span class="ministry-tag">${m}</span>`
-                            ).join('') || '-'}
-                        </div>
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${!contact.contacted ? `
-                <div class="contact-actions">
-                    <button class="btn btn-success btn-sm contact-btn" data-id="${contact.id}">
-                        <i class="fas fa-check"></i> Mark as Contacted
-                    </button>
-                </div>
-            ` : ''}
-        </div>
-    `).join('');
-    
-    // Add event listeners to newly created elements
-    document.querySelectorAll('.contact-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            markContacted(parseInt(this.dataset.id));
-        });
-    });
-}
-
-// Mark contact as contacted
-async function markContacted(contactId) {
-    try {
-        const response = await fetch(`/api/contacts/${contactId}/mark-contacted`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            const contact = contactsData.find(c => c.id === contactId);
-            if (contact) {
-                contact.contacted = true;
-                displayContacts();
-                updateContactBadge(contactsData);
-            }
-        } else {
-            alert('Error marking contact as contacted');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Network error');
-    }
-}
 
 // Export to CSV
 function exportToCSV() {
