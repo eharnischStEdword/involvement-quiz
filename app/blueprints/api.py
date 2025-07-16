@@ -80,75 +80,7 @@ def submit_ministry_interest():
             'message': 'An unexpected error occurred. Please try again or contact the parish office.'
         }), 500
 
-@api_bp.route('/submit-contact', methods=['POST'])
-def submit_contact():
-    try:
-        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
-        if ',' in ip_address:
-            ip_address = ip_address.split(',')[0].strip()
-        
-        if not check_rate_limit(ip_address):
-            logger.warning(f"Rate limit exceeded for contact form from IP: {ip_address}")
-            return jsonify({
-                'success': False,
-                'message': 'Too many submissions from this location. Please try again in an hour.'
-            }), 429
-        
-        data = request.json
-        logger.info(f"Received contact form from IP {ip_address}: {data.get('name', 'Unknown')}")
-        
-        with get_db_connection() as (conn, cur):
-            cur.execute('''
-                CREATE TABLE IF NOT EXISTS contact_submissions (
-                    id SERIAL PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    email VARCHAR(255) NOT NULL,
-                    phone VARCHAR(20),
-                    message TEXT,
-                    quiz_results JSONB,
-                    submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    ip_address VARCHAR(45),
-                    contacted BOOLEAN DEFAULT FALSE
-                )
-            ''')
-            
-            cur.execute('''
-                INSERT INTO contact_submissions 
-                (name, email, phone, message, quiz_results, ip_address)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING id
-            ''', (
-                data.get('name', ''),
-                data.get('email', ''),
-                data.get('phone', ''),
-                data.get('message', ''),
-                json.dumps(data.get('quiz_results', {})),
-                ip_address
-            ))
-            
-            contact_id = cur.fetchone()[0]
-        
-        logger.info(f"Successfully saved contact submission {contact_id} from {data.get('name', 'Unknown')}")
-        
-        return jsonify({
-            'success': True,
-            'message': 'Contact information received successfully!',
-            'contact_id': contact_id
-        })
-        
-    except psycopg2.Error as e:
-        logger.error(f"Database error in submit_contact: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'Database error. Please try again or call (615) 833-5520.'
-        }), 500
-        
-    except Exception as e:
-        logger.error(f"Unexpected error in submit_contact: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'An error occurred. Please try again or call (615) 833-5520.'
-        }), 500
+
 
 @api_bp.route('/health')
 def health_check():
