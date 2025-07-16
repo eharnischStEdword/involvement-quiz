@@ -94,54 +94,7 @@ def clear_all_data():
             'message': f'Database error: {str(e)}'
         }), 500
 
-@admin_bp.route('/contacts')
-@require_admin_auth
-def admin_contacts():
-    """View contact submissions"""
-    try:
-        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
-            cur.execute('''
-                SELECT id, name, email, phone, message, quiz_results, 
-                       submitted_at, contacted
-                FROM contact_submissions
-                ORDER BY submitted_at DESC
-            ''')
-            
-            contacts = []
-            for row in cur.fetchall():
-                contact = dict(row)
-                if contact['submitted_at']:
-                    contact['submitted_at'] = contact['submitted_at'].isoformat()
-                contacts.append(contact)
-        
-        return jsonify(contacts)
-        
-    except Exception as e:
-        logger.error(f"Error getting contact submissions: {e}")
-        return jsonify({'error': str(e)}), 500
 
-# Add this route to app/blueprints/admin.py after the admin_contacts function
-
-@admin_bp.route('/api/contacts/<int:contact_id>/mark-contacted', methods=['POST'])
-@require_admin_auth
-def mark_contact_contacted(contact_id):
-    """Mark a contact as contacted"""
-    try:
-        with get_db_connection() as (conn, cur):
-            cur.execute(
-                "UPDATE contact_submissions SET contacted = TRUE WHERE id = %s",
-                (contact_id,)
-            )
-            
-            if cur.rowcount == 0:
-                return jsonify({'success': False, 'error': 'Contact not found'}), 404
-        
-        logger.info(f"Contact {contact_id} marked as contacted")
-        return jsonify({'success': True})
-        
-    except Exception as e:
-        logger.error(f"Error marking contact as contacted: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Add this route for date-filtered CSV export
 
