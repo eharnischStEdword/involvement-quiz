@@ -185,6 +185,7 @@ const interestOptions = {
 };
 
 function answerQuestion(type, answer) {
+    console.log('PWA: Answering question', currentQuestion, 'type:', type, 'answer:', answer);
     answers[type] = answer;
     
     // Update button styling
@@ -200,10 +201,12 @@ function answerQuestion(type, answer) {
         }
         
         currentQuestion++;
+        console.log('PWA: Moving to question', currentQuestion);
         
         // Skip question 3 (state in life) for younger age groups - UPDATED FOR ELEMENTARY
         if (currentQuestion === 3 && answers.age && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answers.age)) {
             currentQuestion = 4; // Jump to situation question
+            console.log('PWA: Skipping state question, jumping to question', currentQuestion);
         }
         
         // For interest question, populate age-specific options
@@ -475,10 +478,14 @@ function goBack(questionNum) {
 }
 
 function showQuestion(questionNum) {
+    console.log('PWA: Showing question', questionNum);
     document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
     const targetQuestion = document.getElementById(`q${questionNum}`);
     if (targetQuestion) {
         targetQuestion.classList.add('active');
+        console.log('PWA: Question', questionNum, 'is now active');
+    } else {
+        console.error('PWA: Question', questionNum, 'not found in DOM');
     }
 }
 
