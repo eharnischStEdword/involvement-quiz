@@ -83,6 +83,11 @@ body {
     margin-bottom: var(--spacing-md);
     color: var(--color-primary) !important;
     font-weight: 700;
+    line-height: 1.2;
+}
+
+.welcome-title .church-name {
+    white-space: nowrap;
 }
 
 h1, h2, h3 {
@@ -227,6 +232,29 @@ h1, h2, h3 {
     color: var(--color-text-secondary);
     font-size: var(--font-size-lg);
     margin: 0;
+}
+
+.mobile-save-link {
+    margin-top: var(--spacing-md);
+    text-align: center;
+}
+
+.mobile-save-link a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    font-weight: 500;
+    transition: color var(--transition-fast);
+}
+
+.mobile-save-link a:hover {
+    color: var(--color-primary-medium);
+}
+
+/* Show mobile save link only on mobile devices */
+@media (max-width: 1024px) {
+    .mobile-save-link {
+        display: block !important;
+    }
 }
 
 /* Loading overlay */

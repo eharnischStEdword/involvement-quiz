@@ -104,34 +104,33 @@ class PWA {
     }
 
     showInstallButton() {
-        // Create install button if it doesn't exist
-        if (!document.getElementById('pwa-install-btn')) {
-            const installBtn = document.createElement('button');
-            installBtn.id = 'pwa-install-btn';
-            installBtn.className = 'pwa-install-btn';
-            
-            // Check if it's iOS
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            
-            if (isIOS) {
-                installBtn.innerHTML = `
-                    <span class="pwa-text">Save to Device</span>
-                    <span class="pwa-hint">Tap Share → Add to Home Screen</span>
-                    <button class="pwa-dismiss-btn" onclick="event.stopPropagation(); this.parentElement.remove(); localStorage.setItem('pwa-install-dismissed', 'true');">×</button>
-                `;
-                installBtn.addEventListener('click', () => this.showIOSInstructions());
-            } else {
+        // Check if it's iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        if (isIOS) {
+            // For iOS, show the inline link instead of floating button
+            const mobileSaveLink = document.getElementById('mobileSaveLink');
+            if (mobileSaveLink) {
+                mobileSaveLink.style.display = 'block';
+            }
+        } else {
+            // For other platforms, show the floating button
+            if (!document.getElementById('pwa-install-btn')) {
+                const installBtn = document.createElement('button');
+                installBtn.id = 'pwa-install-btn';
+                installBtn.className = 'pwa-install-btn';
+                
                 installBtn.innerHTML = `
                     <span class="pwa-text">Save to Device</span>
                 `;
                 installBtn.addEventListener('click', () => this.installPWA());
+                
+                // Add to page
+                document.body.appendChild(installBtn);
+                
+                // Add styles
+                this.addInstallButtonStyles();
             }
-            
-            // Add to page
-            document.body.appendChild(installBtn);
-            
-            // Add styles
-            this.addInstallButtonStyles();
         }
     }
 
@@ -161,13 +160,13 @@ class PWA {
         modal.innerHTML = `
             <div class="ios-instructions-content">
                 <div class="ios-instructions-header">
-                    <h3>💾 Save to Device</h3>
+                    <h3>Save to Device</h3>
                     <button class="ios-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
                 </div>
                 <div class="ios-instructions-body">
                     <div class="ios-step">
                         <span class="ios-step-number">1</span>
-                        <span class="ios-step-text">Tap the <strong>Share</strong> button <span class="ios-icon">📤</span></span>
+                        <span class="ios-step-text">Tap the <strong>Share</strong> button</span>
                     </div>
                     <div class="ios-step">
                         <span class="ios-step-number">2</span>
@@ -275,10 +274,6 @@ class PWA {
                     font-size: 16px;
                     color: #333;
                     line-height: 1.4;
-                }
-
-                .ios-icon {
-                    font-size: 18px;
                 }
 
                 .ios-instructions-footer {
@@ -637,4 +632,11 @@ if (document.readyState === 'loading') {
     });
 } else {
     window.pwa = new PWA();
-} 
+}
+
+// Make showIOSInstructions globally accessible
+window.showIOSInstructions = function() {
+    if (window.pwa) {
+        window.pwa.showIOSInstructions();
+    }
+}; 
