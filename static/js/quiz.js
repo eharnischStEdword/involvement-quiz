@@ -960,15 +960,20 @@ function initializeQuiz() {
     document.querySelectorAll('.question').forEach((q, index) => {
         if (index === 0) {
             q.classList.add('active');
+            console.log('PWA: Showing question', index + 1);
         } else {
             q.classList.remove('active');
+            console.log('PWA: Hiding question', index + 1);
         }
     });
     
-    // Hide results
+    // Hide results - CRITICAL FIX
     const resultsDiv = document.getElementById('results');
     if (resultsDiv) {
         resultsDiv.style.display = 'none';
+        console.log('PWA: Hiding results section');
+    } else {
+        console.log('PWA: Results section not found');
     }
     
     // Initialize progress bar
@@ -1009,13 +1014,15 @@ function initializeQuiz() {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     initializeQuiz();
-    setupEventHandlers();
 });
 
 // Setup all event handlers
 function setupEventHandlers() {
     // Header logo click
-    document.getElementById('headerLogo').addEventListener('click', restart);
+    const headerLogo = document.getElementById('headerLogo');
+    if (headerLogo) {
+        headerLogo.addEventListener('click', restart);
+    }
     
     // Option buttons
     document.querySelectorAll('.option-btn').forEach(btn => {
@@ -1033,9 +1040,20 @@ function setupEventHandlers() {
         });
     });
     
-    document.querySelector('.nav-next-state').addEventListener('click', nextFromState);
-    document.querySelector('.nav-next-situation').addEventListener('click', nextFromSituation);
-    document.querySelector('.nav-show-results').addEventListener('click', showResults);
+    const navNextState = document.querySelector('.nav-next-state');
+    if (navNextState) {
+        navNextState.addEventListener('click', nextFromState);
+    }
+    
+    const navNextSituation = document.querySelector('.nav-next-situation');
+    if (navNextSituation) {
+        navNextSituation.addEventListener('click', nextFromSituation);
+    }
+    
+    const navShowResults = document.querySelector('.nav-show-results');
+    if (navShowResults) {
+        navShowResults.addEventListener('click', showResults);
+    }
     
     // State checkboxes
     document.querySelectorAll('#state-checkboxes .checkbox-clickable').forEach(item => {
@@ -1067,11 +1085,11 @@ function setupEventHandlers() {
         });
     });
     
-    // Contact form buttons - REMOVED PII COLLECTION
-    // Only the restart button remains
-    
     // Restart button
-    document.querySelector('.btn-restart').addEventListener('click', restart);
+    const restartBtn = document.querySelector('.btn-restart');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', restart);
+    }
 }
 
 // Also initialize immediately in case DOMContentLoaded already fired
@@ -1079,7 +1097,6 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeQuiz);
 } else {
     initializeQuiz();
-    setupEventHandlers();
 }
 
 // REMOVED CONTACT FORM FUNCTIONS - NO PII COLLECTION
