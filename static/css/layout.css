@@ -242,7 +242,8 @@ h1, h2, h3 {
 .mobile-save-link a {
     color: var(--color-primary);
     text-decoration: underline;
-    font-weight: 500;
+    font-weight: 700;
+    font-size: calc(var(--font-size-lg) - 0.125rem);
     transition: color var(--transition-fast);
 }
 
