@@ -58,21 +58,34 @@ class PWA {
     }
 
     setupInstallPrompt() {
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            
-            // Stash the event so it can be triggered later
-            window.deferredPrompt = e;
-            
-            // Show install button if not already installed
+        // Check if it's iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        
+        if (isIOS) {
+            // For iOS, always show the install button after a delay
             if (!this.isInstalled) {
-                // Add a small delay to avoid showing immediately on page load
                 setTimeout(() => {
                     this.showInstallButton();
-                }, 2000);
+                }, 3000);
             }
-        });
+        } else {
+            // For other platforms, use the beforeinstallprompt event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent the mini-infobar from appearing on mobile
+                e.preventDefault();
+                
+                // Stash the event so it can be triggered later
+                window.deferredPrompt = e;
+                
+                // Show install button if not already installed
+                if (!this.isInstalled) {
+                    // Add a small delay to avoid showing immediately on page load
+                    setTimeout(() => {
+                        this.showInstallButton();
+                    }, 2000);
+                }
+            });
+        }
 
         // Handle successful installation
         window.addEventListener('appinstalled', () => {
@@ -104,6 +117,7 @@ class PWA {
                 installBtn.innerHTML = `
                     <span class="pwa-text">Save to Device</span>
                     <span class="pwa-hint">Tap Share → Add to Home Screen</span>
+                    <button class="pwa-dismiss-btn" onclick="event.stopPropagation(); this.parentElement.remove(); localStorage.setItem('pwa-install-dismissed', 'true');">×</button>
                 `;
                 installBtn.addEventListener('click', () => this.showIOSInstructions());
             } else {
@@ -347,6 +361,7 @@ class PWA {
                     animation: slideIn 0.4s ease;
                     font-family: 'Nunito', sans-serif;
                     min-width: 160px;
+                    position: relative;
                 }
 
                 .pwa-install-btn:hover {
@@ -373,6 +388,31 @@ class PWA {
                     opacity: 0.9;
                     white-space: nowrap;
                     font-weight: 400;
+                }
+
+                .pwa-dismiss-btn {
+                    position: absolute;
+                    top: -8px;
+                    right: -8px;
+                    background: rgba(255, 255, 255, 0.9);
+                    color: #666;
+                    border: none;
+                    border-radius: 50%;
+                    width: 20px;
+                    height: 20px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+                    transition: all 0.2s ease;
+                }
+
+                .pwa-dismiss-btn:hover {
+                    background: rgba(255, 255, 255, 1);
+                    color: #333;
+                    transform: scale(1.1);
                 }
 
                 @keyframes slideIn {
@@ -493,6 +533,15 @@ class PWA {
             window.navigator.standalone === true) {
             this.isInstalled = true;
             console.log('PWA is installed and running in standalone mode');
+        }
+        
+        // For iOS, check if user has dismissed the install button before
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        if (isIOS) {
+            const hasDismissed = localStorage.getItem('pwa-install-dismissed');
+            if (hasDismissed) {
+                this.isInstalled = true; // Treat as "installed" to avoid showing again
+            }
         }
     }
 
