@@ -204,13 +204,42 @@
             // Check if service worker is registered
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(registrations => {
+                    console.log('Service Worker registrations:', registrations);
                     if (registrations.length > 0) {
-                        pwaStatus.textContent = '✅ Service Worker registered!';
+                        pwaStatus.textContent = `✅ Service Worker registered! (${registrations.length} found)`;
                         pwaStatus.className = 'status success';
+                        
+                        // Show more details
+                        registrations.forEach((reg, index) => {
+                            console.log(`SW ${index}:`, {
+                                scope: reg.scope,
+                                active: reg.active,
+                                installing: reg.installing,
+                                waiting: reg.waiting
+                            });
+                        });
                     } else {
                         pwaStatus.textContent = '⚠️ Service Worker not registered';
                         pwaStatus.className = 'status error';
+                        
+                        // Try to register manually
+                        console.log('Attempting manual service worker registration...');
+                        navigator.serviceWorker.register('/static/sw.js', { scope: '/' })
+                            .then(registration => {
+                                console.log('Manual registration successful:', registration);
+                                pwaStatus.textContent = '✅ Service Worker registered manually!';
+                                pwaStatus.className = 'status success';
+                            })
+                            .catch(error => {
+                                console.error('Manual registration failed:', error);
+                                pwaStatus.textContent = `❌ Service Worker registration failed: ${error.message}`;
+                                pwaStatus.className = 'status error';
+                            });
                     }
+                }).catch(error => {
+                    console.error('Error checking service worker registrations:', error);
+                    pwaStatus.textContent = `❌ Error checking registrations: ${error.message}`;
+                    pwaStatus.className = 'status error';
                 });
             } else {
                 pwaStatus.textContent = '❌ Service Workers not supported';

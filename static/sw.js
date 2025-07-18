@@ -17,7 +17,7 @@ const STATIC_FILES = [
   '/static/css/variables.css',
   '/static/js/quiz.js',
   '/static/js/confetti.js',
-  '/static/manifest.json',
+  '/static/site.webmanifest',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
   'https://cdn.jsdelivr.net/npm/chart.js'
 ];

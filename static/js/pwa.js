@@ -30,6 +30,9 @@ class PWA {
 
     async registerServiceWorker() {
         try {
+            console.log('Attempting to register service worker...');
+            console.log('Service Worker support:', 'serviceWorker' in navigator);
+            
             this.swRegistration = await navigator.serviceWorker.register('/static/sw.js', {
                 scope: '/'
             });
@@ -54,6 +57,11 @@ class PWA {
 
         } catch (error) {
             console.error('Service Worker registration failed:', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
         }
     }
 
