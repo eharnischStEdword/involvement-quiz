@@ -127,12 +127,23 @@
     }
     
     .navigation {
-        flex-direction: column;
-        gap: var(--spacing-sm);
+        flex-direction: row;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-lg);
     }
     
     .navigation .nav-btn {
-        width: 100%;
-        text-align: center;
+        flex: 1;
+        min-height: 48px;
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        padding: var(--spacing-md) var(--spacing-lg);
+        border-radius: var(--radius-md);
+        transition: all var(--transition-fast);
+    }
+    
+    .navigation .nav-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
     }
 }
