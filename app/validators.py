@@ -21,7 +21,7 @@ class InputValidator:
     
     # Valid age groups
     VALID_AGE_GROUPS = {
-        'under-18', '18-25', '25-35', '35-50', '50-65', '65-plus'
+        'infant', 'elementary', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'
     }
     
     # Valid genders
@@ -36,16 +36,12 @@ class InputValidator:
     
     # Valid interests
     VALID_INTERESTS = {
-        'music', 'teaching', 'children', 'elderly', 'technology', 'cooking',
-        'sports', 'art', 'prayer', 'social-justice', 'administration',
-        'maintenance', 'gardening', 'reading', 'writing', 'languages'
+        'fellowship', 'service', 'education', 'prayer', 'music', 'support', 'kids', 'all'
     }
     
     # Valid situations
     VALID_SITUATIONS = {
-        'new-to-parish', 'returning-to-church', 'looking-for-community',
-        'want-to-serve', 'curious-about-faith', 'parent-of-young-children',
-        'empty-nester', 'retired', 'student', 'working-professional'
+        'new-to-stedward', 'returning-to-church', 'parent', 'married', 'single'
     }
     
     @staticmethod
