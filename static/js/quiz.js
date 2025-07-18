@@ -975,10 +975,18 @@ function findMinistries() {
 function restart() {
     // Scroll to top before reloading
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    // Small delay to allow scroll animation, then reload
-    setTimeout(() => {
-        location.reload();
-    }, 300);
+    
+    // Wait for scroll to complete, then reload
+    const checkScrollComplete = () => {
+        if (window.pageYOffset === 0) {
+            location.reload();
+        } else {
+            setTimeout(checkScrollComplete, 50);
+        }
+    };
+    
+    // Start checking after a short delay
+    setTimeout(checkScrollComplete, 100);
 }
 
 // CRITICAL FIX: Ensure question visibility is properly set on load
