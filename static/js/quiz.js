@@ -82,6 +82,18 @@ async function loadMinistries() {
     }
 }
 
+// Add a global fallback to ensure loading overlay doesn't get stuck
+setTimeout(() => {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay && overlay.style.display !== 'none') {
+        console.log('PWA: Global fallback - forcing overlay hide after 20 seconds');
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 500);
+    }
+}, 20000); // 20 second global fallback
+
 function showLoadingError() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
@@ -996,6 +1008,16 @@ function initializeQuiz() {
                 overlay.style.display = 'none';
             }, 500);
         }
+        
+        // Set up fallback ministries data
+        ministries = {
+            'mass': {
+                name: 'Come to Mass!',
+                description: 'Join us for Mass and experience the heart of our community.',
+                details: 'Mass times and information available at stedward.org'
+            }
+        };
+        console.log('PWA: Using fallback ministries data');
     });
     
     // Fallback initialization after 5 seconds
@@ -1013,82 +1035,126 @@ function initializeQuiz() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    initializeQuiz();
+    console.log('PWA: DOMContentLoaded fired');
+    try {
+        initializeQuiz();
+    } catch (error) {
+        console.error('PWA: Error in DOMContentLoaded:', error);
+        // Force hide loading overlay on error
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+    }
 });
 
 // Setup all event handlers
 function setupEventHandlers() {
-    // Header logo click
-    const headerLogo = document.getElementById('headerLogo');
-    if (headerLogo) {
-        headerLogo.addEventListener('click', restart);
-    }
+    console.log('PWA: Setting up event handlers...');
     
-    // Option buttons
-    document.querySelectorAll('.option-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const type = this.dataset.type;
-            const answer = this.dataset.answer;
-            answerQuestion(type, answer);
+    try {
+        // Header logo click
+        const headerLogo = document.getElementById('headerLogo');
+        if (headerLogo) {
+            headerLogo.addEventListener('click', restart);
+            console.log('PWA: Header logo handler set');
+        }
+        
+        // Option buttons
+        const optionButtons = document.querySelectorAll('.option-btn');
+        console.log('PWA: Found', optionButtons.length, 'option buttons');
+        
+        optionButtons.forEach((btn, index) => {
+            btn.addEventListener('click', function(e) {
+                console.log('PWA: Option button clicked:', this.dataset.type, this.dataset.answer);
+                const type = this.dataset.type;
+                const answer = this.dataset.answer;
+                answerQuestion(type, answer);
+            });
         });
-    });
-    
-    // Navigation buttons
-    document.querySelectorAll('.nav-back').forEach(btn => {
-        btn.addEventListener('click', function() {
-            goBack(parseInt(this.dataset.question));
+        
+        // Navigation buttons
+        const navBackButtons = document.querySelectorAll('.nav-back');
+        console.log('PWA: Found', navBackButtons.length, 'nav-back buttons');
+        
+        navBackButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('PWA: Nav back clicked for question:', this.dataset.question);
+                goBack(parseInt(this.dataset.question));
+            });
         });
-    });
-    
-    const navNextState = document.querySelector('.nav-next-state');
-    if (navNextState) {
-        navNextState.addEventListener('click', nextFromState);
-    }
-    
-    const navNextSituation = document.querySelector('.nav-next-situation');
-    if (navNextSituation) {
-        navNextSituation.addEventListener('click', nextFromSituation);
-    }
-    
-    const navShowResults = document.querySelector('.nav-show-results');
-    if (navShowResults) {
-        navShowResults.addEventListener('click', showResults);
-    }
-    
-    // State checkboxes
-    document.querySelectorAll('#state-checkboxes .checkbox-clickable').forEach(item => {
-        item.addEventListener('click', function(e) {
-            if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
-                toggleStateCheckbox(this.dataset.value);
-            }
+        
+        const navNextState = document.querySelector('.nav-next-state');
+        if (navNextState) {
+            navNextState.addEventListener('click', nextFromState);
+            console.log('PWA: Nav next state handler set');
+        }
+        
+        const navNextSituation = document.querySelector('.nav-next-situation');
+        if (navNextSituation) {
+            navNextSituation.addEventListener('click', nextFromSituation);
+            console.log('PWA: Nav next situation handler set');
+        }
+        
+        const navShowResults = document.querySelector('.nav-show-results');
+        if (navShowResults) {
+            navShowResults.addEventListener('click', showResults);
+            console.log('PWA: Nav show results handler set');
+        }
+        
+        // State checkboxes
+        const stateCheckboxes = document.querySelectorAll('#state-checkboxes .checkbox-clickable');
+        console.log('PWA: Found', stateCheckboxes.length, 'state checkboxes');
+        
+        stateCheckboxes.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                    console.log('PWA: State checkbox clicked:', this.dataset.value);
+                    toggleStateCheckbox(this.dataset.value);
+                }
+            });
         });
-    });
-    
-    document.querySelectorAll('#state-checkboxes input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', function() {
-            handleStateCheckboxChange(this.value);
+        
+        document.querySelectorAll('#state-checkboxes input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                console.log('PWA: State checkbox changed:', this.value);
+                handleStateCheckboxChange(this.value);
+            });
         });
-    });
-    
-    // Situation checkboxes
-    document.querySelectorAll('#situation-checkboxes .checkbox-clickable').forEach(item => {
-        item.addEventListener('click', function(e) {
-            if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
-                toggleSituationCheckbox(this.dataset.value);
-            }
+        
+        // Situation checkboxes
+        const situationCheckboxes = document.querySelectorAll('#situation-checkboxes .checkbox-clickable');
+        console.log('PWA: Found', situationCheckboxes.length, 'situation checkboxes');
+        
+        situationCheckboxes.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.type !== 'checkbox' && e.target.tagName !== 'LABEL') {
+                    console.log('PWA: Situation checkbox clicked:', this.dataset.value);
+                    toggleSituationCheckbox(this.dataset.value);
+                }
+            });
         });
-    });
-    
-    document.querySelectorAll('#situation-checkboxes input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', function() {
-            handleSituationCheckboxChange(this.id);
+        
+        document.querySelectorAll('#situation-checkboxes input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                console.log('PWA: Situation checkbox changed:', this.id);
+                handleSituationCheckboxChange(this.id);
+            });
         });
-    });
-    
-    // Restart button
-    const restartBtn = document.querySelector('.btn-restart');
-    if (restartBtn) {
-        restartBtn.addEventListener('click', restart);
+        
+        // Restart button
+        const restartBtn = document.querySelector('.btn-restart');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', restart);
+            console.log('PWA: Restart button handler set');
+        }
+        
+        console.log('PWA: Event handlers setup complete');
+    } catch (error) {
+        console.error('PWA: Error setting up event handlers:', error);
     }
 }
 
