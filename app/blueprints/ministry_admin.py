@@ -12,6 +12,7 @@ import io
 
 from app.database import get_db_connection
 from app.auth import require_admin_auth_enhanced as require_admin_auth
+from app.error_handlers import create_error_response, DatabaseError, ValidationError
 
 ministry_admin_bp = Blueprint('ministry_admin', __name__)
 logger = logging.getLogger(__name__)
@@ -110,6 +111,9 @@ def create_ministry():
     """Create new ministry"""
     try:
         data = request.json
+        if not data:
+            error_response, status_code = create_error_response(ValidationError("No data provided"))
+            return jsonify(error_response), status_code
         
         with get_db_connection() as (conn, cur):
             cur.execute('''
@@ -159,6 +163,9 @@ def update_ministry(ministry_id):
     """Update existing ministry"""
     try:
         data = request.json
+        if not data:
+            error_response, status_code = create_error_response(ValidationError("No data provided"))
+            return jsonify(error_response), status_code
         
         with get_db_connection() as (conn, cur):
             # Check if ministry exists

@@ -2,13 +2,16 @@
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request, Response
 import json
 import logging
 import psycopg2.extras
+import io
+import csv
 
 from app.database import get_db_connection
 from app.auth import require_admin_auth_enhanced as require_admin_auth, require_csrf_token
+from app.error_handlers import create_error_response, DatabaseError
 
 admin_bp = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
@@ -65,7 +68,8 @@ def get_submissions():
         
     except Exception as e:
         logger.error(f"Error getting submissions: {e}")
-        return jsonify({'error': str(e)}), 500
+        error_response, status_code = create_error_response(DatabaseError("Failed to retrieve submissions", e))
+        return jsonify(error_response), status_code
 
 @admin_bp.route('/api/clear-all-data', methods=['POST'])
 @require_admin_auth
@@ -89,14 +93,10 @@ def clear_all_data():
         
     except Exception as e:
         logger.error(f"Error clearing all data: {e}")
-        return jsonify({
-            'success': False,
-            'message': f'Database error: {str(e)}'
-        }), 500
+        error_response, status_code = create_error_response(DatabaseError("Failed to clear data", e))
+        return jsonify(error_response), status_code
 
 
-
-# Add this route for date-filtered CSV export
 
 @admin_bp.route('/api/submissions/export')
 @require_admin_auth
@@ -127,9 +127,6 @@ def export_submissions():
             submissions = cur.fetchall()
         
         # Convert to CSV
-        import io
-        import csv
-        
         output = io.StringIO()
         if submissions:
             writer = csv.DictWriter(output, fieldnames=submissions[0].keys())
@@ -138,7 +135,6 @@ def export_submissions():
         
         output.seek(0)
         
-        from flask import Response
         return Response(
             output.read(),
             mimetype='text/csv',
@@ -147,4 +143,5 @@ def export_submissions():
         
     except Exception as e:
         logger.error(f"Error exporting submissions: {e}")
-        return jsonify({'error': str(e)}), 500
+        error_response, status_code = create_error_response(DatabaseError("Failed to export submissions", e))
+        return jsonify(error_response), status_code

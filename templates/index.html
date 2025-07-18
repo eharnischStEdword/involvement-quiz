@@ -326,6 +326,13 @@
     <script>
         // Set copyright year
         document.getElementById('copyright-year').textContent = new Date().getFullYear();
+        
+        // Initialize PWA after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof PWA !== 'undefined') {
+                window.pwa = new PWA();
+            }
+        });
     </script>
 </body>
 </html>

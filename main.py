@@ -2,10 +2,6 @@
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
-from flask import Flask, jsonify
-from flask_cors import CORS
-from flask_talisman import Talisman
-from flask_caching import Cache
 import os
 import logging
 import threading
@@ -15,68 +11,17 @@ import pytz
 from datetime import datetime
 import json
 
-from app.config import Config
-from app.models import init_db
-from app.database import init_connection_pool, close_connection_pool, get_db_connection
+from flask import jsonify
+from app import create_app
+from app.database import get_db_connection, close_connection_pool
 from app.ministries import MINISTRY_DATA
-from app.blueprints.public import public_bp
-from app.blueprints.api import api_bp
-from app.blueprints.admin import admin_bp
-from app.blueprints.ministry_admin import ministry_admin_bp
+from app.config import Config
 
-# Validate environment and get configuration
+# Create the Flask application using the factory pattern
+app = create_app()
 config = Config.get_config()
 
-app = Flask(__name__)
-CORS(app)
-app.secret_key = config['SECRET_KEY']
-
-# Configure Talisman for HTTPS with proper CSP settings
-if config['IS_PRODUCTION']:  # Production
-    csp = {
-        'default-src': "'self'",
-        'script-src': [
-            "'self'",
-            "'unsafe-inline'",  # Required for event handlers
-            "'unsafe-eval'",    # Required for Chart.js
-            'https://cdn.jsdelivr.net',
-            'https://cdnjs.cloudflare.com',
-            'https://www.googletagmanager.com',
-            'https://www.google-analytics.com'
-        ],
-        'worker-src': ["'self'"],  # Allow service workers
-        'style-src': [
-            "'self'",
-            "'unsafe-inline'",  # Required for style attributes
-            'https://cdnjs.cloudflare.com',
-            'https://fonts.googleapis.com'
-        ],
-        'font-src': [
-            "'self'",
-            'https://cdnjs.cloudflare.com',
-            'https://fonts.gstatic.com'
-        ],
-        'img-src': [
-            "'self'",
-            'data:',
-            'https:',
-            'http:'
-        ],
-        'connect-src': [
-            "'self'",
-            'https://www.google-analytics.com'
-        ]
-    }
-    Talisman(app, 
-             force_https=True, 
-             strict_transport_security=True,
-             content_security_policy=csp)
-
-# Configure caching
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
-
 # Set up logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def keep_alive():
@@ -183,23 +128,8 @@ def auto_migrate_ministries():
     except Exception as e:
         logger.error(f"Ministry migration failed: {e}")
 
-# Initialize database and connection pool on startup
-try:
-    init_db()
-    init_connection_pool()
-    logger.info("Database and connection pool initialized on startup")
-    
-    # Auto-migrate ministries
-    auto_migrate_ministries()
-    
-except Exception as e:
-    logger.error(f"Database initialization failed: {e}")
-
-# Register blueprints
-app.register_blueprint(public_bp)
-app.register_blueprint(api_bp)
-app.register_blueprint(admin_bp)
-app.register_blueprint(ministry_admin_bp)
+# Auto-migrate ministries on startup
+auto_migrate_ministries()
 
 # Error handlers
 @app.errorhandler(404)
