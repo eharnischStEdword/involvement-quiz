@@ -21,14 +21,25 @@
     <meta name="description" content="Find your path in the St. Edward Catholic community through our interactive ministry discovery tool">
     <meta name="application-name" content="St. Edward Ministry Finder">
     
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-TileColor" content="#005921">
+    <meta name="msapplication-config" content="none">
+    
     <!-- PWA Icons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    
+    <!-- iOS Splash Screens -->
+    <link rel="apple-touch-startup-image" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
     
     <!-- Web App Manifest -->
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>

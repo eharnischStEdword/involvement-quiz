@@ -96,11 +96,24 @@ class PWA {
             const installBtn = document.createElement('button');
             installBtn.id = 'pwa-install-btn';
             installBtn.className = 'pwa-install-btn';
-            installBtn.innerHTML = `
-                <span class="pwa-icon">📱</span>
-                <span class="pwa-text">Install App</span>
-            `;
-            installBtn.addEventListener('click', () => this.installPWA());
+            
+            // Check if it's iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            
+            if (isIOS) {
+                installBtn.innerHTML = `
+                    <span class="pwa-icon">📱</span>
+                    <span class="pwa-text">Add to Home Screen</span>
+                    <span class="pwa-hint">Tap Share → Add to Home Screen</span>
+                `;
+                installBtn.addEventListener('click', () => this.showIOSInstructions());
+            } else {
+                installBtn.innerHTML = `
+                    <span class="pwa-icon">📱</span>
+                    <span class="pwa-text">Install App</span>
+                `;
+                installBtn.addEventListener('click', () => this.installPWA());
+            }
             
             // Add to page
             document.body.appendChild(installBtn);
@@ -128,6 +141,182 @@ class PWA {
         }
     }
 
+    showIOSInstructions() {
+        // Create iOS instructions modal
+        const modal = document.createElement('div');
+        modal.id = 'ios-instructions-modal';
+        modal.className = 'ios-instructions-modal';
+        modal.innerHTML = `
+            <div class="ios-instructions-content">
+                <div class="ios-instructions-header">
+                    <h3>📱 Add to Home Screen</h3>
+                    <button class="ios-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+                </div>
+                <div class="ios-instructions-body">
+                    <div class="ios-step">
+                        <span class="ios-step-number">1</span>
+                        <span class="ios-step-text">Tap the <strong>Share</strong> button <span class="ios-icon">📤</span></span>
+                    </div>
+                    <div class="ios-step">
+                        <span class="ios-step-number">2</span>
+                        <span class="ios-step-text">Scroll down and tap <strong>Add to Home Screen</strong></span>
+                    </div>
+                    <div class="ios-step">
+                        <span class="ios-step-number">3</span>
+                        <span class="ios-step-text">Tap <strong>Add</strong> to confirm</span>
+                    </div>
+                </div>
+                <div class="ios-instructions-footer">
+                    <button class="ios-got-it-btn" onclick="this.parentElement.parentElement.parentElement.remove()">Got it!</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Add styles if not already added
+        if (!document.getElementById('ios-instructions-styles')) {
+            const style = document.createElement('style');
+            style.id = 'ios-instructions-styles';
+            style.textContent = `
+                .ios-instructions-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                    animation: fadeIn 0.3s ease;
+                }
+
+                .ios-instructions-content {
+                    background: white;
+                    border-radius: 16px;
+                    max-width: 400px;
+                    width: 100%;
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    animation: slideUp 0.3s ease;
+                }
+
+                .ios-instructions-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px 20px 0;
+                }
+
+                .ios-instructions-header h3 {
+                    margin: 0;
+                    color: #005921;
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+
+                .ios-close-btn {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    color: #666;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 30px;
+                    height: 30px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .ios-instructions-body {
+                    padding: 20px;
+                }
+
+                .ios-step {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 16px;
+                    gap: 12px;
+                }
+
+                .ios-step-number {
+                    background: #005921;
+                    color: white;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 14px;
+                    font-weight: 600;
+                    flex-shrink: 0;
+                }
+
+                .ios-step-text {
+                    font-size: 16px;
+                    color: #333;
+                    line-height: 1.4;
+                }
+
+                .ios-icon {
+                    font-size: 18px;
+                }
+
+                .ios-instructions-footer {
+                    padding: 0 20px 20px;
+                    text-align: center;
+                }
+
+                .ios-got-it-btn {
+                    background: #005921;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 12px 24px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: background 0.2s ease;
+                }
+
+                .ios-got-it-btn:hover {
+                    background: #00843D;
+                }
+
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes slideUp {
+                    from {
+                        transform: translateY(20px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+
+                @media (max-width: 480px) {
+                    .ios-instructions-modal {
+                        padding: 10px;
+                    }
+                    
+                    .ios-instructions-content {
+                        max-width: none;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+
     addInstallButtonStyles() {
         if (!document.getElementById('pwa-styles')) {
             const style = document.createElement('style');
@@ -148,11 +337,13 @@ class PWA {
                     box-shadow: 0 6px 20px rgba(0, 89, 33, 0.4);
                     z-index: 1000;
                     display: flex;
+                    flex-direction: column;
                     align-items: center;
-                    gap: 10px;
+                    gap: 4px;
                     transition: all 0.3s ease;
                     animation: slideIn 0.4s ease;
                     font-family: 'Nunito', sans-serif;
+                    min-width: 160px;
                 }
 
                 .pwa-install-btn:hover {
@@ -171,6 +362,13 @@ class PWA {
 
                 .pwa-text {
                     white-space: nowrap;
+                }
+
+                .pwa-hint {
+                    font-size: 11px;
+                    opacity: 0.9;
+                    white-space: nowrap;
+                    font-weight: 400;
                 }
 
                 @keyframes slideIn {
