@@ -59,5 +59,9 @@ def pwa_test():
 @public_bp.route('/sw.js')
 def service_worker():
     """Serve the service worker from root"""
-    from flask import send_file
-    return send_file('sw.js', mimetype='application/javascript')
+    from flask import send_file, current_app
+    import os
+    # Get the path to the static directory
+    static_dir = os.path.join(current_app.root_path, '..', 'static')
+    sw_path = os.path.join(static_dir, 'sw.js')
+    return send_file(sw_path, mimetype='application/javascript')
