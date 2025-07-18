@@ -13,7 +13,7 @@ from app.logging_config import get_logger
 logger = get_logger(__name__)
 
 # Rate limiting configuration
-RATE_LIMIT_REQUESTS = 5  # Max 5 submissions per hour per IP
+RATE_LIMIT_REQUESTS = 20  # Max 20 submissions per hour per IP
 RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
 
 # Admin credentials from environment - NO DEFAULTS IN PRODUCTION
