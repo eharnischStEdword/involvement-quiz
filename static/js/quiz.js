@@ -1171,11 +1171,6 @@ function setupEventHandlers() {
     }
 }
 
-// Also initialize immediately in case DOMContentLoaded already fired
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeQuiz);
-} else {
-    initializeQuiz();
-}
+// Initialize only once via DOMContentLoaded
 
 // REMOVED CONTACT FORM FUNCTIONS - NO PII COLLECTION
