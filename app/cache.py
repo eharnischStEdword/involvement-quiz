@@ -21,26 +21,8 @@ class CacheManager:
         self.memory_cache = {}
         self.cache_ttl = 300  # 5 minutes default
         
-        # Try to initialize Redis
-        try:
-            import redis
-            self.redis_client = redis.Redis(
-                host='localhost',
-                port=6379,
-                db=0,
-                decode_responses=True,
-                socket_connect_timeout=1,
-                socket_timeout=1
-            )
-            # Test connection
-            self.redis_client.ping()
-            logger.info("Redis cache initialized successfully")
-        except ImportError:
-            logger.warning("Redis package not installed, using in-memory cache")
-            self.redis_client = None
-        except Exception as e:
-            logger.warning(f"Redis not available, using in-memory cache: {e}")
-            self.redis_client = None
+        # Use in-memory cache only for simplicity
+        logger.info("Using in-memory cache")
     
     def _generate_key(self, prefix: str, *args, **kwargs) -> str:
         """Generate a cache key from prefix and arguments"""
@@ -50,20 +32,14 @@ class CacheManager:
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""
         try:
-            if self.redis_client:
-                # Try Redis first
-                value = self.redis_client.get(key)
-                if value:
-                    return json.loads(value)
-            else:
-                # Fallback to memory cache
-                if key in self.memory_cache:
-                    data = self.memory_cache[key]
-                    if time.time() < data['expires']:
-                        return data['value']
-                    else:
-                        # Expired, remove it
-                        del self.memory_cache[key]
+            # Use memory cache only
+            if key in self.memory_cache:
+                data = self.memory_cache[key]
+                if time.time() < data['expires']:
+                    return data['value']
+                else:
+                    # Expired, remove it
+                    del self.memory_cache[key]
         except Exception as e:
             logger.warning(f"Cache get error: {e}")
         
@@ -72,23 +48,13 @@ class CacheManager:
     def set(self, key: str, value: Any, ttl: int = None) -> bool:
         """Set value in cache with TTL"""
         try:
-            if self.redis_client:
-                # Use Redis
-                ttl = ttl or self.cache_ttl
-                ttl_seconds = ttl or self.cache_ttl
-                return self.redis_client.setex(
-                    key, 
-                    ttl_seconds, 
-                    json.dumps(value)
-                )
-            else:
-                # Use memory cache
-                ttl = ttl or self.cache_ttl
-                self.memory_cache[key] = {
-                    'value': value,
-                    'expires': time.time() + ttl
-                }
-                return True
+            # Use memory cache only
+            ttl_seconds = ttl or self.cache_ttl
+            self.memory_cache[key] = {
+                'value': value,
+                'expires': time.time() + ttl_seconds
+            }
+            return True
         except Exception as e:
             logger.warning(f"Cache set error: {e}")
             return False
@@ -96,12 +62,9 @@ class CacheManager:
     def delete(self, key: str) -> bool:
         """Delete value from cache"""
         try:
-            if self.redis_client:
-                return bool(self.redis_client.delete(key))
-            else:
-                if key in self.memory_cache:
-                    del self.memory_cache[key]
-                return True
+            if key in self.memory_cache:
+                del self.memory_cache[key]
+            return True
         except Exception as e:
             logger.warning(f"Cache delete error: {e}")
             return False
@@ -109,10 +72,7 @@ class CacheManager:
     def clear(self) -> bool:
         """Clear all cache"""
         try:
-            if self.redis_client:
-                self.redis_client.flushdb()
-            else:
-                self.memory_cache.clear()
+            self.memory_cache.clear()
             return True
         except Exception as e:
             logger.warning(f"Cache clear error: {e}")
@@ -121,10 +81,7 @@ class CacheManager:
     def exists(self, key: str) -> bool:
         """Check if key exists in cache"""
         try:
-            if self.redis_client:
-                return bool(self.redis_client.exists(key))
-            else:
-                return key in self.memory_cache and time.time() < self.memory_cache[key]['expires']
+            return key in self.memory_cache and time.time() < self.memory_cache[key]['expires']
         except Exception as e:
             logger.warning(f"Cache exists error: {e}")
             return False
