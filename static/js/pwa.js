@@ -102,15 +102,13 @@ class PWA {
             
             if (isIOS) {
                 installBtn.innerHTML = `
-                    <span class="pwa-icon">📱</span>
-                    <span class="pwa-text">Add to Home Screen</span>
+                    <span class="pwa-text">Save to Device</span>
                     <span class="pwa-hint">Tap Share → Add to Home Screen</span>
                 `;
                 installBtn.addEventListener('click', () => this.showIOSInstructions());
             } else {
                 installBtn.innerHTML = `
-                    <span class="pwa-icon">📱</span>
-                    <span class="pwa-text">Install App</span>
+                    <span class="pwa-text">Save to Device</span>
                 `;
                 installBtn.addEventListener('click', () => this.installPWA());
             }
@@ -149,7 +147,7 @@ class PWA {
         modal.innerHTML = `
             <div class="ios-instructions-content">
                 <div class="ios-instructions-header">
-                    <h3>📱 Add to Home Screen</h3>
+                    <h3>💾 Save to Device</h3>
                     <button class="ios-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
                 </div>
                 <div class="ios-instructions-body">
@@ -195,11 +193,14 @@ class PWA {
                 }
 
                 .ios-instructions-content {
-                    background: white;
+                    background: rgba(255, 255, 255, 0.95);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
                     border-radius: 16px;
                     max-width: 400px;
                     width: 100%;
-                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
                     animation: slideUp 0.3s ease;
                 }
 
@@ -326,15 +327,17 @@ class PWA {
                     position: fixed;
                     bottom: 20px;
                     right: 20px;
-                    background: linear-gradient(135deg, #005921 0%, #00843D 100%);
+                    background: rgba(0, 89, 33, 0.85);
+                    backdrop-filter: blur(20px);
+                    -webkit-backdrop-filter: blur(20px);
                     color: white;
-                    border: none;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 50px;
                     padding: 14px 22px;
                     font-size: 15px;
                     font-weight: 600;
                     cursor: pointer;
-                    box-shadow: 0 6px 20px rgba(0, 89, 33, 0.4);
+                    box-shadow: 0 8px 32px rgba(0, 89, 33, 0.25);
                     z-index: 1000;
                     display: flex;
                     flex-direction: column;
@@ -347,9 +350,10 @@ class PWA {
                 }
 
                 .pwa-install-btn:hover {
-                    background: linear-gradient(135deg, #00843D 0%, #00A94F 100%);
-                    transform: translateY(-3px);
-                    box-shadow: 0 8px 25px rgba(0, 89, 33, 0.5);
+                    background: rgba(0, 89, 33, 0.95);
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 40px rgba(0, 89, 33, 0.35);
+                    border-color: rgba(255, 255, 255, 0.3);
                 }
 
                 .pwa-install-btn:active {
