@@ -57,7 +57,7 @@ async function loadDashboardData() {
     try {
         show('loading');
         
-        const response = await fetch('/api/submissions');
+        const response = await fetch('/admin/api/submissions');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -549,7 +549,7 @@ function hideClearModal() {
 // Clear all data
 async function clearAllData() {
     try {
-        const response = await fetch('/api/clear-all-data', {
+        const response = await fetch('/admin/api/clear-all-data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
