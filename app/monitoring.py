@@ -3,11 +3,18 @@
 # Unauthorized use, distribution, or modification is prohibited.
 
 import time
-import psutil
 import threading
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import logging
+
+# Try to import optional dependencies
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    psutil = None
 
 from app.logging_config import get_logger
 from app.cache import cache_manager, get_cache_stats
@@ -81,20 +88,22 @@ class ApplicationMonitor:
     def _check_system_health(self):
         """Check system health and log warnings"""
         try:
-            # Check memory usage
-            memory = psutil.virtual_memory()
-            if memory.percent > 80:
-                logger.warning(f"High memory usage: {memory.percent:.1f}%")
-            
-            # Check CPU usage
-            cpu_percent = psutil.cpu_percent(interval=1)
-            if cpu_percent > 80:
-                logger.warning(f"High CPU usage: {cpu_percent:.1f}%")
-            
-            # Check disk usage
-            disk = psutil.disk_usage('/')
-            if disk.percent > 90:
-                logger.warning(f"High disk usage: {disk.percent:.1f}%")
+            # Check system metrics if psutil is available
+            if PSUTIL_AVAILABLE and psutil:
+                # Check memory usage
+                memory = psutil.virtual_memory()
+                if memory.percent > 80:
+                    logger.warning(f"High memory usage: {memory.percent:.1f}%")
+                
+                # Check CPU usage
+                cpu_percent = psutil.cpu_percent(interval=1)
+                if cpu_percent > 80:
+                    logger.warning(f"High CPU usage: {cpu_percent:.1f}%")
+                
+                # Check disk usage
+                disk = psutil.disk_usage('/')
+                if disk.percent > 90:
+                    logger.warning(f"High disk usage: {disk.percent:.1f}%")
             
             # Check error rates
             self._check_error_rates()
@@ -117,9 +126,22 @@ class ApplicationMonitor:
         """Get current application metrics"""
         try:
             # System metrics
-            memory = psutil.virtual_memory()
-            cpu_percent = psutil.cpu_percent()
-            disk = psutil.disk_usage('/')
+            system_metrics = {}
+            if PSUTIL_AVAILABLE and psutil:
+                memory = psutil.virtual_memory()
+                cpu_percent = psutil.cpu_percent()
+                disk = psutil.disk_usage('/')
+                system_metrics = {
+                    'memory_percent': memory.percent,
+                    'cpu_percent': cpu_percent,
+                    'disk_percent': disk.percent,
+                }
+            else:
+                system_metrics = {
+                    'memory_percent': 'N/A',
+                    'cpu_percent': 'N/A',
+                    'disk_percent': 'N/A',
+                }
             
             # Application metrics
             uptime = time.time() - self.start_time
@@ -133,9 +155,7 @@ class ApplicationMonitor:
             
             return {
                 'system': {
-                    'memory_percent': memory.percent,
-                    'cpu_percent': cpu_percent,
-                    'disk_percent': disk.percent,
+                    **system_metrics,
                     'uptime_seconds': uptime,
                     'uptime_human': str(timedelta(seconds=int(uptime)))
                 },
@@ -160,30 +180,38 @@ class ApplicationMonitor:
     def _get_rate_limit_stats(self) -> Dict[str, Any]:
         """Get rate limiting statistics"""
         try:
-            import redis
-            redis_client = redis.Redis(
-                host='localhost',
-                port=6379,
-                db=1,
-                decode_responses=True,
-                socket_connect_timeout=1,
-                socket_timeout=1
-            )
-            
-            # Get all rate limit keys
-            keys = redis_client.keys('rate_limit:*')
-            total_rate_limited_ips = len(keys)
-            
-            # Get total rate limit hits
-            total_hits = 0
-            for key in keys:
-                total_hits += redis_client.zcard(key)
-            
-            return {
-                'total_rate_limited_ips': total_rate_limited_ips,
-                'total_rate_limit_hits': total_hits,
-                'storage_type': 'redis'
-            }
+            # Try to import redis
+            try:
+                import redis
+                redis_client = redis.Redis(
+                    host='localhost',
+                    port=6379,
+                    db=1,
+                    decode_responses=True,
+                    socket_connect_timeout=1,
+                    socket_timeout=1
+                )
+                
+                # Get all rate limit keys
+                keys = redis_client.keys('rate_limit:*')
+                total_rate_limited_ips = len(keys)
+                
+                # Get total rate limit hits
+                total_hits = 0
+                for key in keys:
+                    total_hits += redis_client.zcard(key)
+                
+                return {
+                    'total_rate_limited_ips': total_rate_limited_ips,
+                    'total_rate_limit_hits': total_hits,
+                    'storage_type': 'redis'
+                }
+            except ImportError:
+                # Redis not available
+                return {
+                    'storage_type': 'memory',
+                    'error': 'Redis not available'
+                }
             
         except Exception as e:
             logger.warning(f"Failed to get rate limit stats: {e}")

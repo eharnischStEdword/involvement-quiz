@@ -45,11 +45,11 @@ class CacheManager:
         
         return None
     
-    def set(self, key: str, value: Any, ttl: int = None) -> bool:
+    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Set value in cache with TTL"""
         try:
             # Use memory cache only
-            ttl_seconds = ttl or self.cache_ttl
+            ttl_seconds = ttl if ttl is not None else self.cache_ttl
             self.memory_cache[key] = {
                 'value': value,
                 'expires': time.time() + ttl_seconds
@@ -129,16 +129,10 @@ def cache_submissions(func: Callable) -> Callable:
 def invalidate_ministry_cache():
     """Invalidate all ministry-related cache"""
     try:
-        if cache_manager.redis_client:
-            # Delete all keys starting with 'ministries:'
-            keys = cache_manager.redis_client.keys('ministries:*')
-            if keys:
-                cache_manager.redis_client.delete(*keys)
-        else:
-            # Clear memory cache keys starting with 'ministries:'
-            keys_to_delete = [k for k in cache_manager.memory_cache.keys() if k.startswith('ministries:')]
-            for key in keys_to_delete:
-                del cache_manager.memory_cache[key]
+        # Clear memory cache keys starting with 'ministries:'
+        keys_to_delete = [k for k in cache_manager.memory_cache.keys() if k.startswith('ministries:')]
+        for key in keys_to_delete:
+            del cache_manager.memory_cache[key]
         
         logger.info("Ministry cache invalidated")
     except Exception as e:

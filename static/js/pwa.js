@@ -257,11 +257,8 @@ class PWA {
 
         } catch (error) {
             console.error('Service Worker registration failed:', error);
-            console.error('Error details:', {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            });
+            // Don't show detailed errors to users - service worker is optional
+            // Only log for debugging purposes
         }
     }
 
@@ -364,13 +361,13 @@ class PWA {
         console.log('PWA Install Button - iOS:', isIOS, 'Mobile:', isMobile, 'Desktop:', isDesktop);
         
         if (isIOS) {
-            // For iOS, show the inline banner instead of floating button
-            const mobileSaveContainer = document.getElementById('mobileSaveContainer');
-            if (mobileSaveContainer) {
-                mobileSaveContainer.style.display = 'block';
-                console.log('PWA: Showing iOS mobile save container');
+            // For iOS, show the small link under the welcome text
+            const mobileSaveLink = document.getElementById('mobileSaveLink');
+            if (mobileSaveLink) {
+                mobileSaveLink.style.display = 'block';
+                console.log('PWA: Showing iOS mobile save link');
             } else {
-                console.log('PWA: mobileSaveContainer not found in HTML');
+                console.log('PWA: mobileSaveLink not found in HTML');
             }
         } else if (isMobile && !isDesktop) {
             // For mobile (non-iOS), show the floating button
@@ -403,10 +400,15 @@ class PWA {
             installBtn.remove();
         }
         
-        // Also hide iOS banner
+        // Also hide iOS banner and link
         const mobileSaveContainer = document.getElementById('mobileSaveContainer');
         if (mobileSaveContainer) {
             mobileSaveContainer.style.display = 'none';
+        }
+        
+        const mobileSaveLink = document.getElementById('mobileSaveLink');
+        if (mobileSaveLink) {
+            mobileSaveLink.style.display = 'none';
         }
     }
 

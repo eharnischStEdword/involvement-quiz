@@ -973,7 +973,12 @@ function findMinistries() {
 }
 
 function restart() {
-    location.reload();
+    // Scroll to top before reloading
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Small delay to allow scroll animation, then reload
+    setTimeout(() => {
+        location.reload();
+    }, 300);
 }
 
 // CRITICAL FIX: Ensure question visibility is properly set on load
