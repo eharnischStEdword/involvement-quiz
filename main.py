@@ -2,7 +2,7 @@
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_talisman import Talisman
 from flask_caching import Cache
@@ -80,23 +80,44 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def keep_alive():
-    """Ping the service every 10 minutes to prevent sleeping"""
-    time.sleep(60)
+    """Enhanced keep-alive service to prevent Render from sleeping"""
+    time.sleep(60)  # Wait 1 minute before starting
     
     while True:
         try:
-            time.sleep(600)
             central = pytz.timezone('US/Central')
             now = datetime.now(central)
             
-            if 7 <= now.hour <= 23:
+            # More aggressive during business hours, less aggressive at night
+            if 6 <= now.hour <= 23:  # Extended hours
+                interval = 300  # 5 minutes during business hours
                 url = os.environ.get('RENDER_EXTERNAL_URL', 'https://involvement-quiz.onrender.com')
-                response = requests.get(f'{url}/api/health', timeout=30)
-                logger.info(f"Keep-alive ping sent - Status: {response.status_code}")
+                
+                # Ping multiple endpoints for better reliability
+                endpoints = [
+                    f'{url}/api/health',
+                    f'{url}/',
+                    f'{url}/health'
+                ]
+                
+                for endpoint in endpoints:
+                    try:
+                        response = requests.get(endpoint, timeout=15)
+                        logger.info(f"Keep-alive ping to {endpoint} - Status: {response.status_code}")
+                        if response.status_code == 200:
+                            break  # Success, no need to try other endpoints
+                    except Exception as e:
+                        logger.warning(f"Keep-alive ping to {endpoint} failed: {e}")
+                        continue
             else:
-                logger.info("Outside business hours, allowing sleep")
+                interval = 900  # 15 minutes during off-hours
+                logger.info("Off-hours mode - reduced ping frequency")
+            
+            time.sleep(interval)
+            
         except Exception as e:
-            logger.error(f"Keep-alive failed: {e}")
+            logger.error(f"Keep-alive service error: {e}")
+            time.sleep(300)  # Wait 5 minutes before retrying
 
 def auto_migrate_ministries():
     """Auto-migrate ministry data to database on startup"""
@@ -189,6 +210,27 @@ def not_found(error):
 def internal_error(error):
     logger.error(f"Internal server error: {error}")
     return {'error': 'Internal server error'}, 500
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for keep-alive service"""
+    try:
+        # Test database connection
+        with get_db_connection() as (conn, cur):
+            cur.execute('SELECT 1')
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'service': 'St. Edward Ministry Finder'
+        })
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 # Start keep-alive service (only in production)
 if config['IS_PRODUCTION']:
