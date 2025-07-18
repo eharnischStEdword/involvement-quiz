@@ -224,7 +224,7 @@
                         
                         // Try to register manually
                         console.log('Attempting manual service worker registration...');
-                        navigator.serviceWorker.register('/static/sw.js', { scope: '/' })
+                        navigator.serviceWorker.register('/sw.js', { scope: '/' })
                             .then(registration => {
                                 console.log('Manual registration successful:', registration);
                                 pwaStatus.textContent = '✅ Service Worker registered manually!';

@@ -55,3 +55,9 @@ def get_ministries():
 def pwa_test():
     """PWA test page for debugging installation issues"""
     return render_template('pwa-test.html')
+
+@public_bp.route('/sw.js')
+def service_worker():
+    """Serve the service worker from root"""
+    from flask import send_file
+    return send_file('sw.js', mimetype='application/javascript')
