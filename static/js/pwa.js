@@ -266,10 +266,14 @@ class PWA {
     }
 
     setupInstallPrompt() {
-        // Enhanced iOS detection
+        // Enhanced device detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isDesktop = !isMobile;
         const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
         const isInAppBrowser = /FBAN|FBAV|Instagram|Line|WhatsApp|Twitter|LinkedInApp|Snapchat|Pinterest|TikTok/.test(navigator.userAgent);
+        
+        console.log('PWA Setup - iOS:', isIOS, 'Mobile:', isMobile, 'Desktop:', isDesktop, 'Standalone:', isStandalone);
         
         // Don't show install prompt if already installed or in app browser
         if (isStandalone) {
@@ -280,6 +284,12 @@ class PWA {
         
         if (isInAppBrowser) {
             console.log('In app browser detected - skipping install prompt');
+            return;
+        }
+        
+        // Don't show install prompt on desktop
+        if (isDesktop) {
+            console.log('Desktop detected - skipping install prompt');
             return;
         }
         
@@ -310,8 +320,8 @@ class PWA {
                     }
                 }, 10000);
             });
-        } else {
-            // For other platforms, use the beforeinstallprompt event
+        } else if (isMobile) {
+            // For mobile (non-iOS), use the beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e) => {
                 // Prevent the mini-infobar from appearing on mobile
                 e.preventDefault();
@@ -346,17 +356,24 @@ class PWA {
     }
 
     showInstallButton() {
-        // Check if it's iOS
+        // Enhanced device detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isDesktop = !isMobile;
+        
+        console.log('PWA Install Button - iOS:', isIOS, 'Mobile:', isMobile, 'Desktop:', isDesktop);
         
         if (isIOS) {
             // For iOS, show the inline banner instead of floating button
             const mobileSaveContainer = document.getElementById('mobileSaveContainer');
             if (mobileSaveContainer) {
                 mobileSaveContainer.style.display = 'block';
+                console.log('PWA: Showing iOS mobile save container');
+            } else {
+                console.log('PWA: mobileSaveContainer not found in HTML');
             }
-        } else {
-            // For other platforms, show the floating button
+        } else if (isMobile && !isDesktop) {
+            // For mobile (non-iOS), show the floating button
             if (!document.getElementById('pwa-install-btn')) {
                 const installBtn = document.createElement('button');
                 installBtn.id = 'pwa-install-btn';
@@ -372,7 +389,11 @@ class PWA {
                 
                 // Add styles
                 this.addInstallButtonStyles();
+                console.log('PWA: Showing mobile install button');
             }
+        } else {
+            // For desktop, don't show any install button
+            console.log('PWA: Desktop detected - not showing install button');
         }
     }
 
