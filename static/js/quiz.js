@@ -209,6 +209,11 @@ function answerQuestion(type, answer) {
             console.log('PWA: Skipping state question, jumping to question', currentQuestion);
         }
         
+        // Debug: Check if we're skipping gender question for some reason
+        if (currentQuestion === 2) {
+            console.log('PWA: About to show gender question (q2)');
+        }
+        
         // For interest question, populate age-specific options
         if (currentQuestion === 5) {
             populateInterestOptions();
@@ -1077,6 +1082,7 @@ function setupEventHandlers() {
         optionButtons.forEach((btn, index) => {
             btn.addEventListener('click', function(e) {
                 console.log('PWA: Option button clicked:', this.dataset.type, this.dataset.answer);
+                console.log('PWA: Current question before click:', currentQuestion);
                 const type = this.dataset.type;
                 const answer = this.dataset.answer;
                 answerQuestion(type, answer);
