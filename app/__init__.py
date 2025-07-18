@@ -21,7 +21,7 @@ def create_app(config=None):
     if config is None:
         config = Config.get_config()
     
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='../templates')
     CORS(app)
     app.secret_key = config['SECRET_KEY']
     
