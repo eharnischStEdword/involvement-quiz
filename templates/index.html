@@ -16,24 +16,23 @@
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#005921">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="St. Edward">
     <meta name="description" content="Find your path in the St. Edward Catholic community through our interactive ministry discovery tool">
     <meta name="application-name" content="St. Edward Ministry Finder">
     
-    <!-- iOS PWA Meta Tags -->
+    <!-- Enhanced iOS PWA Support -->
     <meta name="apple-touch-fullscreen" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-TileColor" content="#005921">
     <meta name="msapplication-config" content="none">
-    
-    <!-- Enhanced iOS PWA Support -->
-    <meta name="apple-mobile-web-app-title" content="St. Edward">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="St. Edward Ministry Finder">
     <meta name="msapplication-TileImage" content="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    
+    <!-- iOS Splash Screen Meta Tags -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
     
     <!-- PWA Icons -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">

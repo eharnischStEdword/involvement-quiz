@@ -1,6 +1,194 @@
 // St. Edward Ministry Finder PWA Registration
 // © 2024–2025 Harnisch LLC. All Rights Reserved.
 
+// Global functions for iOS banner
+window.showIOSInstructions = function() {
+    // Create iOS instructions modal
+    const modal = document.createElement('div');
+    modal.id = 'ios-instructions-modal';
+    modal.className = 'ios-instructions-modal';
+    modal.innerHTML = `
+        <div class="ios-instructions-content">
+            <div class="ios-instructions-header">
+                <h3>Save to Home Screen</h3>
+                <button class="ios-close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">×</button>
+            </div>
+            <div class="ios-instructions-body">
+                <div class="ios-step">
+                    <span class="ios-step-number">1</span>
+                    <span class="ios-step-text">Tap the <strong>Share</strong> button</span>
+                    <div class="ios-share-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ios-step">
+                    <span class="ios-step-number">2</span>
+                    <span class="ios-step-text">Scroll down and tap <strong>Add to Home Screen</strong></span>
+                </div>
+                <div class="ios-step">
+                    <span class="ios-step-number">3</span>
+                    <span class="ios-step-text">Tap <strong>Add</strong> to confirm</span>
+                </div>
+            </div>
+            <div class="ios-instructions-footer">
+                <button class="ios-got-it-btn" onclick="this.parentElement.parentElement.parentElement.remove()">Got it!</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add styles if not already added
+    if (!document.getElementById('ios-instructions-styles')) {
+        const style = document.createElement('style');
+        style.id = 'ios-instructions-styles';
+        style.textContent = `
+            .ios-instructions-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                animation: fadeIn 0.3s ease;
+            }
+
+            .ios-instructions-content {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 16px;
+                max-width: 400px;
+                width: 100%;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+                animation: slideUp 0.3s ease;
+            }
+
+            .ios-instructions-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px 20px 0;
+            }
+
+            .ios-instructions-header h3 {
+                margin: 0;
+                color: #005921;
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .ios-close-btn {
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: #666;
+                cursor: pointer;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: background-color 0.2s;
+            }
+
+            .ios-close-btn:hover {
+                background-color: #f0f0f0;
+            }
+
+            .ios-instructions-body {
+                padding: 20px;
+            }
+
+            .ios-step {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 12px;
+                border-left: 4px solid #005921;
+            }
+
+            .ios-step-number {
+                background: #005921;
+                color: white;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                margin-right: 15px;
+                flex-shrink: 0;
+            }
+
+            .ios-step-text {
+                flex: 1;
+                font-size: 16px;
+                line-height: 1.4;
+            }
+
+            .ios-share-icon {
+                margin-left: 10px;
+                color: #005921;
+            }
+
+            .ios-instructions-footer {
+                padding: 0 20px 20px;
+                text-align: center;
+            }
+
+            .ios-got-it-btn {
+                background: linear-gradient(135deg, #005921, #007a2e);
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .ios-got-it-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 89, 33, 0.3);
+            }
+
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes slideUp {
+                from { 
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to { 
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+};
+
+
+
 class PWA {
     constructor() {
         this.swRegistration = null;
@@ -14,6 +202,11 @@ class PWA {
             console.log('Service Worker not supported');
             return;
         }
+
+        // Enhanced logging for debugging
+        console.log('PWA Init - User Agent:', navigator.userAgent);
+        console.log('PWA Init - Standalone:', window.navigator.standalone);
+        console.log('PWA Init - Display Mode:', window.matchMedia('(display-mode: standalone)').matches);
 
         // Check if PWA is already installed
         this.checkInstallation();
@@ -32,6 +225,13 @@ class PWA {
         try {
             console.log('Attempting to register service worker...');
             console.log('Service Worker support:', 'serviceWorker' in navigator);
+            
+            // Wait for page to be fully loaded before registering
+            if (document.readyState !== 'complete') {
+                await new Promise(resolve => {
+                    window.addEventListener('load', resolve, { once: true });
+                });
+            }
             
             this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
                 scope: '/'
@@ -66,16 +266,50 @@ class PWA {
     }
 
     setupInstallPrompt() {
-        // Check if it's iOS
+        // Enhanced iOS detection
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+        const isInAppBrowser = /FBAN|FBAV|Instagram|Line|WhatsApp|Twitter|LinkedInApp|Snapchat|Pinterest|TikTok/.test(navigator.userAgent);
+        
+        // Don't show install prompt if already installed or in app browser
+        if (isStandalone) {
+            console.log('PWA is already installed');
+            this.isInstalled = true;
+            return;
+        }
+        
+        if (isInAppBrowser) {
+            console.log('In app browser detected - skipping install prompt');
+            return;
+        }
         
         if (isIOS) {
-            // For iOS, always show the install button after a delay
-            if (!this.isInstalled) {
+            // For iOS, show the install banner after user interaction
+            // Wait for user to complete first question to show banner
+            document.addEventListener('DOMContentLoaded', () => {
+                // Show banner after user interaction or timeout
+                let hasInteracted = false;
+                
+                const showBannerAfterInteraction = () => {
+                    if (!hasInteracted && !this.isInstalled) {
+                        hasInteracted = true;
+                        setTimeout(() => {
+                            this.showInstallButton();
+                        }, 2000);
+                    }
+                };
+                
+                // Listen for any button clicks or interactions
+                document.addEventListener('click', showBannerAfterInteraction, { once: true });
+                document.addEventListener('touchstart', showBannerAfterInteraction, { once: true });
+                
+                // Fallback: show after 10 seconds
                 setTimeout(() => {
-                    this.showInstallButton();
-                }, 3000);
-            }
+                    if (!hasInteracted && !this.isInstalled) {
+                        this.showInstallButton();
+                    }
+                }, 10000);
+            });
         } else {
             // For other platforms, use the beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e) => {
@@ -146,6 +380,12 @@ class PWA {
         const installBtn = document.getElementById('pwa-install-btn');
         if (installBtn) {
             installBtn.remove();
+        }
+        
+        // Also hide iOS banner
+        const mobileSaveContainer = document.getElementById('mobileSaveContainer');
+        if (mobileSaveContainer) {
+            mobileSaveContainer.style.display = 'none';
         }
     }
 

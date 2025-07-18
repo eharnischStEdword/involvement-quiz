@@ -33,10 +33,13 @@ self.addEventListener('install', event => {
       })
       .then(() => {
         console.log('Service Worker: Static files cached');
+        // Skip waiting to activate immediately (important for iOS)
         return self.skipWaiting();
       })
       .catch(error => {
         console.error('Service Worker: Error caching static files:', error);
+        // Continue even if caching fails
+        return self.skipWaiting();
       })
   );
 });
