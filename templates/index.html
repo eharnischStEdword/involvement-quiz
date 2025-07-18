@@ -29,6 +29,12 @@
     <meta name="msapplication-TileColor" content="#005921">
     <meta name="msapplication-config" content="none">
     
+    <!-- Enhanced iOS PWA Support -->
+    <meta name="apple-mobile-web-app-title" content="St. Edward">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="St. Edward Ministry Finder">
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    
     <!-- PWA Icons -->
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
@@ -66,9 +72,18 @@
             <div class="subtitle">Find Your Path in Our Community</div>
             <div class="theme-verse">"Through Love, Serve One Another" - Galatians 5:13</div>
             <p>Let's help you discover the perfect way to get involved in our community. This takes just 2-3 minutes!</p>
-            <p class="mobile-save-link" id="mobileSaveLink" style="display: none;">
-                <a href="#" onclick="showIOSInstructions(); return false;">Tap here to save this to your device for later</a>
-            </p>
+            <div class="mobile-save-container" id="mobileSaveContainer" style="display: none;">
+                <div class="mobile-save-banner">
+                    <div class="mobile-save-icon">📱</div>
+                    <div class="mobile-save-text">
+                        <strong>Save to Home Screen</strong><br>
+                        <small>Get quick access to St. Edward ministries</small>
+                    </div>
+                    <button class="mobile-save-btn" onclick="showIOSInstructions(); return false;">
+                        Save
+                    </button>
+                </div>
+            </div>
         </div>
 
             <div class="card-content">

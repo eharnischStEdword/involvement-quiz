@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - St. Edward</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#005921">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="St. Edward">
+    <meta name="description" content="PWA Test Page for St. Edward Ministry Finder">
+    <meta name="application-name" content="St. Edward Ministry Finder">
+    
+    <!-- Enhanced iOS PWA Support -->
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#005921">
+    <meta name="msapplication-TileImage" content="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-config" content="none">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #005921;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+        }
+        
+        .test-section h3 {
+            color: #005921;
+            margin-top: 0;
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .install-btn {
+            background: linear-gradient(135deg, #005921, #007a2e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .install-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 89, 33, 0.3);
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 PWA Test Page</h1>
+        
+        <div class="test-section">
+            <h3>📱 PWA Installation Status</h3>
+            <div id="pwa-status" class="status info">Checking PWA status...</div>
+            <div id="install-prompt" style="display: none;">
+                <button class="install-btn" onclick="installPWA()">Install App</button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🍎 iOS Specific Tests</h3>
+            <div id="ios-status" class="status info">Checking iOS compatibility...</div>
+            <div id="ios-instructions" style="display: none;">
+                <p><strong>To install on iOS:</strong></p>
+                <ol>
+                    <li>Tap the Share button (📤)</li>
+                    <li>Scroll down and tap "Add to Home Screen"</li>
+                    <li>Tap "Add" to confirm</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔗 Quick Links</h3>
+            <a href="/" class="install-btn">Go to Main App</a>
+            <a href="/api/get-ministries" class="install-btn">Test API</a>
+        </div>
+        
+        <a href="/" class="back-btn">← Back to Main App</a>
+    </div>
+
+    <script>
+        // PWA Detection and Installation
+        let deferredPrompt;
+        
+        // Check if PWA is already installed
+        function checkPWAStatus() {
+            const pwaStatus = document.getElementById('pwa-status');
+            const installPrompt = document.getElementById('install-prompt');
+            const iosStatus = document.getElementById('ios-status');
+            const iosInstructions = document.getElementById('ios-instructions');
+            
+            // Check if running as installed app
+            if (window.matchMedia('(display-mode: standalone)').matches || 
+                window.navigator.standalone === true) {
+                pwaStatus.textContent = '✅ PWA is already installed and running!';
+                pwaStatus.className = 'status success';
+                return;
+            }
+            
+            // Check if it's iOS
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            
+            if (isIOS) {
+                iosStatus.textContent = '📱 iOS device detected - use Share button to install';
+                iosStatus.className = 'status info';
+                iosInstructions.style.display = 'block';
+            } else {
+                iosStatus.textContent = '🖥️ Desktop/Android device detected';
+                iosStatus.className = 'status info';
+            }
+            
+            // Check for beforeinstallprompt event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                pwaStatus.textContent = '✅ PWA can be installed!';
+                pwaStatus.className = 'status success';
+                installPrompt.style.display = 'block';
+            });
+            
+            // Check if service worker is registered
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    if (registrations.length > 0) {
+                        pwaStatus.textContent = '✅ Service Worker registered!';
+                        pwaStatus.className = 'status success';
+                    } else {
+                        pwaStatus.textContent = '⚠️ Service Worker not registered';
+                        pwaStatus.className = 'status error';
+                    }
+                });
+            } else {
+                pwaStatus.textContent = '❌ Service Workers not supported';
+                pwaStatus.className = 'status error';
+            }
+        }
+        
+        // Install PWA
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                
+                if (outcome === 'accepted') {
+                    document.getElementById('pwa-status').textContent = '🎉 PWA installed successfully!';
+                    document.getElementById('pwa-status').className = 'status success';
+                    document.getElementById('install-prompt').style.display = 'none';
+                }
+            }
+        }
+        
+        // Handle successful installation
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('pwa-status').textContent = '🎉 PWA installed successfully!';
+            document.getElementById('pwa-status').className = 'status success';
+            document.getElementById('install-prompt').style.display = 'none';
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', checkPWAStatus);
+    </script>
+</body>
+</html> 

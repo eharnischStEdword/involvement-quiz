@@ -50,3 +50,8 @@ def get_ministries():
             return jsonify(MINISTRY_DATA)
         except:
             return jsonify({})
+
+@public_bp.route('/pwa-test')
+def pwa_test():
+    """PWA test page for debugging installation issues"""
+    return render_template('pwa-test.html')

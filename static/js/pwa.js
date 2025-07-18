@@ -108,10 +108,10 @@ class PWA {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         
         if (isIOS) {
-            // For iOS, show the inline link instead of floating button
-            const mobileSaveLink = document.getElementById('mobileSaveLink');
-            if (mobileSaveLink) {
-                mobileSaveLink.style.display = 'block';
+            // For iOS, show the inline banner instead of floating button
+            const mobileSaveContainer = document.getElementById('mobileSaveContainer');
+            if (mobileSaveContainer) {
+                mobileSaveContainer.style.display = 'block';
             }
         } else {
             // For other platforms, show the floating button

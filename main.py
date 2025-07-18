@@ -232,6 +232,8 @@ def health_check():
             'timestamp': datetime.now().isoformat()
         }), 500
 
+
+
 # Start keep-alive service (only in production)
 if config['IS_PRODUCTION']:
     if not os.environ.get('WERKZEUG_RUN_MAIN'):

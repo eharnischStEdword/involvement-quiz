@@ -234,6 +234,74 @@ h1, h2, h3 {
     margin: 0;
 }
 
+/* Mobile save container */
+.mobile-save-container {
+    margin: var(--spacing-md) 0;
+    animation: slideInUp 0.5s ease;
+}
+
+.mobile-save-banner {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--color-primary), #007a2e);
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0, 89, 33, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-save-icon {
+    font-size: 24px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.mobile-save-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.mobile-save-text strong {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mobile-save-text small {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.mobile-save-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.mobile-save-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .mobile-save-link {
     margin-top: var(--spacing-md);
     text-align: center;
