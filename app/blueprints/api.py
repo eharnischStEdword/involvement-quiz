@@ -9,7 +9,8 @@ import psycopg2.extras
 from datetime import datetime
 
 from app.database import get_db_connection
-from app.utils import check_rate_limit
+from app.utils import check_rate_limit, get_rate_limit_info
+from app.monitoring import app_monitor
 from app.validators import validate_and_respond
 from app.error_handlers import create_error_response, RateLimitError, DatabaseError, ValidationError
 
@@ -96,6 +97,41 @@ def health_check():
         return jsonify({
             'status': 'unhealthy',
             'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@api_bp.route('/rate-limit-info')
+def rate_limit_info():
+    """Get rate limit information for the current IP"""
+    try:
+        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
+        if ',' in ip_address:
+            ip_address = ip_address.split(',')[0].strip()
+        
+        rate_info = get_rate_limit_info(ip_address)
+        
+        return jsonify({
+            'ip_address': ip_address,
+            'rate_limit': rate_info,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"Rate limit info failed: {e}")
+        return jsonify({
+            'error': 'Failed to get rate limit information',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+@api_bp.route('/metrics')
+def get_metrics():
+    """Get application performance metrics"""
+    try:
+        metrics = app_monitor.get_metrics()
+        return jsonify(metrics)
+    except Exception as e:
+        logger.error(f"Metrics endpoint failed: {e}")
+        return jsonify({
+            'error': 'Failed to get metrics',
             'timestamp': datetime.now().isoformat()
         }), 500
 # --- TEMPORARY DEBUG ENDPOINT ----------------------------------------------
