@@ -320,9 +320,9 @@
     </footer>
 
     <!-- Load JavaScript files -->
-    <script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/pwa.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/confetti.js') }}?v={{ range(1, 10000) | random }}"></script>
+    <script src="{{ url_for('static', filename='js/quiz.js') }}?v={{ range(1, 10000) | random }}"></script>
+    <script src="{{ url_for('static', filename='js/pwa.js') }}?v={{ range(1, 10000) | random }}"></script>
     <script>
         // Set copyright year
         document.getElementById('copyright-year').textContent = new Date().getFullYear();
@@ -332,6 +332,18 @@
             if (typeof PWA !== 'undefined') {
                 window.pwa = new PWA();
             }
+            
+            // Add fallback for loading overlay if JavaScript fails
+            setTimeout(function() {
+                const overlay = document.getElementById('loadingOverlay');
+                if (overlay && overlay.style.display !== 'none') {
+                    console.log('Loading timeout - forcing overlay hide');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 500);
+                }
+            }, 15000); // 15 second timeout
         });
     </script>
 </body>

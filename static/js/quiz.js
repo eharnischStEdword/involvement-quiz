@@ -25,21 +25,27 @@ const progressMessages = {
 
 async function loadMinistries() {
     try {
+        console.log('PWA: Starting to load ministries...');
+        
         const response = await fetch('/api/get-ministries', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
             },
             timeout: 10000 // 10 second timeout
         });
         
+        console.log('PWA: API response status:', response.status);
+        
         if (response.ok) {
             ministries = await response.json();
-            // Remove console.log
+            console.log('PWA: Ministries loaded successfully, count:', Object.keys(ministries).length);
             
             // Hide loading screen on success
             const overlay = document.getElementById('loadingOverlay');
             if (overlay) {
+                console.log('PWA: Hiding loading overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => {
                     overlay.style.display = 'none';
@@ -49,13 +55,13 @@ async function loadMinistries() {
             throw new Error(`Server error: ${response.status}`);
         }
     } catch (error) {
-        // Remove console.error - use internal error handling instead
+        console.error('PWA: Error loading ministries:', error);
         loadingRetries++;
         
         if (loadingRetries < maxRetries) {
             // Retry after a delay
             const retryDelay = loadingRetries * 2000; // 2s, 4s, 6s
-            // Remove console.log
+            console.log(`PWA: Retrying in ${retryDelay}ms (attempt ${loadingRetries + 1}/${maxRetries})`);
             
             // Update loading message
             const loadingText = document.querySelector('.loading-text');
@@ -70,6 +76,7 @@ async function loadMinistries() {
             setTimeout(() => loadMinistries(), retryDelay);
         } else {
             // Show error message after all retries failed
+            console.error('PWA: All retries failed, showing error');
             showLoadingError();
         }
     }
@@ -947,6 +954,8 @@ function restart() {
 
 // CRITICAL FIX: Ensure question visibility is properly set on load
 function initializeQuiz() {
+    console.log('PWA: Initializing quiz...');
+    
     // Hide all questions except the first one
     document.querySelectorAll('.question').forEach((q, index) => {
         if (index === 0) {
@@ -965,8 +974,36 @@ function initializeQuiz() {
     // Initialize progress bar
     updateProgress();
     
-    // Start loading ministries
-    loadMinistries();
+    // Set up event handlers
+    setupEventHandlers();
+    
+    // Load ministries and start the quiz
+    loadMinistries().then(() => {
+        console.log('PWA: Quiz initialization complete');
+    }).catch((error) => {
+        console.error('PWA: Quiz initialization failed:', error);
+        // Fallback: hide loading overlay even if ministries fail to load
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            console.log('PWA: Fallback - hiding loading overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+    });
+    
+    // Fallback initialization after 5 seconds
+    setTimeout(() => {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay && overlay.style.display !== 'none') {
+            console.log('PWA: Fallback initialization - forcing quiz to start');
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 500);
+        }
+    }, 5000);
 }
 
 // Initialize on page load
