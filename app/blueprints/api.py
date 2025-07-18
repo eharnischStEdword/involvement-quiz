@@ -10,6 +10,8 @@ from datetime import datetime
 
 from app.database import get_db_connection
 from app.utils import check_rate_limit
+from app.validators import validate_and_respond
+from app.error_handlers import create_error_response, RateLimitError, DatabaseError, ValidationError
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 logger = logging.getLogger(__name__)
@@ -23,22 +25,24 @@ def submit_ministry_interest():
         
         if not check_rate_limit(ip_address):
             logger.warning(f"Rate limit exceeded for IP: {ip_address}")
-            return jsonify({
-                'success': False,
-                'message': 'Too many submissions from this location. Please try again in an hour.'
-            }), 429
+            error_response, status_code = create_error_response(RateLimitError())
+            return jsonify(error_response), status_code
         
         data = request.json
+        if not data:
+            error_response, status_code = create_error_response(ValidationError("No data provided"))
+            return jsonify(error_response), status_code
+        
         logger.info(f"Received submission from IP {ip_address}: {data}")
+        
+        # Validate input data
+        validated_data, error_response = validate_and_respond(data)
+        if error_response:
+            return error_response
         
         with get_db_connection() as (conn, cur):
             name = "Anonymous User"
             email = ""
-            answers = data.get('answers', {})
-            ministries = data.get('ministries', [])
-            situation = data.get('situation', [])
-            states = data.get('states', [])
-            interests = data.get('interests', [])
             
             cur.execute('''
                 INSERT INTO ministry_submissions 
@@ -47,12 +51,12 @@ def submit_ministry_interest():
                 RETURNING id
             ''', (
                 name, email,
-                answers.get('age', ''),
-                answers.get('gender', ''),
-                json.dumps(states),
-                json.dumps(interests),
-                json.dumps(situation),
-                json.dumps(ministries),
+                validated_data['age_group'],
+                validated_data['gender'],
+                json.dumps(validated_data['states']),
+                json.dumps(validated_data['interests']),
+                json.dumps(validated_data['situation']),
+                json.dumps(validated_data['ministries']),
                 ip_address
             ))
             
@@ -67,18 +71,12 @@ def submit_ministry_interest():
         })
         
     except psycopg2.Error as e:
-        logger.error(f"Database error in submit_ministry_interest: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'Database connection issue. Please try again or contact the parish office at (615) 833-5520.'
-        }), 500
+        error_response, status_code = create_error_response(DatabaseError("Database operation failed", e))
+        return jsonify(error_response), status_code
         
     except Exception as e:
-        logger.error(f"Unexpected error in submit_ministry_interest: {e}")
-        return jsonify({
-            'success': False,
-            'message': 'An unexpected error occurred. Please try again or contact the parish office.'
-        }), 500
+        error_response, status_code = create_error_response(e)
+        return jsonify(error_response), status_code
 
 
 
