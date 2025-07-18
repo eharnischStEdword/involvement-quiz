@@ -682,6 +682,14 @@ function showResults() {
         });
     }
     
+    // Also set up event handler for any future "Go Back to Interests" buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('nav-back-to-interests')) {
+            e.preventDefault();
+            goBack(5);
+        }
+    });
+    
     // Update progress bar to 100%
     const progressBar = document.getElementById('progress-bar');
     if (progressBar) {
