@@ -12,7 +12,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Find Your Path at St. Edward</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛪</text></svg>">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#005921">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="St. Edward">
+    <meta name="description" content="Find your path in the St. Edward Catholic community through our interactive ministry discovery tool">
+    <meta name="application-name" content="St. Edward Ministry Finder">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/site.webmanifest">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -277,6 +294,7 @@
     <!-- Load JavaScript files -->
     <script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
     <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/pwa.js') }}"></script>
     <script>
         // Set copyright year
         document.getElementById('copyright-year').textContent = new Date().getFullYear();

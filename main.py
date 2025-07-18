@@ -44,6 +44,7 @@ if config['IS_PRODUCTION']:  # Production
             'https://www.googletagmanager.com',
             'https://www.google-analytics.com'
         ],
+        'worker-src': ["'self'"],  # Allow service workers
         'style-src': [
             "'self'",
             "'unsafe-inline'",  # Required for style attributes

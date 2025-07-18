@@ -720,11 +720,15 @@ function submitAnalytics(recommendations) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Remove console.log
+            // Trigger background sync for PWA
+            if (window.pwa && window.pwa.syncData) {
+                window.pwa.syncData();
+            }
         }
     })
     .catch(error => {
-        // Remove console.log - don't show error to user for analytics
+        // Don't show error to user for analytics
+        // If offline, the service worker will handle the submission when back online
     });
 }
 
