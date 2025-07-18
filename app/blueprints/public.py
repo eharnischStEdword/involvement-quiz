@@ -15,7 +15,7 @@ def index():
     """Serve the main quiz template"""
     return render_template('index.html')
 
-@public_bp.route('/api/get-ministries', methods=['POST'])
+@public_bp.route('/api/get-ministries', methods=['POST', 'GET'])
 def get_ministries():
     """Get active ministries from database"""
     try:

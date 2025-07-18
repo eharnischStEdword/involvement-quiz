@@ -20,6 +20,10 @@
     align-items: center;
     gap: var(--spacing-md);
     box-shadow: var(--shadow-sm);
+    position: relative;
+    width: 100%;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .option-btn:hover {

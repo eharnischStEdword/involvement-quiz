@@ -8,7 +8,7 @@ const situation = [];
 const states = []; // Array for multiple state selections
 const interests = []; // Array for multiple interests
 let currentQuestion = 1;
-const totalQuestions = 5;
+const totalQuestions = 5; // Age, Gender, State, Situation, Interests
 // Load ministries from server (protected)
 let ministries = {};
 let loadingRetries = 0;
@@ -194,7 +194,7 @@ function answerQuestion(type, answer) {
     
     // Wait a moment for visual feedback
     setTimeout(() => {
-        // For younger age groups, skip state in life question - UPDATED FOR ELEMENTARY
+        // For younger age groups, auto-assign single state but still show gender question
         if (type === 'age' && ['infant', 'elementary', 'junior-high', 'high-school'].includes(answer)) {
             states.push('single'); // Auto-assign single for younger ages
         }
