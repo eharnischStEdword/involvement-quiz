@@ -23,7 +23,7 @@ def admin_dashboard():
     """Admin dashboard"""
     return render_template('admin.html')
 
-@admin_bp.route('/api/submissions')  # Changed from /submissions
+@admin_bp.route('/admin/api/submissions')  # Fixed route to match JavaScript call
 @require_admin_auth
 def get_submissions():
     """Get all submissions for admin view"""
@@ -71,7 +71,7 @@ def get_submissions():
         error_response, status_code = create_error_response(DatabaseError("Failed to retrieve submissions", e))
         return jsonify(error_response), status_code
 
-@admin_bp.route('/api/clear-all-data', methods=['POST'])
+@admin_bp.route('/admin/api/clear-all-data', methods=['POST'])
 @require_admin_auth
 def clear_all_data():
     """Clear all submission data"""
@@ -98,7 +98,7 @@ def clear_all_data():
 
 
 
-@admin_bp.route('/api/submissions/export')
+@admin_bp.route('/admin/api/submissions/export')
 @require_admin_auth
 def export_submissions():
     """Export submissions with optional date filtering"""
