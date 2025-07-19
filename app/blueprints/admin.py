@@ -30,8 +30,8 @@ def get_submissions():
     try:
         with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
             cur.execute('''
-                SELECT id, name, email, age_group, gender, state_in_life, interest, 
-                       situation, recommended_ministries, submitted_at, ip_address
+                SELECT id, name, age_group, gender, state_in_life, interest, 
+                       situation, recommended_ministries, submitted_at
                 FROM ministry_submissions
                 ORDER BY submitted_at DESC
             ''')
@@ -108,7 +108,9 @@ def export_submissions():
         
         with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
             query = '''
-                SELECT * FROM ministry_submissions
+                SELECT id, name, age_group, gender, state_in_life, interest, 
+                       situation, recommended_ministries, submitted_at
+                FROM ministry_submissions
                 WHERE 1=1
             '''
             params = []

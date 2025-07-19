@@ -41,6 +41,11 @@ def submit_ministry_interest():
         if error_response:
             return error_response
         
+        # Ensure validated_data is not None
+        if not validated_data:
+            error_response, status_code = create_error_response(ValidationError("Validation failed"))
+            return jsonify(error_response), status_code
+        
         with get_db_connection() as (conn, cur):
             name = "Anonymous User"
             email = ""
@@ -52,12 +57,12 @@ def submit_ministry_interest():
                 RETURNING id
             ''', (
                 name, email,
-                validated_data['age_group'],
-                validated_data['gender'],
-                json.dumps(validated_data['states']),
-                json.dumps(validated_data['interests']),
-                json.dumps(validated_data['situation']),
-                json.dumps(validated_data['ministries']),
+                validated_data.get('age_group', ''),
+                validated_data.get('gender', ''),
+                json.dumps(validated_data.get('states', [])),
+                json.dumps(validated_data.get('interests', [])),
+                json.dumps(validated_data.get('situation', [])),
+                json.dumps(validated_data.get('ministries', [])),
                 ip_address
             ))
             
@@ -153,4 +158,44 @@ def debug_mass():
         })
     except Exception as e:
         logger.error(f'/debug/mass failed: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/debug/submissions')
+def debug_submissions():
+    """
+    Debug endpoint to check recent submissions and database status.
+    Visit /api/debug/submissions in the browser.
+    """
+    try:
+        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+            # Check table structure
+            cur.execute("""
+                SELECT column_name, data_type, is_nullable, column_default 
+                FROM information_schema.columns 
+                WHERE table_name = 'ministry_submissions' 
+                ORDER BY ordinal_position
+            """)
+            columns = cur.fetchall()
+            
+            # Check recent submissions
+            cur.execute("""
+                SELECT id, submitted_at, age_group, gender 
+                FROM ministry_submissions 
+                ORDER BY submitted_at DESC 
+                LIMIT 5
+            """)
+            recent = cur.fetchall()
+            
+            # Count total submissions
+            cur.execute("SELECT COUNT(*) as total FROM ministry_submissions")
+            total = cur.fetchone()
+            
+        return jsonify({
+            'table_structure': [dict(col) for col in columns],
+            'recent_submissions': [dict(sub) for sub in recent],
+            'total_submissions': total['total'] if total else 0,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f'/debug/submissions failed: {e}')
         return jsonify({'error': str(e)}), 500

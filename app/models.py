@@ -19,7 +19,7 @@ def init_db():
                 CREATE TABLE IF NOT EXISTS ministry_submissions (
                     id SERIAL PRIMARY KEY,
                     name VARCHAR(255),
-                    email VARCHAR(255) NOT NULL,
+                    email VARCHAR(255) DEFAULT '',
                     age_group VARCHAR(50),
                     gender VARCHAR(20),
                     state_in_life JSONB DEFAULT '[]'::jsonb,
@@ -48,6 +48,22 @@ def init_db():
             if not cur.fetchone():
                 cur.execute("ALTER TABLE ministry_submissions ADD COLUMN ip_address VARCHAR(45)")
                 logger.info("Added ip_address column to ministry_submissions table")
+            
+            # Fix email column constraint if it exists
+            cur.execute("""
+                SELECT is_nullable FROM information_schema.columns 
+                WHERE table_name = 'ministry_submissions' AND column_name = 'email'
+            """)
+            result = cur.fetchone()
+            if result and result[0] == 'NO':
+                logger.info("Fixing email column constraint to allow empty values...")
+                try:
+                    cur.execute("ALTER TABLE ministry_submissions ALTER COLUMN email DROP NOT NULL")
+                    cur.execute("ALTER TABLE ministry_submissions ALTER COLUMN email SET DEFAULT ''")
+                    logger.info("Successfully updated email column to allow empty values")
+                except Exception as e:
+                    logger.error(f"Error updating email column: {e}")
+                    logger.info("Email column constraint update failed - continuing with existing schema")
             
             # SAFE MIGRATION: Update state_in_life column to be JSONB if it's not already
             cur.execute("""
