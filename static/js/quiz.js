@@ -749,6 +749,8 @@ function submitAnalytics(recommendations) {
         ministries: recommendations.map(m => m.name)
     };
     
+    console.log('Submitting analytics data:', analyticsData);
+    
     fetch('/api/submit', {
         method: 'POST',
         headers: {
@@ -756,16 +758,24 @@ function submitAnalytics(recommendations) {
         },
         body: JSON.stringify(analyticsData)
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Submission response status:', response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log('Submission response data:', data);
         if (data.success) {
+            console.log('Analytics submitted successfully, ID:', data.submission_id);
             // Trigger background sync for PWA
             if (window.pwa && window.pwa.syncData) {
                 window.pwa.syncData();
             }
+        } else {
+            console.error('Analytics submission failed:', data.message);
         }
     })
     .catch(error => {
+        console.error('Analytics submission error:', error);
         // Don't show error to user for analytics
         // If offline, the service worker will handle the submission when back online
     });

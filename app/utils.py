@@ -12,9 +12,13 @@ from app.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-# Rate limiting configuration
-RATE_LIMIT_REQUESTS = 20  # Max 20 submissions per hour per IP
+# Rate limiting configuration - Set very high to allow multiple quiz attempts
+RATE_LIMIT_REQUESTS = 1000  # Very high limit to allow multiple attempts
 RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+
+# New configuration for engagement tracking
+ENABLE_RATE_LIMITING = False  # Allow multiple quiz attempts
+TRACK_ENGAGEMENT = True  # Track user engagement patterns
 
 # Admin credentials from environment - NO DEFAULTS IN PRODUCTION
 def get_admin_credentials():
@@ -29,7 +33,9 @@ def get_admin_credentials():
     return username, password
 
 def check_rate_limit(ip_address):
-    """In-memory rate limiting - max 5 submissions per hour per IP"""
+    """Rate limiting - currently disabled to allow multiple quiz attempts"""
+    if not ENABLE_RATE_LIMITING:
+        return True  # Allow all submissions
     # Use in-memory rate limiting for simplicity
     return _check_rate_limit_memory(ip_address)
 

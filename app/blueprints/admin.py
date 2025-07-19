@@ -31,7 +31,7 @@ def get_submissions():
         with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
             cur.execute('''
                 SELECT id, name, age_group, gender, state_in_life, interest, 
-                       situation, recommended_ministries, submitted_at
+                       situation, recommended_ministries, submitted_at, ip_address
                 FROM ministry_submissions
                 ORDER BY submitted_at DESC
             ''')

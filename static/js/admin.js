@@ -91,6 +91,9 @@ async function loadDashboardData() {
 
 // Update statistics cards
 function updateStats(data) {
+    const uniqueUsers = getUniqueUsers(data);
+    const engagementRate = getEngagementRate(data);
+    
     const statsHtml = `
         <div class="stat-card">
             <div class="stat-header">
@@ -104,11 +107,11 @@ function updateStats(data) {
         <div class="stat-card">
             <div class="stat-header">
                 <div class="stat-icon today">
-                    <i class="fas fa-calendar-day"></i>
+                    <i class="fas fa-user-friends"></i>
                 </div>
             </div>
-            <div class="stat-number">${getSubmissionsToday(data)}</div>
-            <div class="stat-label">Today</div>
+            <div class="stat-number">${uniqueUsers}</div>
+            <div class="stat-label">Unique Users</div>
         </div>
         <div class="stat-card">
             <div class="stat-header">
@@ -125,8 +128,8 @@ function updateStats(data) {
                     <i class="fas fa-chart-line"></i>
                 </div>
             </div>
-            <div class="stat-number">${getAveragePerDay(data)}</div>
-            <div class="stat-label">Daily Average</div>
+            <div class="stat-number">${engagementRate}</div>
+            <div class="stat-label">Avg Submissions/User</div>
         </div>
     `;
     
@@ -151,6 +154,28 @@ function getAveragePerDay(data) {
     const dates = data.map(s => new Date(s.submitted_at).toDateString());
     const uniqueDates = [...new Set(dates)];
     return (data.length / uniqueDates.length).toFixed(1);
+}
+
+// New engagement tracking functions
+function getUniqueUsers(data) {
+    if (data.length === 0) return 0;
+    
+    // Count unique IP addresses (proxy for unique users)
+    const uniqueIPs = new Set();
+    data.forEach(submission => {
+        if (submission.ip_address && submission.ip_address !== 'unknown') {
+            uniqueIPs.add(submission.ip_address);
+        }
+    });
+    
+    return uniqueIPs.size;
+}
+
+function getEngagementRate(data) {
+    const uniqueUsers = getUniqueUsers(data);
+    if (uniqueUsers === 0) return '0.0';
+    
+    return (data.length / uniqueUsers).toFixed(1);
 }
 
 // Render submissions table
@@ -243,6 +268,7 @@ function initializeCharts(data) {
         createGenderChart(data);
         createInterestChart(data);
         createSituationChart(data);
+        createEngagementChart(data);
         
     } catch (error) {
         console.error('Error creating charts:', error);
@@ -459,6 +485,86 @@ function createSituationChart(data) {
 // Helper functions
 function truncateLabel(label) {
     return label.length > 20 ? label.substring(0, 20) + '...' : label;
+}
+
+// Engagement patterns chart
+function createEngagementChart(data) {
+    // Group submissions by IP to show engagement patterns
+    const ipEngagement = {};
+    
+    data.forEach(submission => {
+        if (submission.ip_address && submission.ip_address !== 'unknown') {
+            if (!ipEngagement[submission.ip_address]) {
+                ipEngagement[submission.ip_address] = {
+                    count: 0,
+                    firstSeen: new Date(submission.submitted_at),
+                    lastSeen: new Date(submission.submitted_at)
+                };
+            }
+            ipEngagement[submission.ip_address].count++;
+            const submissionDate = new Date(submission.submitted_at);
+            if (submissionDate < ipEngagement[submission.ip_address].firstSeen) {
+                ipEngagement[submission.ip_address].firstSeen = submissionDate;
+            }
+            if (submissionDate > ipEngagement[submission.ip_address].lastSeen) {
+                ipEngagement[submission.ip_address].lastSeen = submissionDate;
+            }
+        }
+    });
+    
+    // Count engagement levels
+    const engagementLevels = {
+        '1 submission': 0,
+        '2-3 submissions': 0,
+        '4-5 submissions': 0,
+        '6+ submissions': 0
+    };
+    
+    Object.values(ipEngagement).forEach(user => {
+        if (user.count === 1) {
+            engagementLevels['1 submission']++;
+        } else if (user.count <= 3) {
+            engagementLevels['2-3 submissions']++;
+        } else if (user.count <= 5) {
+            engagementLevels['4-5 submissions']++;
+        } else {
+            engagementLevels['6+ submissions']++;
+        }
+    });
+    
+    const ctx = document.getElementById('engagementChart');
+    if (!ctx) return; // Chart container might not exist
+    
+    new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(engagementLevels),
+            datasets: [{
+                data: Object.values(engagementLevels),
+                backgroundColor: ['#005921', '#DAAA00', '#003764', '#00843D'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'User Engagement Patterns',
+                    font: { size: 16, weight: 'bold' }
+                }
+            }
+        }
+    });
 }
 
 function formatLabel(text) {
