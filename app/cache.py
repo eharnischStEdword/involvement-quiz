@@ -20,6 +20,7 @@ class CacheManager:
         self.redis_client = None
         self.memory_cache = {}
         self.cache_ttl = 300  # 5 minutes default
+        self.max_cache_size = 1000  # Maximum number of cache entries
         
         # Use in-memory cache only for simplicity
         logger.info("Using in-memory cache")
@@ -50,9 +51,23 @@ class CacheManager:
         try:
             # Use memory cache only
             ttl_seconds = ttl if ttl is not None else self.cache_ttl
+            
+            # Clean expired entries first
+            self._cleanup_expired()
+            
+            # Check cache size limit
+            if len(self.memory_cache) >= self.max_cache_size:
+                # Remove oldest entries (LRU-like behavior)
+                oldest_keys = sorted(self.memory_cache.keys(), 
+                                   key=lambda k: self.memory_cache[k].get('created', 0))[:100]
+                for old_key in oldest_keys:
+                    del self.memory_cache[old_key]
+                logger.debug(f"Cache size limit reached, removed {len(oldest_keys)} old entries")
+            
             self.memory_cache[key] = {
                 'value': value,
-                'expires': time.time() + ttl_seconds
+                'expires': time.time() + ttl_seconds,
+                'created': time.time()
             }
             return True
         except Exception as e:
@@ -85,6 +100,22 @@ class CacheManager:
         except Exception as e:
             logger.warning(f"Cache exists error: {e}")
             return False
+    
+    def _cleanup_expired(self):
+        """Remove expired cache entries"""
+        try:
+            current_time = time.time()
+            expired_keys = [
+                key for key, data in self.memory_cache.items()
+                if current_time >= data['expires']
+            ]
+            for key in expired_keys:
+                del self.memory_cache[key]
+            
+            if expired_keys:
+                logger.debug(f"Cleaned up {len(expired_keys)} expired cache entries")
+        except Exception as e:
+            logger.warning(f"Cache cleanup error: {e}")
 
 # Global cache instance
 cache_manager = CacheManager()

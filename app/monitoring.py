@@ -30,6 +30,7 @@ class ApplicationMonitor:
         self.error_counts = {}
         self.response_times = []
         self.max_response_times = 100  # Keep last 100 response times
+        self.max_request_counts = 50  # Maximum number of endpoints to track
         
         # Performance thresholds
         self.slow_request_threshold = 2.0  # seconds
@@ -59,6 +60,13 @@ class ApplicationMonitor:
             # Record request count
             key = f"{method}:{endpoint}"
             if key not in self.request_counts:
+                # Limit the number of endpoints we track
+                if len(self.request_counts) >= self.max_request_counts:
+                    # Remove oldest endpoint (simple FIFO)
+                    oldest_key = next(iter(self.request_counts))
+                    del self.request_counts[oldest_key]
+                    logger.debug(f"Removed old endpoint tracking: {oldest_key}")
+                
                 self.request_counts[key] = {'total': 0, 'success': 0, 'error': 0}
             
             self.request_counts[key]['total'] += 1
@@ -194,12 +202,18 @@ class ApplicationMonitor:
                 
                 # Get all rate limit keys
                 keys = redis_client.keys('rate_limit:*')
-                total_rate_limited_ips = len(keys)
+                total_rate_limited_ips = len(keys) if keys else 0
                 
                 # Get total rate limit hits
                 total_hits = 0
-                for key in keys:
-                    total_hits += redis_client.zcard(key)
+                if keys:
+                    for key in keys:
+                        try:
+                            hits = redis_client.zcard(key)
+                            if hits is not None:
+                                total_hits += hits
+                        except Exception:
+                            pass
                 
                 return {
                     'total_rate_limited_ips': total_rate_limited_ips,
