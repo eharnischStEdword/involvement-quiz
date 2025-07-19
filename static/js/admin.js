@@ -91,8 +91,16 @@ async function loadDashboardData() {
 
 // Update statistics cards
 function updateStats(data) {
+    console.log('Updating stats with data:', data);
     const uniqueUsers = getUniqueUsers(data);
     const engagementRate = getEngagementRate(data);
+    
+    console.log('Calculated metrics:', {
+        totalSubmissions: data.length,
+        uniqueUsers: uniqueUsers,
+        engagementRate: engagementRate,
+        thisWeek: getSubmissionsThisWeek(data)
+    });
     
     const statsHtml = `
         <div class="stat-card">
@@ -163,11 +171,13 @@ function getUniqueUsers(data) {
     // Count unique IP addresses (proxy for unique users)
     const uniqueIPs = new Set();
     data.forEach(submission => {
+        console.log('Processing submission IP:', submission.ip_address);
         if (submission.ip_address && submission.ip_address !== 'unknown') {
             uniqueIPs.add(submission.ip_address);
         }
     });
     
+    console.log('Unique IPs found:', Array.from(uniqueIPs));
     return uniqueIPs.size;
 }
 
