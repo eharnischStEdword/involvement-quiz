@@ -1,153 +1,174 @@
 #!/usr/bin/env python3
 """
-Memory monitoring script for the St. Edward Ministry Finder application.
+Memory monitoring script for the involvement quiz application.
 This script helps track memory usage and identify potential memory leaks.
 """
 
-import os
-import sys
 import time
-import psutil
-import logging
-from datetime import datetime
 import json
+import requests
+from datetime import datetime
+import argparse
 
-# Add the parent directory to the path so we can import app modules
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app.cache import get_cache_stats
-from app.monitoring import app_monitor
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-def get_memory_info():
-    """Get detailed memory information"""
+def get_memory_status(url):
+    """Get memory status from the application"""
     try:
-        process = psutil.Process()
-        memory_info = process.memory_info()
-        memory_percent = process.memory_percent()
-        
-        # Get system memory info
-        system_memory = psutil.virtual_memory()
-        
-        return {
-            'timestamp': datetime.now().isoformat(),
-            'process': {
-                'rss_mb': round(memory_info.rss / (1024 * 1024), 2),
-                'vms_mb': round(memory_info.vms / (1024 * 1024), 2),
-                'percent': round(memory_percent, 2)
-            },
-            'system': {
-                'total_gb': round(system_memory.total / (1024 * 1024 * 1024), 2),
-                'available_gb': round(system_memory.available / (1024 * 1024 * 1024), 2),
-                'percent': round(system_memory.percent, 2)
-            }
-        }
+        response = requests.get(f"{url}/api/memory-status", timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Error: HTTP {response.status_code}")
+            return None
     except Exception as e:
-        logger.error(f"Error getting memory info: {e}")
+        print(f"Error getting memory status: {e}")
         return None
 
-def get_app_metrics():
-    """Get application-specific metrics"""
+def get_health_status(url):
+    """Get health status from the application"""
     try:
-        # Get cache stats
-        cache_stats = get_cache_stats()
-        
-        # Get monitoring metrics
-        monitoring_metrics = app_monitor.get_metrics()
-        
-        return {
-            'cache': cache_stats,
-            'monitoring': monitoring_metrics.get('application', {}).get('monitoring_data_size', {})
-        }
+        response = requests.get(f"{url}/api/health", timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"Error: HTTP {response.status_code}")
+            return None
     except Exception as e:
-        logger.error(f"Error getting app metrics: {e}")
-        return {}
+        print(f"Error getting health status: {e}")
+        return None
 
-def monitor_memory(interval=60, duration=None):
-    """
-    Monitor memory usage for a specified duration
-    
-    Args:
-        interval: Check interval in seconds (default: 60)
-        duration: Total monitoring duration in seconds (None for infinite)
-    """
-    logger.info(f"Starting memory monitoring (interval: {interval}s, duration: {duration}s)")
+def monitor_memory(url, interval=60, duration=None):
+    """Monitor memory usage over time"""
+    print(f"Starting memory monitoring for {url}")
+    print(f"Interval: {interval} seconds")
+    if duration:
+        print(f"Duration: {duration} seconds")
+    print("-" * 80)
     
     start_time = time.time()
-    check_count = 0
+    measurements = []
     
-    while True:
-        try:
-            check_count += 1
+    try:
+        while True:
             current_time = time.time()
             
             # Check if we should stop
-            if duration and (current_time - start_time) > duration:
-                logger.info(f"Monitoring completed after {duration} seconds")
+            if duration and (current_time - start_time) >= duration:
                 break
             
-            # Get memory info
-            memory_info = get_memory_info()
-            if memory_info:
-                app_metrics = get_app_metrics()
+            # Get memory status
+            memory_data = get_memory_status(url)
+            health_data = get_health_status(url)
+            
+            if memory_data and health_data:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
-                # Log memory usage
-                logger.info(f"Check #{check_count} - "
-                          f"Process: {memory_info['process']['rss_mb']}MB "
-                          f"({memory_info['process']['percent']:.1f}%) | "
-                          f"System: {memory_info['system']['percent']:.1f}% | "
-                          f"Cache: {app_metrics.get('cache', {}).get('memory_usage_mb', 'N/A')}MB")
+                # Extract key metrics
+                process_rss = memory_data.get('process', {}).get('rss_mb', 'N/A')
+                process_percent = memory_data.get('process', {}).get('percent', 'N/A')
+                system_percent = memory_data.get('system', {}).get('percent', 'N/A')
+                cache_memory = memory_data.get('cache', {}).get('memory_usage_mb', 'N/A')
+                health_status = health_data.get('status', 'N/A')
                 
-                # Check for high memory usage
-                if memory_info['process']['percent'] > 80:
-                    logger.warning(f"HIGH MEMORY USAGE: {memory_info['process']['percent']:.1f}%")
+                # Print current status
+                print(f"[{timestamp}] "
+                      f"Process: {process_rss}MB ({process_percent}%) | "
+                      f"System: {system_percent}% | "
+                      f"Cache: {cache_memory}MB | "
+                      f"Health: {health_status}")
                 
-                if memory_info['system']['percent'] > 90:
-                    logger.warning(f"HIGH SYSTEM MEMORY: {memory_info['system']['percent']:.1f}%")
+                # Store measurement
+                measurements.append({
+                    'timestamp': timestamp,
+                    'process_rss_mb': process_rss,
+                    'process_percent': process_percent,
+                    'system_percent': system_percent,
+                    'cache_memory_mb': cache_memory,
+                    'health_status': health_status
+                })
+                
+                # Check for potential issues
+                if isinstance(process_percent, (int, float)) and process_percent > 80:
+                    print(f"  ⚠️  WARNING: High process memory usage ({process_percent}%)")
+                
+                if isinstance(system_percent, (int, float)) and system_percent > 80:
+                    print(f"  ⚠️  WARNING: High system memory usage ({system_percent}%)")
+                
+                if isinstance(cache_memory, (int, float)) and cache_memory > 40:
+                    print(f"  ⚠️  WARNING: Cache near memory limit ({cache_memory}MB)")
+                
+                if health_status != 'healthy':
+                    print(f"  ⚠️  WARNING: Health status is {health_status}")
             
             time.sleep(interval)
             
-        except KeyboardInterrupt:
-            logger.info("Memory monitoring stopped by user")
-            break
-        except Exception as e:
-            logger.error(f"Error in memory monitoring: {e}")
-            time.sleep(interval)
-
-def print_current_status():
-    """Print current memory status"""
-    memory_info = get_memory_info()
-    app_metrics = get_app_metrics()
+    except KeyboardInterrupt:
+        print("\nMonitoring stopped by user")
     
-    if memory_info:
-        print("\n=== MEMORY STATUS ===")
-        print(f"Timestamp: {memory_info['timestamp']}")
-        print(f"Process Memory: {memory_info['process']['rss_mb']}MB ({memory_info['process']['percent']:.1f}%)")
-        print(f"System Memory: {memory_info['system']['percent']:.1f}%")
-        print(f"Cache Memory: {app_metrics.get('cache', {}).get('memory_usage_mb', 'N/A')}MB")
-        
-        if app_metrics.get('monitoring'):
-            print(f"Monitoring Data: {app_metrics['monitoring']}")
-        
-        print("====================\n")
-
-if __name__ == '__main__':
-    import argparse
+    # Print summary
+    print("\n" + "=" * 80)
+    print("MONITORING SUMMARY")
+    print("=" * 80)
     
-    parser = argparse.ArgumentParser(description='Memory monitoring for St. Edward Ministry Finder')
-    parser.add_argument('--interval', type=int, default=60, help='Check interval in seconds (default: 60)')
-    parser.add_argument('--duration', type=int, help='Total monitoring duration in seconds (default: infinite)')
-    parser.add_argument('--status', action='store_true', help='Print current status and exit')
+    if measurements:
+        # Calculate statistics
+        process_values = [m['process_rss_mb'] for m in measurements if isinstance(m['process_rss_mb'], (int, float))]
+        process_percent_values = [m['process_percent'] for m in measurements if isinstance(m['process_percent'], (int, float))]
+        
+        if process_values:
+            print(f"Process Memory (RSS):")
+            print(f"  Min: {min(process_values):.2f}MB")
+            print(f"  Max: {max(process_values):.2f}MB")
+            print(f"  Avg: {sum(process_values)/len(process_values):.2f}MB")
+        
+        if process_percent_values:
+            print(f"Process Memory (%):")
+            print(f"  Min: {min(process_percent_values):.2f}%")
+            print(f"  Max: {max(process_percent_values):.2f}%")
+            print(f"  Avg: {sum(process_percent_values)/len(process_percent_values):.2f}%")
+        
+        # Check for memory growth
+        if len(process_values) > 10:
+            first_half = process_values[:len(process_values)//2]
+            second_half = process_values[len(process_values)//2:]
+            
+            first_avg = sum(first_half) / len(first_half)
+            second_avg = sum(second_half) / len(second_half)
+            
+            growth = ((second_avg - first_avg) / first_avg) * 100 if first_avg > 0 else 0
+            
+            print(f"\nMemory Growth Analysis:")
+            print(f"  First half avg: {first_avg:.2f}MB")
+            print(f"  Second half avg: {second_avg:.2f}MB")
+            print(f"  Growth: {growth:.2f}%")
+            
+            if growth > 10:
+                print(f"  ⚠️  WARNING: Significant memory growth detected!")
+            elif growth > 5:
+                print(f"  ⚠️  CAUTION: Moderate memory growth detected")
+            else:
+                print(f"  ✅ Memory usage appears stable")
+        
+        print(f"\nTotal measurements: {len(measurements)}")
+        print(f"Monitoring duration: {time.time() - start_time:.1f} seconds")
+        
+        # Save data to file
+        filename = f"memory_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(filename, 'w') as f:
+            json.dump(measurements, f, indent=2)
+        print(f"Data saved to: {filename}")
+
+def main():
+    parser = argparse.ArgumentParser(description='Monitor memory usage of the involvement quiz application')
+    parser.add_argument('--url', default='https://involvement-quiz.onrender.com',
+                       help='Application URL (default: https://involvement-quiz.onrender.com)')
+    parser.add_argument('--interval', type=int, default=60,
+                       help='Monitoring interval in seconds (default: 60)')
+    parser.add_argument('--duration', type=int, default=None,
+                       help='Monitoring duration in seconds (default: run indefinitely)')
     
     args = parser.parse_args()
     
-    if args.status:
-        print_current_status()
-    else:
-        monitor_memory(interval=args.interval, duration=args.duration) 
+    monitor_memory(args.url, args.interval, args.duration)
+
+if __name__ == '__main__':
+    main() 

@@ -41,6 +41,10 @@ class ApplicationMonitor:
         self.last_cleanup = time.time()
         self.cleanup_interval = 300  # Cleanup every 5 minutes
         
+        # System health monitoring
+        self.last_health_check = time.time()
+        self.health_check_interval = 300  # Check system health every 5 minutes instead of every minute
+        
         # Start background monitoring
         self._start_background_monitoring()
     
@@ -49,7 +53,12 @@ class ApplicationMonitor:
         def monitor_loop():
             while True:
                 try:
-                    self._check_system_health()
+                    # Only check system health periodically to reduce CPU usage
+                    current_time = time.time()
+                    if current_time - self.last_health_check >= self.health_check_interval:
+                        self._check_system_health()
+                        self.last_health_check = current_time
+                    
                     self._cleanup_old_data()
                     time.sleep(60)  # Check every minute
                 except Exception as e:
@@ -144,8 +153,8 @@ class ApplicationMonitor:
                 if memory.percent > 80:
                     logger.warning(f"High memory usage: {memory.percent:.1f}%")
                 
-                # Check CPU usage
-                cpu_percent = psutil.cpu_percent(interval=1)
+                # Check CPU usage with shorter interval to reduce overhead
+                cpu_percent = psutil.cpu_percent(interval=0.1)
                 if cpu_percent > 80:
                     logger.warning(f"High CPU usage: {cpu_percent:.1f}%")
                 
@@ -199,7 +208,7 @@ class ApplicationMonitor:
             # Cache metrics
             cache_stats = get_cache_stats()
             
-            # Rate limiting info (if available)
+            # Rate limiting info (if available) - make this optional
             rate_limit_stats = self._get_rate_limit_stats()
             
             return {
@@ -232,7 +241,7 @@ class ApplicationMonitor:
             }
     
     def _get_rate_limit_stats(self) -> Dict[str, Any]:
-        """Get rate limiting statistics"""
+        """Get rate limiting statistics - made optional to avoid Redis connection errors"""
         try:
             # Try to import redis
             try:
@@ -242,9 +251,14 @@ class ApplicationMonitor:
                     port=6379,
                     db=1,
                     decode_responses=True,
-                    socket_connect_timeout=1,
-                    socket_timeout=1
+                    socket_connect_timeout=0.5,  # Reduced timeout
+                    socket_timeout=0.5,  # Reduced timeout
+                    retry_on_timeout=False,  # Don't retry on timeout
+                    health_check_interval=30  # Reduce health check frequency
                 )
+                
+                # Test connection quickly
+                redis_client.ping()
                 
                 # Get all rate limit keys
                 keys = redis_client.keys('rate_limit:*')
@@ -257,7 +271,10 @@ class ApplicationMonitor:
                         try:
                             hits = redis_client.zcard(key)
                             if hits is not None:
-                                total_hits += hits
+                                try:
+                                    total_hits += int(hits)
+                                except (ValueError, TypeError):
+                                    pass
                         except Exception:
                             pass
                 
@@ -272,9 +289,15 @@ class ApplicationMonitor:
                     'storage_type': 'memory',
                     'error': 'Redis not available'
                 }
+            except Exception as e:
+                # Redis connection failed - return memory-based stats
+                return {
+                    'storage_type': 'memory',
+                    'error': f'Redis connection failed: {str(e)}'
+                }
             
         except Exception as e:
-            logger.warning(f"Failed to get rate limit stats: {e}")
+            # Don't log this as a warning since Redis is optional
             return {
                 'storage_type': 'memory',
                 'error': str(e)

@@ -33,28 +33,28 @@ def keep_alive():
             central = pytz.timezone('US/Central')
             now = datetime.now(central)
             
-            # More aggressive during business hours, less aggressive at night
-            if 6 <= now.hour <= 23:  # Extended hours
-                interval = 300  # 5 minutes during business hours
+            # More conservative timing to reduce CPU usage
+            if 7 <= now.hour <= 22:  # Reduced business hours
+                interval = 600  # 10 minutes during business hours (increased from 5)
                 url = os.environ.get('RENDER_EXTERNAL_URL', 'https://involvement-quiz.onrender.com')
                 
                 # Ping single endpoint for efficiency
                 try:
-                    response = requests.get(f'{url}/api/health', timeout=10)
+                    response = requests.get(f'{url}/api/health', timeout=5)  # Reduced timeout
                     logger.info(f"Keep-alive ping to {url}/api/health - Status: {response.status_code}")
                     # Explicitly close response to free memory
                     response.close()
                 except Exception as e:
                     logger.warning(f"Keep-alive ping failed: {e}")
             else:
-                interval = 900  # 15 minutes during off-hours
+                interval = 1800  # 30 minutes during off-hours (increased from 15)
                 logger.info("Off-hours mode - reduced ping frequency")
             
             time.sleep(interval)
             
         except Exception as e:
             logger.error(f"Keep-alive service error: {e}")
-            time.sleep(300)  # Wait 5 minutes before retrying
+            time.sleep(600)  # Wait 10 minutes before retrying (increased from 5)
 
 def auto_migrate_ministries():
     """Auto-migrate ministry data to database on startup"""
