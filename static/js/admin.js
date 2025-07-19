@@ -2,7 +2,8 @@
 // Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 // Unauthorized use, distribution, or modification is prohibited.
 
-// Admin Dashboard JavaScript
+// Admin Dashboard JavaScript - VERSION 2.3
+console.log('Admin Dashboard JavaScript loaded - Version 2.3');
 let submissionsData = [];
 
 // Helper functions for show/hide without inline styles
@@ -57,7 +58,10 @@ async function loadDashboardData() {
     try {
         show('loading');
         
+        console.log('Loading dashboard data from /admin/api/submissions...');
         const response = await fetch('/admin/api/submissions');
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
