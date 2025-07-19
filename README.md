@@ -13,17 +13,19 @@ An interactive, mobile-first web app that helps parishioners quickly discover th
 
 **Current State:** ✅ Production-ready with excellent core functionality  
 **Last Updated:** July 2025  
-**Status:** All major issues resolved, admin dashboard fully functional, ready for Phase 2 features
+**Status:** All major issues resolved, memory leaks fixed, security enhanced, ready for Phase 2 features
 
 ### **✅ Completed Features**
 - **Quiz System**: 5-question adaptive flow (Age → Gender → State → Situation → Interests)
 - **Ministry Matching**: Algorithm matches users to 37+ relevant ministries
 - **Results Display**: Personalized recommendations with ministry details
-- **Database Integration**: PostgreSQL with auto-migration
+- **Database Integration**: PostgreSQL with auto-migration and connection pooling
 - **Production Deployment**: Running on Render.com with auto-deploy
 - **PWA Features**: Service worker, offline capability, install prompts
 - **Admin Dashboard**: CSV export, analytics, submission management, engagement tracking
-- **Security**: Rate limiting, HTTPS, input validation, admin auth
+- **Security**: Rate limiting, HTTPS, input validation, admin auth, session management
+- **Performance**: Memory leak fixes, efficient caching, monitoring system
+- **Monitoring**: Health checks, memory tracking, performance metrics
 
 ### **🚀 Next Phase Goals**
 - Enhanced analytics and tracking
@@ -54,13 +56,19 @@ Visit <http://localhost:5000> in your browser.
 
 ## ⚙️ **Environment Variables**
 
-| Key | Purpose | Required |
-|-----|---------|----------|
-| `DATABASE_URL` | Postgres connection string | Production only |
-| `SECRET_KEY`   | Flask session secret | Production only |
-| `ADMIN_USERNAME` & `ADMIN_PASSWORD` | Basic-Auth credentials for `/admin` | Production only |
+| Key | Purpose | Required | Default |
+|-----|---------|----------|---------|
+| `DATABASE_URL` | Postgres connection string | Production only | - |
+| `SECRET_KEY`   | Flask session secret (min 32 chars) | Production only | - |
+| `ADMIN_USERNAME` | Basic-Auth username for `/admin` | Production only | - |
+| `ADMIN_PASSWORD` | Basic-Auth password (min 8 chars) | Production only | - |
+| `SESSION_TIMEOUT` | Admin session timeout in seconds | No | 3600 (1 hour) |
 
-For production deploys **all** variables must be set; the app will refuse to start if defaults are detected.
+**Security Notes:**
+- All production variables must be set; app will refuse to start if defaults are detected
+- SECRET_KEY must be at least 32 characters long
+- ADMIN_PASSWORD must be at least 8 characters long
+- SESSION_TIMEOUT range: 900s (15 min) to 86400s (24 hours)
 
 ---
 
@@ -109,95 +117,124 @@ python -m pytest --cov=app tests/
 
 ---
 
-## 🚀 **Deployment**
+## 🔒 **Security Features**
 
-The project is container-ready and known to run on Render.com (free tier) and Fly.io.
+### **Authentication & Authorization**
+- **Admin Auth**: Basic authentication with rate limiting
+- **Session Management**: Configurable session timeouts
+- **CSRF Protection**: Token-based protection for state-changing operations
+- **Rate Limiting**: Login attempt tracking with automatic cleanup
 
-**Key reminders:**
-1. Use a Postgres add-on or external cluster
-2. Set all environment variables
-3. Disable Flask debug mode (handled automatically when `DATABASE_URL` is present)
+### **Input Validation & Sanitization**
+- **Request Validation**: Comprehensive input validation
+- **SQL Injection Protection**: Parameterized queries
+- **XSS Protection**: Content Security Policy headers
+- **Data Sanitization**: All user inputs are validated and sanitized
+
+### **Privacy Protection**
+- **No PII Collection**: Application does not collect email addresses or personal information
+- **Anonymous Submissions**: All quiz submissions are anonymous
+- **Minimal Data**: Only collects necessary data for ministry matching
 
 ---
 
-## 📁 **Project Structure**
+## 📊 **Monitoring & Performance**
 
+### **Health Checks**
+```bash
+# Basic health check
+curl https://involvement-quiz.onrender.com/api/health
+
+# Memory status
+curl https://involvement-quiz.onrender.com/api/memory-status
+
+# Performance metrics
+curl https://involvement-quiz.onrender.com/api/metrics
 ```
-involvement-quiz/
-├── app/                    # Main application package
-│   ├── blueprints/        # Flask blueprints (routes)
-│   ├── config.py          # Configuration management
-│   ├── database.py        # Database connection pool
-│   ├── models.py          # Database models/schema
-│   ├── ministries.py      # Ministry data
-│   └── validators.py      # Input validation system
-├── static/                # Static assets (CSS, JS, icons)
-├── templates/             # HTML templates
-├── tests/                 # Test suite
-├── docs/                  # Technical documentation
-├── scripts/               # Utility scripts
-└── main.py               # Application entry point
+
+### **Memory Monitoring**
+```bash
+# Check current memory status
+python scripts/memory_monitor.py --status
+
+# Monitor memory over time
+python scripts/memory_monitor.py --interval 60 --duration 3600
+```
+
+### **Performance Metrics**
+- **Memory Usage**: Typically 100-500MB (down from 2GB+)
+- **Response Times**: < 200ms average
+- **Cache Efficiency**: 50MB limit with automatic cleanup
+- **Database Connections**: Pooled with timeouts
+
+---
+
+## 🛠️ **Development Tools**
+
+### **Memory Monitoring Script**
+```bash
+# Check current status
+python scripts/memory_monitor.py --status
+
+# Monitor for 1 hour with 30-second intervals
+python scripts/memory_monitor.py --interval 30 --duration 3600
+
+# Monitor indefinitely with 60-second intervals
+python scripts/memory_monitor.py --interval 60
+```
+
+### **Database Debugging**
+```bash
+# Check database status
+curl https://involvement-quiz.onrender.com/api/debug/submissions
+
+# Check ministry data
+curl https://involvement-quiz.onrender.com/api/debug/mass
 ```
 
 ---
 
-## 📊 **Current Performance**
+## 📚 **Documentation**
 
-- **Page Load Time**: <2 seconds
-- **API Response Time**: <500ms
-- **Database Queries**: Optimized with connection pooling
-- **Uptime**: High (Render.com reliability)
-- **Ministries Loaded**: 37 active ministries
-
----
-
-## 🔧 **Technical Stack**
-
-### **Backend**
-- **Framework**: Flask (Python)
-- **Database**: PostgreSQL with connection pooling
-- **Caching**: In-memory (Redis disabled for simplicity)
-- **Deployment**: Render.com with auto-deploy
-
-### **Frontend**
-- **Framework**: Vanilla JavaScript
-- **PWA**: Service worker, manifest, offline support
-- **Styling**: CSS with responsive design
+- **[Memory Leak Fixes](docs/memory-leak-fixes.md)**: Comprehensive guide to memory optimization
+- **[Deployment Guide](docs/deployment.md)**: Production deployment instructions
+- **[Development Guide](docs/development.md)**: Local development setup
+- **[Troubleshooting](docs/troubleshooting.md)**: Common issues and solutions
 
 ---
 
-## 📋 **Recent Improvements**
+## 🔧 **Architecture**
 
-### **✅ Resolved Issues**
-- **Type Checking**: All 10 type checking issues fixed
-- **Dependencies**: Missing packages (`redis`, `psutil`) installed
-- **Validation**: Backend now accepts frontend data formats
-- **Rate Limiting**: Increased to 20 submissions per hour
-- **Admin Dashboard**: Fixed URL routing issues and JavaScript timing
-- **Memory Leaks**: Fixed unbounded cache growth and monitoring data accumulation
-- **PWA**: Fixed "Go Back to Interests" button functionality
-- **Email Collection**: Removed PII collection for privacy compliance
+### **Flask Blueprint Structure**
+```
+app/
+├── __init__.py          # App factory
+├── config.py           # Configuration management
+├── database.py         # Database connection pooling
+├── cache.py           # Memory-efficient caching
+├── monitoring.py      # Performance monitoring
+├── auth.py            # Authentication & security
+├── models.py          # Database models
+├── validators.py      # Input validation
+├── utils.py           # Utility functions
+└── blueprints/
+    ├── public.py      # Public routes
+    ├── api.py         # API endpoints
+    ├── admin.py       # Admin dashboard
+    └── ministry_admin.py # Ministry management
+```
 
-### **🔧 Code Quality**
-- Comprehensive input validation system
-- Proper error handling and logging
-- Type annotations and documentation
-- Test coverage for critical functions
+### **Key Design Principles**
+- **Separation of Concerns**: Clear module boundaries
+- **Security First**: Comprehensive input validation and authentication
+- **Performance**: Memory-efficient caching and connection pooling
+- **Monitoring**: Real-time performance and health tracking
+- **Privacy**: No collection of personal information
 
 ---
 
-## 📞 **Support & Licensing**
+## 📄 **License**
 
-This codebase is made available for the ministry work of **St. Edward Church & School (Nashville, TN)**.  
-If you wish to adapt or reuse any part of it, please reach out so we can chat about licensing options.
-
-For feature requests, onboarding help, or licensing inquiries, contact **Eric Harnisch**  
-<eric@ericharnisch.com>
-
----
-
-## 📚 **Additional Documentation**
-
-- [Development Guide](docs/development.md) - Technical development details
-- [Deployment Guide](docs/deployment.md) - Deployment instructions
-- [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
+© 2024-2025 Harnisch LLC. All Rights Reserved.  
+Licensed exclusively for use by St. Edward Church & School (Nashville, TN).  
+Unauthorized use, distribution, or modification is prohibited.

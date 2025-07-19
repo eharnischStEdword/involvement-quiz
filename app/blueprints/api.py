@@ -89,12 +89,56 @@ def submit_ministry_interest():
 @api_bp.route('/health')
 def health_check():
     try:
+        # Test database connection
         with get_db_connection() as (conn, cur):
             cur.execute('SELECT 1')
         
+        # Get cache health
+        from app.cache import get_cache_stats
+        cache_stats = get_cache_stats()
+        
+        # Get memory status if available
+        memory_status = {}
+        try:
+            import psutil
+            process = psutil.Process()
+            memory_info = process.memory_info()
+            memory_status = {
+                'rss_mb': round(memory_info.rss / (1024 * 1024), 2),
+                'percent': round(process.memory_percent(), 2)
+            }
+        except ImportError:
+            memory_status = {'error': 'psutil not available'}
+        
+        # Get monitoring metrics
+        from app.monitoring import app_monitor
+        monitoring_metrics = app_monitor.get_metrics()
+        
+        health_status = 'healthy'
+        issues = []
+        
+        # Check for potential issues
+        memory_percent = memory_status.get('percent', 0)
+        if isinstance(memory_percent, (int, float)) and memory_percent > 80:
+            health_status = 'warning'
+            issues.append('High memory usage')
+        
+        cache_memory = cache_stats.get('memory_usage_mb', 0)
+        if isinstance(cache_memory, (int, float)) and cache_memory > 40:  # Near 50MB limit
+            health_status = 'warning'
+            issues.append('Cache near memory limit')
+        
         return jsonify({
-            'status': 'healthy',
+            'status': health_status,
             'database': 'connected',
+            'cache': cache_stats,
+            'memory': memory_status,
+            'monitoring': {
+                'uptime': monitoring_metrics.get('system', {}).get('uptime_human', 'N/A'),
+                'total_requests': monitoring_metrics.get('application', {}).get('total_requests', 0),
+                'avg_response_time': monitoring_metrics.get('application', {}).get('avg_response_time', 0)
+            },
+            'issues': issues,
             'timestamp': datetime.now().isoformat()
         })
     except Exception as e:

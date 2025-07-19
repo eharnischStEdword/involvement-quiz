@@ -11,6 +11,8 @@ from flask import request, session, jsonify
 from collections import defaultdict
 from threading import Lock
 
+from app.config import Config
+
 logger = logging.getLogger(__name__)
 
 # Login attempt tracking
@@ -106,9 +108,16 @@ def require_admin_auth_enhanced(f):
         
         # Check if already authenticated via session
         if session.get('admin_authenticated'):
-            # Verify session hasn't expired (24 hour timeout)
-            if time.time() - session.get('auth_time', 0) > 86400:
+            # Verify session hasn't expired using configurable timeout
+            config = Config.get_config()
+            if config:
+                session_timeout = config.get('SESSION_TIMEOUT', 3600)  # Default 1 hour
+            else:
+                session_timeout = 3600  # Fallback default
+            
+            if time.time() - session.get('auth_time', 0) > session_timeout:
                 session.clear()
+                logger.info(f"Admin session expired for IP {ip_address}")
             else:
                 return f(*args, **kwargs)
         
@@ -128,6 +137,13 @@ def require_admin_auth_enhanced(f):
             })
         
         # Verify credentials
+        if not auth.password:
+            record_login_attempt(ip_address)
+            logger.warning(f"Failed admin login attempt from {ip_address} - no password")
+            return ('Invalid credentials', 401, {
+                'WWW-Authenticate': 'Basic realm="St. Edward Admin"'
+            })
+        
         password_hash = hashlib.sha256(auth.password.encode()).hexdigest()
         if auth.username != ADMIN_USERNAME or password_hash != ADMIN_PASSWORD_HASH:
             record_login_attempt(ip_address)
@@ -142,6 +158,7 @@ def require_admin_auth_enhanced(f):
         session['auth_time'] = time.time()
         session['admin_ip'] = ip_address
         
+        logger.info(f"Successful admin login from IP {ip_address}")
         return f(*args, **kwargs)
     
     return decorated_function
@@ -175,4 +192,7 @@ def require_csrf_token(f):
 # Admin credentials from environment
 ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'stedward_admin')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'change_this_password_123!')
-ADMIN_PASSWORD_HASH = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
+if ADMIN_PASSWORD:
+    ADMIN_PASSWORD_HASH = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()
+else:
+    ADMIN_PASSWORD_HASH = ''
