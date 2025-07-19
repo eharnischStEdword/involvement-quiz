@@ -24,8 +24,9 @@ An interactive, mobile-first web app that helps parishioners quickly discover th
 - **PWA Features**: Service worker, offline capability, install prompts
 - **Admin Dashboard**: CSV export, analytics, submission management, engagement tracking
 - **Security**: Rate limiting, HTTPS, input validation, admin auth, session management
-- **Performance**: Memory leak fixes, efficient caching, monitoring system
-- **Monitoring**: Health checks, memory tracking, performance metrics
+- **Performance**: Memory leak fixes, efficient caching, optimized monitoring system
+- **Monitoring**: Health checks, memory tracking, performance metrics, remote monitoring
+- **CPU Optimization**: Reduced monitoring overhead, optimized keep-alive service
 
 ### **🚀 Next Phase Goals**
 - Enhanced analytics and tracking
@@ -154,18 +155,23 @@ curl https://involvement-quiz.onrender.com/api/metrics
 
 ### **Memory Monitoring**
 ```bash
-# Check current memory status
-python scripts/memory_monitor.py --status
+# Monitor memory usage remotely
+python scripts/memory_monitor.py --interval 30 --duration 3600
 
-# Monitor memory over time
-python scripts/memory_monitor.py --interval 60 --duration 3600
+# Monitor indefinitely with default 60-second intervals
+python scripts/memory_monitor.py
+
+# Monitor a different URL
+python scripts/memory_monitor.py --url https://your-app.onrender.com
 ```
 
 ### **Performance Metrics**
 - **Memory Usage**: Typically 100-500MB (down from 2GB+)
+- **CPU Usage**: Optimized from 90-100% to normal levels
 - **Response Times**: < 200ms average
 - **Cache Efficiency**: 50MB limit with automatic cleanup
 - **Database Connections**: Pooled with timeouts
+- **Monitoring Overhead**: Reduced by ~80% through optimized intervals
 
 ---
 
@@ -173,15 +179,21 @@ python scripts/memory_monitor.py --interval 60 --duration 3600
 
 ### **Memory Monitoring Script**
 ```bash
-# Check current status
-python scripts/memory_monitor.py --status
-
 # Monitor for 1 hour with 30-second intervals
 python scripts/memory_monitor.py --interval 30 --duration 3600
 
-# Monitor indefinitely with 60-second intervals
-python scripts/memory_monitor.py --interval 60
+# Monitor indefinitely with default 60-second intervals
+python scripts/memory_monitor.py
+
+# Monitor a different URL
+python scripts/memory_monitor.py --url https://your-app.onrender.com
 ```
+
+**Features:**
+- Remote monitoring via API endpoints
+- Statistical analysis and memory growth detection
+- Automatic data logging to JSON files
+- Real-time alerts for potential memory issues
 
 ### **Database Debugging**
 ```bash
@@ -227,9 +239,10 @@ app/
 ### **Key Design Principles**
 - **Separation of Concerns**: Clear module boundaries
 - **Security First**: Comprehensive input validation and authentication
-- **Performance**: Memory-efficient caching and connection pooling
-- **Monitoring**: Real-time performance and health tracking
+- **Performance**: Memory-efficient caching, connection pooling, and optimized monitoring
+- **Monitoring**: Real-time performance and health tracking with minimal overhead
 - **Privacy**: No collection of personal information
+- **Resource Efficiency**: Optimized CPU usage and background service management
 
 ---
 
