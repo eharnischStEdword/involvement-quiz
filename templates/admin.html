@@ -142,6 +142,17 @@
         script.src = '/static/js/admin.js?v=2.3&t=' + timestamp;
         script.onload = function() {
             console.log('Admin JavaScript loaded successfully with cache busting');
+            // Wait for DOM to be ready, then initialize
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    loadDashboardData();
+                    setupEventListeners();
+                });
+            } else {
+                // DOM is already ready
+                loadDashboardData();
+                setupEventListeners();
+            }
         };
         script.onerror = function() {
             console.error('Failed to load admin JavaScript');

@@ -25,11 +25,7 @@ function hide(element) {
     }
 }
 
-// Initialize dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    loadDashboardData();
-    setupEventListeners();
-});
+// Initialize dashboard - moved to template script.onload for better timing
 
 // Setup all event listeners
 function setupEventListeners() {
