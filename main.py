@@ -38,22 +38,14 @@ def keep_alive():
                 interval = 300  # 5 minutes during business hours
                 url = os.environ.get('RENDER_EXTERNAL_URL', 'https://involvement-quiz.onrender.com')
                 
-                # Ping multiple endpoints for better reliability
-                endpoints = [
-                    f'{url}/api/health',
-                    f'{url}/',
-                    f'{url}/health'
-                ]
-                
-                for endpoint in endpoints:
-                    try:
-                        response = requests.get(endpoint, timeout=15)
-                        logger.info(f"Keep-alive ping to {endpoint} - Status: {response.status_code}")
-                        if response.status_code == 200:
-                            break  # Success, no need to try other endpoints
-                    except Exception as e:
-                        logger.warning(f"Keep-alive ping to {endpoint} failed: {e}")
-                        continue
+                # Ping single endpoint for efficiency
+                try:
+                    response = requests.get(f'{url}/api/health', timeout=10)
+                    logger.info(f"Keep-alive ping to {url}/api/health - Status: {response.status_code}")
+                    # Explicitly close response to free memory
+                    response.close()
+                except Exception as e:
+                    logger.warning(f"Keep-alive ping failed: {e}")
             else:
                 interval = 900  # 15 minutes during off-hours
                 logger.info("Off-hours mode - reduced ping frequency")

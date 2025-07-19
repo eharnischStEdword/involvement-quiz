@@ -33,7 +33,9 @@ def init_connection_pool(minconn=2, maxconn=10):
                     minconn,
                     maxconn,
                     DATABASE_URL,
-                    sslmode='require'
+                    sslmode='require',
+                    connect_timeout=10,  # 10 second connection timeout
+                    options='-c statement_timeout=30000'  # 30 second query timeout
                 )
                 logger.info(f"Initialized production connection pool (min={minconn}, max={maxconn})")
             else:
@@ -44,7 +46,9 @@ def init_connection_pool(minconn=2, maxconn=10):
                     host=os.environ.get('DB_HOST', 'localhost'),
                     database=os.environ.get('DB_NAME', 'st_edward_ministries'),
                     user=os.environ.get('DB_USER', 'your_username'),
-                    password=os.environ.get('DB_PASSWORD', 'your_password')
+                    password=os.environ.get('DB_PASSWORD', 'your_password'),
+                    connect_timeout=10,  # 10 second connection timeout
+                    options='-c statement_timeout=30000'  # 30 second query timeout
                 )
                 logger.info(f"Initialized local connection pool (min={minconn}, max={maxconn})")
                 
@@ -74,6 +78,9 @@ def get_db_connection(cursor_factory=None):
             results = cur.fetchall()
     """
     pool = get_connection_pool()
+    if pool is None:
+        raise Exception("Database connection pool not initialized")
+    
     conn = None
     cur = None
     
@@ -108,7 +115,7 @@ def get_db_connection(cursor_factory=None):
         # Clean up cursor and return connection to pool
         if cur:
             cur.close()
-        if conn:
+        if conn and pool:
             pool.putconn(conn)
 
 def close_connection_pool():

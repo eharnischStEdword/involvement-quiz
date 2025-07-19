@@ -199,3 +199,53 @@ def debug_submissions():
     except Exception as e:
         logger.error(f'/debug/submissions failed: {e}')
         return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/memory-status')
+def memory_status():
+    """Get current memory status for monitoring"""
+    try:
+        import psutil
+        
+        # Get process memory info
+        process = psutil.Process()
+        memory_info = process.memory_info()
+        memory_percent = process.memory_percent()
+        
+        # Get system memory info
+        system_memory = psutil.virtual_memory()
+        
+        # Get cache stats
+        from app.cache import get_cache_stats
+        cache_stats = get_cache_stats()
+        
+        # Get monitoring metrics
+        from app.monitoring import app_monitor
+        monitoring_metrics = app_monitor.get_metrics()
+        
+        return jsonify({
+            'timestamp': datetime.now().isoformat(),
+            'process': {
+                'rss_mb': round(memory_info.rss / (1024 * 1024), 2),
+                'vms_mb': round(memory_info.vms / (1024 * 1024), 2),
+                'percent': round(memory_percent, 2)
+            },
+            'system': {
+                'total_gb': round(system_memory.total / (1024 * 1024 * 1024), 2),
+                'available_gb': round(system_memory.available / (1024 * 1024 * 1024), 2),
+                'percent': round(system_memory.percent, 2)
+            },
+            'cache': cache_stats,
+            'monitoring': monitoring_metrics.get('application', {}).get('monitoring_data_size', {})
+        })
+        
+    except ImportError:
+        return jsonify({
+            'error': 'psutil not available',
+            'timestamp': datetime.now().isoformat()
+        }), 500
+    except Exception as e:
+        logger.error(f"Memory status check failed: {e}")
+        return jsonify({
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500

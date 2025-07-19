@@ -21,19 +21,49 @@ attempts_lock = Lock()
 MAX_LOGIN_ATTEMPTS = 5
 LOGIN_WINDOW = 900  # 15 minutes in seconds
 LOCKOUT_DURATION = 3600  # 1 hour in seconds
+MAX_TRACKED_IPS = 1000  # Maximum number of IPs to track
+CLEANUP_INTERVAL = 3600  # Cleanup every hour
+last_cleanup = time.time()
 
-# Admin credentials from environment
-ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'stedward_admin')
-ADMIN_PASSWORD_HASH = hashlib.sha256(
-    os.environ.get('ADMIN_PASSWORD', 'change_this_password_123!').encode()
-).hexdigest()
+def cleanup_old_attempts():
+    """Clean up old login attempts to prevent memory leaks"""
+    global last_cleanup, login_attempts
+    
+    current_time = time.time()
+    if current_time - last_cleanup < CLEANUP_INTERVAL:
+        return
+    
+    with attempts_lock:
+        # Remove old attempts from all IPs
+        for ip_address in list(login_attempts.keys()):
+            login_attempts[ip_address] = [
+                timestamp for timestamp in login_attempts[ip_address]
+                if current_time - timestamp < LOGIN_WINDOW
+            ]
+            
+            # Remove IP if no attempts remain
+            if not login_attempts[ip_address]:
+                del login_attempts[ip_address]
+        
+        # Limit number of tracked IPs
+        if len(login_attempts) > MAX_TRACKED_IPS:
+            # Remove oldest IPs (simple FIFO)
+            oldest_ips = list(login_attempts.keys())[:len(login_attempts) - MAX_TRACKED_IPS]
+            for ip in oldest_ips:
+                del login_attempts[ip]
+            logger.debug(f"Cleaned up {len(oldest_ips)} old IPs from login tracking")
+        
+        last_cleanup = current_time
 
 def check_login_rate_limit(ip_address):
     """Check if IP is allowed to attempt login"""
     current_time = time.time()
     
+    # Periodic cleanup
+    cleanup_old_attempts()
+    
     with attempts_lock:
-        # Clean old attempts
+        # Clean old attempts for this IP
         login_attempts[ip_address] = [
             timestamp for timestamp in login_attempts[ip_address]
             if current_time - timestamp < LOGIN_WINDOW
@@ -49,11 +79,19 @@ def check_login_rate_limit(ip_address):
 
 def record_login_attempt(ip_address):
     """Record a failed login attempt"""
+    current_time = time.time()
+    
     with attempts_lock:
-        login_attempts[ip_address].append(time.time())
+        login_attempts[ip_address].append(current_time)
+        
+        # Keep only recent attempts within the window
+        login_attempts[ip_address] = [
+            timestamp for timestamp in login_attempts[ip_address]
+            if current_time - timestamp < LOGIN_WINDOW
+        ]
 
 def clear_login_attempts(ip_address):
-    """Clear login attempts after successful login"""
+    """Clear login attempts for an IP (successful login)"""
     with attempts_lock:
         if ip_address in login_attempts:
             del login_attempts[ip_address]
@@ -133,3 +171,8 @@ def require_csrf_token(f):
         return f(*args, **kwargs)
     
     return decorated_function
+
+# Admin credentials from environment
+ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'stedward_admin')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'change_this_password_123!')
+ADMIN_PASSWORD_HASH = hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest()

@@ -31,10 +31,15 @@ class ApplicationMonitor:
         self.response_times = []
         self.max_response_times = 100  # Keep last 100 response times
         self.max_request_counts = 50  # Maximum number of endpoints to track
+        self.max_error_counts = 100  # Maximum number of error types to track
         
         # Performance thresholds
         self.slow_request_threshold = 2.0  # seconds
         self.error_rate_threshold = 0.1  # 10% error rate
+        
+        # Memory management
+        self.last_cleanup = time.time()
+        self.cleanup_interval = 300  # Cleanup every 5 minutes
         
         # Start background monitoring
         self._start_background_monitoring()
@@ -45,6 +50,7 @@ class ApplicationMonitor:
             while True:
                 try:
                     self._check_system_health()
+                    self._cleanup_old_data()
                     time.sleep(60)  # Check every minute
                 except Exception as e:
                     logger.error(f"Background monitoring error: {e}")
@@ -54,9 +60,44 @@ class ApplicationMonitor:
         monitor_thread.start()
         logger.info("Application monitoring started")
     
+    def _cleanup_old_data(self):
+        """Clean up old monitoring data to prevent memory leaks"""
+        current_time = time.time()
+        if current_time - self.last_cleanup < self.cleanup_interval:
+            return
+        
+        try:
+            # Limit response times array
+            if len(self.response_times) > self.max_response_times:
+                self.response_times = self.response_times[-self.max_response_times:]
+            
+            # Limit request counts
+            if len(self.request_counts) > self.max_request_counts:
+                # Remove oldest endpoints (simple FIFO)
+                oldest_keys = list(self.request_counts.keys())[:len(self.request_counts) - self.max_request_counts]
+                for key in oldest_keys:
+                    del self.request_counts[key]
+                logger.debug(f"Cleaned up {len(oldest_keys)} old endpoint tracking entries")
+            
+            # Limit error counts
+            if len(self.error_counts) > self.max_error_counts:
+                # Remove oldest error types (simple FIFO)
+                oldest_keys = list(self.error_counts.keys())[:len(self.error_counts) - self.max_error_counts]
+                for key in oldest_keys:
+                    del self.error_counts[key]
+                logger.debug(f"Cleaned up {len(oldest_keys)} old error tracking entries")
+            
+            self.last_cleanup = current_time
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up monitoring data: {e}")
+    
     def record_request(self, endpoint: str, method: str, status_code: int, response_time: float):
         """Record a request for monitoring"""
         try:
+            # Periodic cleanup
+            self._cleanup_old_data()
+            
             # Record request count
             key = f"{method}:{endpoint}"
             if key not in self.request_counts:
@@ -172,7 +213,12 @@ class ApplicationMonitor:
                     'total_errors': sum(counts['error'] for counts in self.request_counts.values()),
                     'avg_response_time': round(avg_response_time, 3),
                     'slow_requests': len([rt for rt in self.response_times if rt > self.slow_request_threshold]),
-                    'endpoints': self.request_counts
+                    'endpoints': self.request_counts,
+                    'monitoring_data_size': {
+                        'request_counts': len(self.request_counts),
+                        'response_times': len(self.response_times),
+                        'error_counts': len(self.error_counts)
+                    }
                 },
                 'cache': cache_stats,
                 'rate_limiting': rate_limit_stats,
@@ -248,8 +294,8 @@ def monitor_request(f):
             # Extract request info (this is a simplified version)
             # In a real implementation, you'd get this from Flask request context
             app_monitor.record_request(
-                endpoint=f.__name__,
-                method='GET',  # Simplified
+                endpoint='unknown',
+                method='GET',
                 status_code=200,
                 response_time=response_time
             )
@@ -258,8 +304,8 @@ def monitor_request(f):
         except Exception as e:
             response_time = time.time() - start_time
             app_monitor.record_request(
-                endpoint=f.__name__,
-                method='GET',  # Simplified
+                endpoint='unknown',
+                method='GET',
                 status_code=500,
                 response_time=response_time
             )

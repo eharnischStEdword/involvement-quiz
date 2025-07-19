@@ -5,6 +5,7 @@
 import json
 import hashlib
 import time
+import sys
 from functools import wraps
 from typing import Any, Optional, Callable
 import logging
@@ -20,7 +21,10 @@ class CacheManager:
         self.redis_client = None
         self.memory_cache = {}
         self.cache_ttl = 300  # 5 minutes default
-        self.max_cache_size = 1000  # Maximum number of cache entries
+        self.max_cache_size = 500  # Reduced from 1000 to 500
+        self.max_memory_mb = 50  # Maximum 50MB for cache
+        self.last_cleanup = time.time()
+        self.cleanup_interval = 60  # Cleanup every 60 seconds
         
         # Use in-memory cache only for simplicity
         logger.info("Using in-memory cache")
@@ -30,9 +34,27 @@ class CacheManager:
         key_data = f"{prefix}:{str(args)}:{str(sorted(kwargs.items()))}"
         return hashlib.md5(key_data.encode()).hexdigest()
     
+    def _get_memory_usage(self) -> float:
+        """Get current memory usage of cache in MB"""
+        try:
+            # Estimate memory usage by serializing cache
+            cache_size = len(str(self.memory_cache))
+            return cache_size / (1024 * 1024)  # Convert to MB
+        except Exception:
+            return 0.0
+    
+    def _should_cleanup(self) -> bool:
+        """Check if cleanup is needed"""
+        current_time = time.time()
+        return (current_time - self.last_cleanup) > self.cleanup_interval
+    
     def get(self, key: str) -> Optional[Any]:
         """Get value from cache"""
         try:
+            # Periodic cleanup
+            if self._should_cleanup():
+                self._cleanup_expired()
+            
             # Use memory cache only
             if key in self.memory_cache:
                 data = self.memory_cache[key]
@@ -55,11 +77,18 @@ class CacheManager:
             # Clean expired entries first
             self._cleanup_expired()
             
+            # Check memory usage
+            current_memory = self._get_memory_usage()
+            if current_memory > self.max_memory_mb:
+                logger.warning(f"Cache memory usage {current_memory:.1f}MB exceeds limit {self.max_memory_mb}MB, clearing cache")
+                self.clear()
+                return False
+            
             # Check cache size limit
             if len(self.memory_cache) >= self.max_cache_size:
                 # Remove oldest entries (LRU-like behavior)
                 oldest_keys = sorted(self.memory_cache.keys(), 
-                                   key=lambda k: self.memory_cache[k].get('created', 0))[:100]
+                                   key=lambda k: self.memory_cache[k].get('created', 0))[:50]  # Remove 50 at a time
                 for old_key in oldest_keys:
                     del self.memory_cache[old_key]
                 logger.debug(f"Cache size limit reached, removed {len(oldest_keys)} old entries")
@@ -88,6 +117,7 @@ class CacheManager:
         """Clear all cache"""
         try:
             self.memory_cache.clear()
+            self.last_cleanup = time.time()
             return True
         except Exception as e:
             logger.warning(f"Cache clear error: {e}")
@@ -114,6 +144,8 @@ class CacheManager:
             
             if expired_keys:
                 logger.debug(f"Cleaned up {len(expired_keys)} expired cache entries")
+            
+            self.last_cleanup = current_time
         except Exception as e:
             logger.warning(f"Cache cleanup error: {e}")
 
@@ -182,10 +214,13 @@ def get_cache_stats() -> dict:
                 'keyspace_misses': info.get('keyspace_misses', 0)
             }
         else:
+            memory_usage = cache_manager._get_memory_usage()
             return {
                 'type': 'memory',
                 'cache_size': len(cache_manager.memory_cache),
-                'memory_usage': 'N/A'
+                'memory_usage_mb': round(memory_usage, 2),
+                'max_memory_mb': cache_manager.max_memory_mb,
+                'max_cache_size': cache_manager.max_cache_size
             }
     except Exception as e:
         logger.warning(f"Failed to get cache stats: {e}")
