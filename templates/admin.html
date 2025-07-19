@@ -124,10 +124,28 @@
     </div>
 
     <script>
-        // Force cache busting for admin JavaScript
+        // Force cache busting for admin JavaScript - VERSION 2.3
+        console.log('Admin template loaded - forcing cache refresh');
+        
+        // Unregister service worker to clear all caches
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                    console.log('Service worker unregistered to clear cache');
+                }
+            });
+        }
+        
         const timestamp = Date.now();
         const script = document.createElement('script');
-        script.src = '/static/js/admin.js?v=2.2&t=' + timestamp;
+        script.src = '/static/js/admin.js?v=2.3&t=' + timestamp;
+        script.onload = function() {
+            console.log('Admin JavaScript loaded successfully with cache busting');
+        };
+        script.onerror = function() {
+            console.error('Failed to load admin JavaScript');
+        };
         document.head.appendChild(script);
     </script>
 </body>
