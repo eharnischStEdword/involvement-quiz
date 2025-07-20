@@ -39,11 +39,17 @@ class ApplicationMonitor:
         
         # Memory management
         self.last_cleanup = time.time()
-        self.cleanup_interval = 300  # Cleanup every 5 minutes
+        self.cleanup_interval = 600  # Cleanup every 10 minutes (increased from 5)
         
-        # System health monitoring
+        # System health monitoring - significantly reduced frequency
         self.last_health_check = time.time()
-        self.health_check_interval = 300  # Check system health every 5 minutes instead of every minute
+        self.health_check_interval = 900  # Check system health every 15 minutes (increased from 5)
+        self.last_cpu_check = time.time()
+        self.cpu_check_interval = 1800  # Check CPU every 30 minutes (new separate interval)
+        
+        # CPU usage throttling
+        self.last_cpu_usage = 0
+        self.cpu_throttle_threshold = 70  # Skip monitoring if CPU > 70%
         
         # Start background monitoring
         self._start_background_monitoring()
@@ -53,21 +59,48 @@ class ApplicationMonitor:
         def monitor_loop():
             while True:
                 try:
-                    # Only check system health periodically to reduce CPU usage
                     current_time = time.time()
-                    if current_time - self.last_health_check >= self.health_check_interval:
+                    
+                    # Check if we should throttle due to high CPU
+                    if current_time - self.last_cpu_check >= self.cpu_check_interval:
+                        if PSUTIL_AVAILABLE and psutil:
+                            try:
+                                # Use a longer interval for more accurate but less frequent CPU measurement
+                                cpu_percent = psutil.cpu_percent(interval=1.0)
+                                self.last_cpu_usage = cpu_percent
+                                self.last_cpu_check = current_time
+                                
+                                # Log high CPU usage
+                                if cpu_percent > 80:
+                                    logger.warning(f"High CPU usage: {cpu_percent:.1f}%")
+                                
+                                # Skip other monitoring if CPU is very high
+                                if cpu_percent > self.cpu_throttle_threshold:
+                                    logger.info(f"CPU usage high ({cpu_percent:.1f}%), skipping detailed monitoring")
+                                    time.sleep(300)  # Sleep for 5 minutes when CPU is high
+                                    continue
+                            except Exception as e:
+                                logger.error(f"CPU check failed: {e}")
+                    
+                    # Only check system health periodically and when CPU is not throttled
+                    if (current_time - self.last_health_check >= self.health_check_interval and 
+                        self.last_cpu_usage <= self.cpu_throttle_threshold):
                         self._check_system_health()
                         self.last_health_check = current_time
                     
+                    # Cleanup old data less frequently
                     self._cleanup_old_data()
-                    time.sleep(60)  # Check every minute
+                    
+                    # Sleep longer to reduce CPU usage
+                    time.sleep(300)  # Check every 5 minutes (increased from 1 minute)
+                    
                 except Exception as e:
                     logger.error(f"Background monitoring error: {e}")
-                    time.sleep(60)
+                    time.sleep(300)  # Wait 5 minutes before retrying
         
         monitor_thread = threading.Thread(target=monitor_loop, daemon=True)
         monitor_thread.start()
-        logger.info("Application monitoring started")
+        logger.info("Application monitoring started (optimized for low CPU usage)")
     
     def _cleanup_old_data(self):
         """Clean up old monitoring data to prevent memory leaks"""
@@ -104,6 +137,10 @@ class ApplicationMonitor:
     def record_request(self, endpoint: str, method: str, status_code: int, response_time: float):
         """Record a request for monitoring"""
         try:
+            # Skip recording if CPU is very high to reduce overhead
+            if self.last_cpu_usage > self.cpu_throttle_threshold:
+                return
+            
             # Periodic cleanup
             self._cleanup_old_data()
             
@@ -153,10 +190,9 @@ class ApplicationMonitor:
                 if memory.percent > 80:
                     logger.warning(f"High memory usage: {memory.percent:.1f}%")
                 
-                # Check CPU usage with shorter interval to reduce overhead
-                cpu_percent = psutil.cpu_percent(interval=0.1)
-                if cpu_percent > 80:
-                    logger.warning(f"High CPU usage: {cpu_percent:.1f}%")
+                # CPU usage already checked in main loop, just log if very high
+                if self.last_cpu_usage > 90:
+                    logger.warning(f"Very high CPU usage: {self.last_cpu_usage:.1f}%")
                 
                 # Check disk usage
                 disk = psutil.disk_usage('/')
@@ -187,7 +223,8 @@ class ApplicationMonitor:
             system_metrics = {}
             if PSUTIL_AVAILABLE and psutil:
                 memory = psutil.virtual_memory()
-                cpu_percent = psutil.cpu_percent()
+                # Use cached CPU value to avoid additional CPU measurement
+                cpu_percent = self.last_cpu_usage if self.last_cpu_usage > 0 else psutil.cpu_percent(interval=0.1)
                 disk = psutil.disk_usage('/')
                 system_metrics = {
                     'memory_percent': memory.percent,
@@ -262,15 +299,17 @@ class ApplicationMonitor:
                 
                 # Get all rate limit keys
                 keys = redis_client.keys('rate_limit:*')
-                total_rate_limited_ips = len(keys) if keys else 0
+                total_rate_limited_ips = 0
+                if keys and isinstance(keys, (list, tuple)):
+                    total_rate_limited_ips = len(keys)
                 
                 # Get total rate limit hits
                 total_hits = 0
-                if keys:
+                if keys and isinstance(keys, (list, tuple)):
                     for key in keys:
                         try:
                             hits = redis_client.zcard(key)
-                            if hits is not None:
+                            if hits is not None and isinstance(hits, (int, str)):
                                 try:
                                     total_hits += int(hits)
                                 except (ValueError, TypeError):

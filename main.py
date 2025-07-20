@@ -35,26 +35,33 @@ def keep_alive():
             
             # More conservative timing to reduce CPU usage
             if 7 <= now.hour <= 22:  # Reduced business hours
-                interval = 600  # 10 minutes during business hours (increased from 5)
+                interval = 900  # 15 minutes during business hours (increased from 10)
                 url = os.environ.get('RENDER_EXTERNAL_URL', 'https://involvement-quiz.onrender.com')
                 
                 # Ping single endpoint for efficiency
                 try:
-                    response = requests.get(f'{url}/api/health', timeout=5)  # Reduced timeout
-                    logger.info(f"Keep-alive ping to {url}/api/health - Status: {response.status_code}")
+                    response = requests.get(f'{url}/api/health', timeout=3)  # Reduced timeout further
+                    if response.status_code == 200:
+                        logger.info(f"Keep-alive ping successful - Status: {response.status_code}")
+                    else:
+                        logger.warning(f"Keep-alive ping returned status: {response.status_code}")
                     # Explicitly close response to free memory
                     response.close()
+                except requests.exceptions.Timeout:
+                    logger.warning("Keep-alive ping timed out")
+                except requests.exceptions.ConnectionError:
+                    logger.warning("Keep-alive ping connection failed")
                 except Exception as e:
                     logger.warning(f"Keep-alive ping failed: {e}")
             else:
-                interval = 1800  # 30 minutes during off-hours (increased from 15)
+                interval = 3600  # 1 hour during off-hours (increased from 30 minutes)
                 logger.info("Off-hours mode - reduced ping frequency")
             
             time.sleep(interval)
             
         except Exception as e:
             logger.error(f"Keep-alive service error: {e}")
-            time.sleep(600)  # Wait 10 minutes before retrying (increased from 5)
+            time.sleep(900)  # Wait 15 minutes before retrying (increased from 10)
 
 def auto_migrate_ministries():
     """Auto-migrate ministry data to database on startup"""
