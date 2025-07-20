@@ -31,7 +31,7 @@ class InputValidator:
     
     # Valid states in life
     VALID_STATES = {
-        'single', 'married', 'divorced', 'widowed', 'engaged', 'dating'
+        'single', 'married', 'parent', 'none-of-above'
     }
     
     # Valid interests
@@ -41,7 +41,7 @@ class InputValidator:
     
     # Valid situations
     VALID_SITUATIONS = {
-        'new-to-stedward', 'returning-to-church', 'parent', 'married', 'single'
+        'new-to-stedward', 'returning-to-church', 'new-to-nashville', 'current-parishioner', 'just-curious', 'situation-none-of-above'
     }
     
     @staticmethod
