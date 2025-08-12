@@ -746,7 +746,9 @@ function submitAnalytics(recommendations) {
         states: states,
         interests: interests,
         situation: situation,
-        ministries: recommendations.map(m => m.name)
+        ministries: recommendations.map(m => m.name),
+        client_id: getOrRotateClientId(),
+        session_id: getSessionId()
     };
     
     console.log('Submitting analytics data:', analyticsData);
@@ -779,6 +781,49 @@ function submitAnalytics(recommendations) {
         // Don't show error to user for analytics
         // If offline, the service worker will handle the submission when back online
     });
+}
+
+// Generate or rotate an anonymous client ID monthly (no PII)
+function getOrRotateClientId() {
+    try {
+        const key = 'iq_client_id_v1';
+        const metaKey = 'iq_client_id_meta_v1';
+        const now = new Date();
+        const currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+        let id = localStorage.getItem(key);
+        let meta = null;
+        try { meta = JSON.parse(localStorage.getItem(metaKey) || 'null'); } catch (_) { meta = null; }
+
+        if (!id || !meta || meta.month !== currentMonth) {
+            id = crypto.randomUUID ? crypto.randomUUID() : `${now.getTime()}-${Math.random().toString(36).slice(2)}`;
+            localStorage.setItem(key, id);
+            localStorage.setItem(metaKey, JSON.stringify({ month: currentMonth }));
+        }
+        return id;
+    } catch (e) {
+        // Fallback if storage blocked
+        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+}
+
+// Simple per-visit session id (resets after inactivity window)
+function getSessionId() {
+    try {
+        const key = 'iq_session_id_v1';
+        const tsKey = 'iq_session_last_v1';
+        const now = Date.now();
+        const INACTIVITY_MS = 30 * 60 * 1000; // 30 minutes
+        let sid = sessionStorage.getItem(key);
+        let last = parseInt(sessionStorage.getItem(tsKey) || '0', 10);
+        if (!sid || !last || now - last > INACTIVITY_MS) {
+            sid = crypto.randomUUID ? crypto.randomUUID() : `${now}-${Math.random().toString(36).slice(2)}`;
+        }
+        sessionStorage.setItem(key, sid);
+        sessionStorage.setItem(tsKey, String(now));
+        return sid;
+    } catch (e) {
+        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
 }
 
 // ENHANCED MINISTRY MATCHING FUNCTION - Fixed parent/children logic + MASS FIRST

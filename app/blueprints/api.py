@@ -3,13 +3,14 @@
 # Unauthorized use, distribution, or modification is prohibited.
 
 from flask import Blueprint, request, jsonify
+import hashlib
 import json
 import logging
 import psycopg2.extras
 from datetime import datetime
 
-from app.database import get_db_connection
-from app.utils import check_rate_limit, get_rate_limit_info
+import app.database as database
+import app.utils as utils
 from app.monitoring import app_monitor
 from app.validators import validate_and_respond
 from app.error_handlers import create_error_response, RateLimitError, DatabaseError, ValidationError
@@ -24,15 +25,17 @@ def submit_ministry_interest():
         if ',' in ip_address:
             ip_address = ip_address.split(',')[0].strip()
         
-        if not check_rate_limit(ip_address):
+        if not utils.check_rate_limit(ip_address):
             logger.warning(f"Rate limit exceeded for IP: {ip_address}")
             error_response, status_code = create_error_response(RateLimitError())
             return jsonify(error_response), status_code
         
-        data = request.json
-        if not data:
-            error_response, status_code = create_error_response(ValidationError("No data provided"))
-            return jsonify(error_response), status_code
+        data = request.get_json(silent=True)
+        if data is None:
+            return jsonify({
+                'success': False,
+                'message': 'No data provided'
+            }), 400
         
         logger.info(f"Received submission from IP {ip_address}: {data}")
         
@@ -46,14 +49,31 @@ def submit_ministry_interest():
             error_response, status_code = create_error_response(ValidationError("Validation failed"))
             return jsonify(error_response), status_code
         
-        with get_db_connection() as (conn, cur):
+        # Handle anonymous client identifier
+        client_id_raw = str(data.get('client_id', '')).strip()
+        session_id = str(data.get('session_id', '')).strip() or None
+
+        client_id_hash = None
+        if client_id_raw:
+            try:
+                # Hash client_id with SECRET_KEY as pepper
+                from app.config import Config
+                secret_key = Config.get_config().get('SECRET_KEY', '') or ''
+                hasher = hashlib.sha256()
+                hasher.update((client_id_raw + secret_key).encode('utf-8'))
+                client_id_hash = hasher.hexdigest()
+            except Exception as e:
+                logger.warning(f"Failed to hash client_id: {e}")
+                client_id_hash = None
+
+        with database.get_db_connection() as (conn, cur):
             name = "Anonymous User"
             email = ""
             
             cur.execute('''
                 INSERT INTO ministry_submissions 
-                (name, email, age_group, gender, state_in_life, interest, situation, recommended_ministries, ip_address)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (name, email, age_group, gender, state_in_life, interest, situation, recommended_ministries, ip_address, client_id_hash, session_id)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
             ''', (
                 name, email,
@@ -63,7 +83,9 @@ def submit_ministry_interest():
                 json.dumps(validated_data.get('interests', [])),
                 json.dumps(validated_data.get('situation', [])),
                 json.dumps(validated_data.get('ministries', [])),
-                ip_address
+                ip_address,
+                client_id_hash,
+                session_id
             ))
             
             submission_id = cur.fetchone()[0]
@@ -90,7 +112,7 @@ def submit_ministry_interest():
 def health_check():
     try:
         # Test database connection
-        with get_db_connection() as (conn, cur):
+        with database.get_db_connection() as (conn, cur):
             cur.execute('SELECT 1')
         
         # Get cache health

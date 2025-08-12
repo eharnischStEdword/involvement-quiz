@@ -76,6 +76,21 @@ class MigrationManager:
                     CREATE INDEX IF NOT EXISTS idx_ministries_ministry_key 
                     ON ministries(ministry_key);
                 '''
+            },
+            {
+                'id': 5,
+                'name': 'add_client_id_hash_and_session_id',
+                'sql': '''
+                    ALTER TABLE ministry_submissions 
+                        ADD COLUMN IF NOT EXISTS client_id_hash VARCHAR(128),
+                        ADD COLUMN IF NOT EXISTS session_id VARCHAR(64);
+
+                    CREATE INDEX IF NOT EXISTS idx_ministry_submissions_client_id_hash 
+                        ON ministry_submissions(client_id_hash);
+
+                    CREATE INDEX IF NOT EXISTS idx_ministry_submissions_session_id 
+                        ON ministry_submissions(session_id);
+                '''
             }
         ]
     

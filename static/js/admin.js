@@ -118,8 +118,8 @@ function updateStats(data) {
                     <i class="fas fa-user-friends"></i>
                 </div>
             </div>
-            <div class="stat-number">${uniqueUsers}</div>
-            <div class="stat-label">Unique Users</div>
+            <div class="stat-number" title="Unique devices by anonymous ID (not IP)">${uniqueUsers}</div>
+            <div class="stat-label">Unique Devices*</div>
         </div>
         <div class="stat-card">
             <div class="stat-header">
@@ -168,17 +168,18 @@ function getAveragePerDay(data) {
 function getUniqueUsers(data) {
     if (data.length === 0) return 0;
     
-    // Count unique IP addresses (proxy for unique users)
-    const uniqueIPs = new Set();
+    // Prefer client_id_hash; fallback to IP for older rows
+    const uniqueDeviceHashes = new Set();
+    const fallbackIPs = new Set();
     data.forEach(submission => {
-        console.log('Processing submission IP:', submission.ip_address);
-        if (submission.ip_address && submission.ip_address !== 'unknown') {
-            uniqueIPs.add(submission.ip_address);
+        if (submission.client_id_hash) {
+            uniqueDeviceHashes.add(submission.client_id_hash);
+        } else if (submission.ip_address && submission.ip_address !== 'unknown') {
+            fallbackIPs.add(submission.ip_address);
         }
     });
-    
-    console.log('Unique IPs found:', Array.from(uniqueIPs));
-    return uniqueIPs.size;
+    const totalUnique = uniqueDeviceHashes.size + Math.max(0, fallbackIPs.size - uniqueDeviceHashes.size);
+    return totalUnique;
 }
 
 function getEngagementRate(data) {
@@ -503,22 +504,22 @@ function createEngagementChart(data) {
     const ipEngagement = {};
     
     data.forEach(submission => {
-        if (submission.ip_address && submission.ip_address !== 'unknown') {
-            if (!ipEngagement[submission.ip_address]) {
-                ipEngagement[submission.ip_address] = {
-                    count: 0,
-                    firstSeen: new Date(submission.submitted_at),
-                    lastSeen: new Date(submission.submitted_at)
-                };
-            }
-            ipEngagement[submission.ip_address].count++;
-            const submissionDate = new Date(submission.submitted_at);
-            if (submissionDate < ipEngagement[submission.ip_address].firstSeen) {
-                ipEngagement[submission.ip_address].firstSeen = submissionDate;
-            }
-            if (submissionDate > ipEngagement[submission.ip_address].lastSeen) {
-                ipEngagement[submission.ip_address].lastSeen = submissionDate;
-            }
+        const key = submission.client_id_hash || submission.ip_address || 'unknown';
+        if (!key || key === 'unknown') return;
+        if (!ipEngagement[key]) {
+            ipEngagement[key] = {
+                count: 0,
+                firstSeen: new Date(submission.submitted_at),
+                lastSeen: new Date(submission.submitted_at)
+            };
+        }
+        ipEngagement[key].count++;
+        const submissionDate = new Date(submission.submitted_at);
+        if (submissionDate < ipEngagement[key].firstSeen) {
+            ipEngagement[key].firstSeen = submissionDate;
+        }
+        if (submissionDate > ipEngagement[key].lastSeen) {
+            ipEngagement[key].lastSeen = submissionDate;
         }
     });
     

@@ -3,7 +3,7 @@
 # Unauthorized use, distribution, or modification is prohibited.
 
 from flask import Blueprint, render_template, jsonify
-from app.database import get_db_connection
+import app.database as database
 import json
 import logging
 
@@ -19,7 +19,7 @@ def index():
 def get_ministries():
     """Get active ministries from database"""
     try:
-        with get_db_connection() as (conn, cur):
+        with database.get_db_connection() as (conn, cur):
             cur.execute('''
                 SELECT ministry_key, name, description, details,
                        age_groups, genders, states, interests, situations

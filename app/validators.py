@@ -19,8 +19,11 @@ class ValidationError(Exception):
 class InputValidator:
     """Simple input validation class"""
     
-    # Valid age groups
+    # Valid age groups (support legacy and current labels)
     VALID_AGE_GROUPS = {
+        # Legacy ranges
+        'under-18', '18-24', '25-35', '36-49', '50-64', '65-plus',
+        # Current labels
         'infant', 'elementary', 'junior-high', 'high-school', 'college-young-adult', 'married-parents', 'journeying-adults'
     }
     
@@ -211,17 +214,41 @@ def validate_and_respond(data: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]]
         validated_data, errors = InputValidator.validate_ministry_submission(data)
         
         if errors:
-            return None, (jsonify({
-                'success': False,
-                'message': 'Validation failed',
-                'errors': errors
-            }), 400)
+            # Try to use Flask jsonify if in app context; otherwise return a lightweight object
+            try:
+                from flask import current_app
+                _ = current_app.name  # Will raise if no context
+                return None, (jsonify({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': errors
+                }), 400)
+            except Exception:
+                class _SimpleResponse:
+                    def __init__(self, data: Dict[str, Any]):
+                        self.json = data
+                return None, (_SimpleResponse({
+                    'success': False,
+                    'message': 'Validation failed',
+                    'errors': errors
+                }), 400)
         
         return validated_data, None
         
     except Exception as e:
         logger.error(f"Validation error: {e}")
-        return None, (jsonify({
-            'success': False,
-            'message': 'Validation error occurred'
-        }), 400) 
+        try:
+            from flask import current_app
+            _ = current_app.name
+            return None, (jsonify({
+                'success': False,
+                'message': 'Validation error occurred'
+            }), 400)
+        except Exception:
+            class _SimpleResponse:
+                def __init__(self, data: Dict[str, Any]):
+                    self.json = data
+            return None, (_SimpleResponse({
+                'success': False,
+                'message': 'Validation error occurred'
+            }), 400)
