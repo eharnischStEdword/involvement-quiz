@@ -531,9 +531,9 @@ function createSelectionsummary() {
             'elementary': 'Elementary School (PreK-Grade 5)', // CHANGED FROM 'kid'
             'junior-high': 'Junior High (Grades 6-8)',
             'high-school': 'High School (Grades 9-12)',
-            'college-young-adult': 'College & Young Adult (18-35)',
+            'college-young-adult': "College & 'New' Adult (18-35)",
             'married-parents': 'Married Couples & Parents',
-            'journeying-adults': 'Journeying Adults (30+)'
+            'journeying-adults': "'Established' Adults (30+)"
         };
         summaryItems.push(`<strong>Age:</strong> ${ageLabels[answers.age]}`);
     }

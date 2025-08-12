@@ -235,9 +235,9 @@ function formatAge(age) {
         'elementary': 'Elementary',
         'junior-high': 'Junior High',
         'high-school': 'High School',
-        'college-young-adult': 'College/Young Adult',
+        'college-young-adult': "College/'New' Adult",
         'married-parents': 'Married/Parents',
-        'journeying-adults': 'Journeying Adults'
+        'journeying-adults': "'Established' Adults"
     };
     return ageMap[age] || age;
 }
@@ -344,9 +344,9 @@ function createAgeChart(data) {
         'elementary': 'Elementary',
         'junior-high': 'Junior High',
         'high-school': 'High School',
-        'college-young-adult': 'College/YA',
+        'college-young-adult': "College/'New' Adult",
         'married-parents': 'Married/Parents',
-        'journeying-adults': 'Adults'
+        'journeying-adults': "'Established' Adults"
     };
     
     data.forEach(submission => {
