@@ -10,14 +10,16 @@ import sys
 def test_quiz_submission():
     """Test the quiz submission API"""
     
-    # Test data - similar to what the quiz would send
+    # Test data - simulating an infant taking the quiz
     test_data = {
-        "age_group": "married-parents",
-        "gender": "female", 
-        "states": ["married", "parent"],
-        "interests": ["fellowship", "service"],
-        "situation": ["current-parishioner", "just-curious"],
-        "ministries": ["mass", "coffee-donuts"]
+        "answers": {
+            "age": "infant",
+            "gender": "male"
+        },
+        "states": ["single"],  # Auto-assigned for infants
+        "interests": ["kids"],  # Age-appropriate interests for infants
+        "situation": ["new-to-stedward"],
+        "ministries": ["infant-baptism", "prep-kids"]
     }
     
     # Try to submit to the production URL
