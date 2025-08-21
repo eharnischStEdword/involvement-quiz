@@ -23,3 +23,9 @@ These rules are **authoritative** for this repo. Prefer functional Python, Flask
 - 12 Deployment
 - 13 Refactors & Safety Rails
 - 99 Cursor Task Recipes
+
+
+- Always prefer small diffs; never broaden route behavior without tests.
+- App factory is authoritative; blueprints live under app/blueprints/*.py and contain only routing wiring.
+- Use guard clauses, early returns; avoid else-after-return; type-hint all public fns.
+- Never introduce user PII fields; validators must reject unknown fields.
