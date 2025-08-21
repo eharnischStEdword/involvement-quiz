@@ -3,6 +3,7 @@
 - **Functional > OO** (except Flask views where reasonable).
 - **Type hints** everywhere; return `TypedDict`/`dataclass` if needed, but prefer plain dicts with typed signatures (RORO).
 - **Names**: `lower_snake_case` for files, modules, funcs. Use auxiliary-verb flags: `is_active`, `has_permission`, `should_cache`.
+- **Exports**: expose routes and utilities with explicit names; avoid wildcard imports.
 - **Structure**: keep logic small and composable; avoid duplication; push shared logic to `app/utils.py`.
 - **Control flow**: guard-clauses first; early return on invalid states; keep “happy path” last; avoid unnecessary `else`.
 - **I/O boundaries**: routes = thin; services/validators/utilities = thick.
