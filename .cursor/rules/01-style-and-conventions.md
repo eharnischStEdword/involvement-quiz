@@ -10,11 +10,7 @@
 - **No hidden globals**. Pass dependencies explicitly via params or `current_app.config`.
 - **Logging**: use `current_app.logger` with structured context (`extra={...}`) and levels.
 - **Docstrings**: short, top-level purpose + constraints; include input validation expectations.
-- - Set on every response (API + HTML): 
-  Strict-Transport-Security (2y), X-Frame-Options=DENY, X-Content-Type-Options=nosniff,
-  Referrer-Policy=strict-origin-when-cross-origin.
-- Generate a per-request CSP nonce and require `<script nonce="...">` in all templates.
-- Content-Security-Policy must allow only 'self' and the request nonce for script-src; disallow inline events.
+
 
 **Example (early return + RORO):**
 ```python
