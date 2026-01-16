@@ -1,4 +1,4 @@
-# © 2024–2025 Harnisch LLC. All Rights Reserved.
+# © 2024–2026 Harnisch LLC. All Rights Reserved.
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
@@ -14,15 +14,24 @@ logger = logging.getLogger(__name__)
 
 # Thread-safe connection pool instance
 _connection_pool = None
+_pool_pid = None
 _pool_lock = Lock()
 
 def init_connection_pool(minconn=2, maxconn=10):
     """Initialize the connection pool"""
-    global _connection_pool
+    global _connection_pool, _pool_pid
     
     with _pool_lock:
-        if _connection_pool is not None:
+        current_pid = os.getpid()
+        
+        # Return existing pool if PID matches
+        if _connection_pool is not None and _pool_pid == current_pid:
             return _connection_pool
+            
+        # If pool exists but PID is different, we've forked
+        if _connection_pool is not None and _pool_pid != current_pid:
+            logger.info(f"Detected process fork (PID {_pool_pid} -> {current_pid}), re-initializing pool")
+            _connection_pool = None
         
         DATABASE_URL = os.environ.get('DATABASE_URL')
         
@@ -56,6 +65,8 @@ def init_connection_pool(minconn=2, maxconn=10):
             logger.error(f"Failed to initialize connection pool: {e}")
             raise
             
+        _pool_pid = current_pid
+            
     return _connection_pool
 
 def get_connection_pool():
@@ -87,6 +98,13 @@ def get_db_connection(cursor_factory=None):
     try:
         # Get connection from pool
         conn = pool.getconn()
+        
+        # Simple check if connection is closed
+        if conn.closed:
+            logger.warning("Retrieved closed connection from pool, attempting to get a new one")
+            pool.putconn(conn, close=True)
+            conn = pool.getconn()
+            
         if cursor_factory:
             cur = conn.cursor(cursor_factory=cursor_factory)
         else:
@@ -95,18 +113,33 @@ def get_db_connection(cursor_factory=None):
         yield conn, cur
         
         # Commit if no exception occurred
-        conn.commit()
+        if not conn.closed:
+            conn.commit()
+        
+    except (psycopg2.InterfaceError, psycopg2.OperationalError) as e:
+        # These errors often indicate a connection problem
+        if conn:
+            try:
+                conn.rollback()
+            except:
+                pass
+        logger.error(f"Database connection error: {e}")
+        # Discard broken connection
+        if conn and pool:
+            pool.putconn(conn, close=True)
+            conn = None
+        raise
         
     except psycopg2.Error as e:
-        # Rollback on database errors
-        if conn:
+        # Rollback on other database errors
+        if conn and not conn.closed:
             conn.rollback()
         logger.error(f"Database error: {e}")
         raise
         
     except Exception as e:
         # Rollback on any other errors
-        if conn:
+        if conn and not conn.closed:
             conn.rollback()
         logger.error(f"Unexpected error: {e}")
         raise
@@ -114,9 +147,13 @@ def get_db_connection(cursor_factory=None):
     finally:
         # Clean up cursor and return connection to pool
         if cur:
-            cur.close()
+            try:
+                cur.close()
+            except:
+                pass
         if conn and pool:
-            pool.putconn(conn)
+            # Return healthy connection to pool
+            pool.putconn(conn, close=conn.closed)
 
 def close_connection_pool():
     """Close all connections in the pool"""

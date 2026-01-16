@@ -1,4 +1,4 @@
-# © 2024–2025 Harnisch LLC. All Rights Reserved.
+# © 2024–2026 Harnisch LLC. All Rights Reserved.
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
@@ -61,7 +61,11 @@ def service_worker():
     """Serve the service worker from root"""
     from flask import send_file, current_app
     import os
-    # Get the path to the static directory
-    static_dir = os.path.join(current_app.root_path, '..', 'static')
-    sw_path = os.path.join(static_dir, 'sw.js')
+    # Get the path to the root directory where sw.js is located
+    sw_path = os.path.join(current_app.root_path, '..', 'sw.js')
+    
+    if not os.path.exists(sw_path):
+        # Fallback to static directory if not in root
+        sw_path = os.path.join(current_app.root_path, '..', 'static', 'sw.js')
+        
     return send_file(sw_path, mimetype='application/javascript')

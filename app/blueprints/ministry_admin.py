@@ -1,4 +1,4 @@
-# © 2024–2025 Harnisch LLC. All Rights Reserved.
+# © 2024–2026 Harnisch LLC. All Rights Reserved.
 # Licensed exclusively for use by St. Edward Church & School (Nashville, TN).
 # Unauthorized use, distribution, or modification is prohibited.
 
@@ -585,7 +585,7 @@ def export_ministries_python():
         
         # Build Python code
         output = io.StringIO()
-        output.write("# © 2024–2025 Harnisch LLC. All Rights Reserved.\n")
+        output.write("# © 2024–2026 Harnisch LLC. All Rights Reserved.\n")
         output.write("# Licensed exclusively for use by St. Edward Church & School (Nashville, TN).\n")
         output.write("# Unauthorized use, distribution, or modification is prohibited.\n\n")
         output.write("# Generated from database on " + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n\n")
