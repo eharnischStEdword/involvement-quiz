@@ -24,14 +24,15 @@ def init_connection_pool(minconn=2, maxconn=10):
     with _pool_lock:
         current_pid = os.getpid()
         
-        # Return existing pool if PID matches
-        if _connection_pool is not None and _pool_pid == current_pid:
-            return _connection_pool
-            
         # If pool exists but PID is different, we've forked
         if _connection_pool is not None and _pool_pid != current_pid:
             logger.info(f"Detected process fork (PID {_pool_pid} -> {current_pid}), re-initializing pool")
+            # Don't call closeall() on inherited pool as it can interfere with other processes
             _connection_pool = None
+            
+        # Return existing pool if already initialized for this PID
+        if _connection_pool is not None:
+            return _connection_pool
         
         DATABASE_URL = os.environ.get('DATABASE_URL')
         
@@ -71,9 +72,12 @@ def init_connection_pool(minconn=2, maxconn=10):
 
 def get_connection_pool():
     """Get or create the connection pool"""
-    global _connection_pool
+    global _connection_pool, _pool_pid
     
-    if _connection_pool is None:
+    current_pid = os.getpid()
+    
+    # Check if pool needs initialization or re-initialization after fork
+    if _connection_pool is None or _pool_pid != current_pid:
         init_connection_pool()
         
     return _connection_pool
@@ -99,10 +103,22 @@ def get_db_connection(cursor_factory=None):
         # Get connection from pool
         conn = pool.getconn()
         
-        # Simple check if connection is closed
-        if conn.closed:
-            logger.warning("Retrieved closed connection from pool, attempting to get a new one")
-            pool.putconn(conn, close=True)
+        # Verify connection is alive and healthy
+        is_healthy = False
+        try:
+            if not conn.closed:
+                # poll() returns None if healthy, or raises error
+                conn.poll()
+                is_healthy = True
+        except (psycopg2.OperationalError, psycopg2.InterfaceError):
+            is_healthy = False
+
+        if not is_healthy:
+            logger.warning("Retrieved unhealthy connection from pool, attempting to get a new one")
+            try:
+                pool.putconn(conn, close=True)
+            except:
+                pass
             conn = pool.getconn()
             
         if cursor_factory:
