@@ -4,8 +4,9 @@
 
 import os
 import time
+import hashlib
 from functools import wraps
-from flask import request
+from flask import request, current_app
 import logging
 
 from app.logging_config import get_logger
@@ -63,6 +64,19 @@ def _check_rate_limit_memory(ip_address):
     
     _check_rate_limit_memory.request_counts[ip_address].append(current_time)
     return True
+
+def hash_ip(ip_address: str) -> str | None:
+    """Hash an IP address with an optional app-configured salt."""
+    if not ip_address:
+        return None
+    try:
+        salt = current_app.config.get("IP_HASH_SALT", "")
+    except Exception:
+        # If current_app isn't available, fall back to empty salt
+        salt = ""
+    hasher = hashlib.sha256()
+    hasher.update(f"{ip_address}{salt}".encode("utf-8"))
+    return hasher.hexdigest()
 
 def get_rate_limit_info(ip_address):
     """Get rate limit information for an IP address"""

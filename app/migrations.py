@@ -91,6 +91,66 @@ class MigrationManager:
                     CREATE INDEX IF NOT EXISTS idx_ministry_submissions_session_id 
                         ON ministry_submissions(session_id);
                 '''
+            },
+            {
+                'id': 6,
+                'name': 'convert_interest_to_jsonb',
+                'sql': '''
+                    DO $$
+                    BEGIN
+                        -- Only attempt conversion if column exists
+                        IF EXISTS (
+                            SELECT 1 FROM information_schema.columns 
+                            WHERE table_name = 'ministry_submissions' AND column_name = 'interest'
+                        ) THEN
+                            BEGIN
+                                ALTER TABLE ministry_submissions
+                                ALTER COLUMN interest TYPE JSONB
+                                USING
+                                    CASE
+                                        WHEN interest IS NULL OR interest = '' THEN '[]'::jsonb
+                                        WHEN interest::text LIKE '[%' THEN interest::jsonb
+                                        ELSE to_jsonb(interest)
+                                    END;
+                            EXCEPTION
+                                WHEN others THEN
+                                    -- Swallow errors to avoid breaking startup; logging happens in app layer
+                                    NULL;
+                            END;
+                        END IF;
+                    END
+                    $$;
+                '''
+            },
+            {
+                'id': 7,
+                'name': 'convert_recommended_ministries_to_jsonb',
+                'sql': '''
+                    DO $$
+                    BEGIN
+                        -- Only attempt conversion if column exists
+                        IF EXISTS (
+                            SELECT 1 FROM information_schema.columns 
+                            WHERE table_name = 'ministry_submissions' AND column_name = 'recommended_ministries'
+                        ) THEN
+                            BEGIN
+                                ALTER TABLE ministry_submissions
+                                ALTER COLUMN recommended_ministries TYPE JSONB
+                                USING
+                                    CASE
+                                        WHEN recommended_ministries IS NULL OR recommended_ministries = '' THEN '[]'::jsonb
+                                        WHEN recommended_ministries::text LIKE '[%' THEN recommended_ministries::jsonb
+                                        ELSE to_jsonb(recommended_ministries)
+                                    END;
+                            EXCEPTION
+                                WHEN others THEN
+                                    -- Swallow errors to avoid breaking startup; logging happens in app layer
+                                    NULL;
+                            END;
+                        END IF;
+                    END
+                    $$;
+                '''
             }
         ]
     

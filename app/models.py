@@ -23,9 +23,9 @@ def init_db():
                     age_group VARCHAR(50),
                     gender VARCHAR(20),
                     state_in_life JSONB DEFAULT '[]'::jsonb,
-                    interest VARCHAR(50),
+                    interest JSONB,
                     situation JSONB DEFAULT '[]'::jsonb,
-                    recommended_ministries TEXT,
+                    recommended_ministries JSONB DEFAULT '[]'::jsonb,
                     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     ip_address VARCHAR(45)
                 )
@@ -112,8 +112,47 @@ def init_db():
                 WHERE table_name = 'ministry_submissions' AND column_name = 'interest'
             """)
             result = cur.fetchone()
-            if result and result[0] == 'character varying':
-                logger.info("Interest column is VARCHAR - this is fine for backward compatibility")
+            if result and result[0] != 'jsonb':
+                logger.info("Converting interest column to JSONB...")
+                try:
+                    cur.execute("""
+                        ALTER TABLE ministry_submissions
+                        ALTER COLUMN interest TYPE JSONB
+                        USING
+                            CASE
+                                WHEN interest IS NULL OR interest = '' THEN '[]'::jsonb
+                                WHEN interest::text LIKE '[%' THEN interest::jsonb
+                                ELSE to_jsonb(interest)
+                            END
+                    """)
+                    logger.info("Successfully updated interest column to JSONB type")
+                except Exception as e:
+                    logger.error(f"Error converting interest to JSONB: {e}")
+                    logger.info("Keeping interest as VARCHAR for now - will work with existing data")
+            
+            # SAFE MIGRATION: Handle recommended_ministries column similarly if needed
+            cur.execute("""
+                SELECT data_type FROM information_schema.columns 
+                WHERE table_name = 'ministry_submissions' AND column_name = 'recommended_ministries'
+            """)
+            result = cur.fetchone()
+            if result and result[0] != 'jsonb':
+                logger.info("Converting recommended_ministries column to JSONB...")
+                try:
+                    cur.execute("""
+                        ALTER TABLE ministry_submissions
+                        ALTER COLUMN recommended_ministries TYPE JSONB
+                        USING
+                            CASE
+                                WHEN recommended_ministries IS NULL OR recommended_ministries = '' THEN '[]'::jsonb
+                                WHEN recommended_ministries::text LIKE '[%' THEN recommended_ministries::jsonb
+                                ELSE to_jsonb(recommended_ministries)
+                            END
+                    """)
+                    logger.info("Successfully updated recommended_ministries column to JSONB type")
+                except Exception as e:
+                    logger.error(f"Error converting recommended_ministries to JSONB: {e}")
+                    logger.info("Keeping recommended_ministries as TEXT for now - will work with existing data")
             
             # Create ministries table for easier management
             cur.execute('''

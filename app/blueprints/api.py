@@ -12,8 +12,10 @@ from datetime import datetime
 import app.database as database
 import app.utils as utils
 from app.monitoring import app_monitor
+from app.utils import get_rate_limit_info, hash_ip
 from app.validators import validate_and_respond
 from app.error_handlers import create_error_response, RateLimitError, DatabaseError, ValidationError
+from psycopg2.extras import Json
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 logger = logging.getLogger(__name__)
@@ -24,9 +26,11 @@ def submit_ministry_interest():
         ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR', 'unknown'))
         if ',' in ip_address:
             ip_address = ip_address.split(',')[0].strip()
+        # Compute a hashed version for logging/persistence (keep raw for in-memory rate limiting)
+        ip_hash = hash_ip(ip_address)
         
         if not utils.check_rate_limit(ip_address):
-            logger.warning(f"Rate limit exceeded for IP: {ip_address}")
+            logger.warning("Rate limit exceeded: ip_hash=%s", ip_hash)
             error_response, status_code = create_error_response(RateLimitError())
             return jsonify(error_response), status_code
         
@@ -37,7 +41,8 @@ def submit_ministry_interest():
                 'message': 'No data provided'
             }), 400
         
-        logger.info(f"Received submission from IP {ip_address}: {data}")
+        # Reduce sensitive logging: do not log full payload or raw IP
+        # Will log below after computing client_id_hash and session_id
         
         # Validate input data
         validated_data, error_response = validate_and_respond(data)
@@ -65,6 +70,14 @@ def submit_ministry_interest():
             except Exception as e:
                 logger.warning(f"Failed to hash client_id: {e}")
                 client_id_hash = None
+        
+        # Log only hashed identifiers
+        logger.info(
+            "Received submission: ip_hash=%s, client_id_hash=%s, session_id=%s",
+            ip_hash,
+            client_id_hash,
+            session_id,
+        )
 
         with database.get_db_connection() as (conn, cur):
             name = "Anonymous User"
@@ -79,18 +92,18 @@ def submit_ministry_interest():
                 name, email,
                 validated_data.get('age_group', ''),
                 validated_data.get('gender', ''),
-                json.dumps(validated_data.get('states', [])),
-                json.dumps(validated_data.get('interests', [])),
-                json.dumps(validated_data.get('situation', [])),
-                json.dumps(validated_data.get('ministries', [])),
-                ip_address,
+                Json(validated_data.get('states', [])),
+                Json(validated_data.get('interests', [])),
+                Json(validated_data.get('situation', [])),
+                Json(validated_data.get('ministries', [])),
+                (ip_hash[:45] if ip_hash else None),
                 client_id_hash,
                 session_id
             ))
             
             submission_id = cur.fetchone()[0]
         
-        logger.info(f"Successfully saved anonymous submission {submission_id} from IP {ip_address}")
+        logger.info("Successfully saved anonymous submission %s (ip_hash=%s)", submission_id, ip_hash)
         
         return jsonify({
             'success': True,
@@ -214,7 +227,7 @@ def debug_mass():
     Remove this route once you’re satisfied.
     """
     try:
-        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+        with database.get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
             cur.execute("SELECT * FROM ministries WHERE ministry_key = 'mass'")
             row = cur.fetchone()
         return jsonify({
@@ -233,7 +246,7 @@ def debug_submissions():
     Visit /api/debug/submissions in the browser.
     """
     try:
-        with get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
+        with database.get_db_connection(cursor_factory=psycopg2.extras.RealDictCursor) as (conn, cur):
             # Check table structure
             cur.execute("""
                 SELECT column_name, data_type, is_nullable, column_default 

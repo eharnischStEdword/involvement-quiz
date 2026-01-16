@@ -79,4 +79,4 @@ def test_admin_access():
 if __name__ == "__main__":
     print("=== Quiz Submission Test ===\n")
     test_quiz_submission()
-    test_admin_access() 
+    test_admin_access()
